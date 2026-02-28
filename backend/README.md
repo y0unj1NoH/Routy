@@ -1,0 +1,110 @@
+# myRoute Backend (Final MVP Schema)
+
+README(루트)의 최종 설계 문서를 기준으로 백엔드를 정렬한 버전입니다.
+
+## 1) Run
+
+```bash
+cd backend
+npm install
+# backend/.env 생성 (.env.example 참고)
+npm run dev
+```
+
+GraphQL endpoint:
+
+- `http://localhost:4000/graphql`
+
+## 2) Environment Variables
+
+- `SUPABASE_URL`
+- `SUPABASE_PUBLISHABLE_KEY`
+- `SUPABASE_SECRET_KEY`
+- `GOOGLE_PLACES_API_KEY` (선택, 장소 상세 동기화 시 사용)
+- `OAUTH_REDIRECT_TO` (Google OAuth URL 생성 시 사용)
+
+Legacy fallback:
+
+- `SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `GOOGLE_MAPS_API_KEY`
+
+## 3) Supabase SQL Bootstrap
+
+실행 파일:
+
+- `supabase/sql/001_init_requirements.sql`
+
+주의:
+
+- 이 스크립트는 `places/place_lists/place_list_items/schedules/schedule_days/schedule_stops`를 **drop 후 재생성**합니다.
+
+생성 테이블:
+
+- `places` (공용 장소 원본)
+- `place_lists` (유저 리스트 헤더)
+- `place_list_items` (리스트별 장소 + 메모/우선순위)
+- `schedules`
+- `schedule_days`
+- `schedule_stops`
+
+## 4) GraphQL Domain Summary
+
+### Auth
+
+- `signUp`
+- `signIn`
+- `signInWithGoogle`
+- `deleteMyAccount`
+
+### Place (Shared)
+
+- `places`
+- `place`
+- `placeByGooglePlaceId`
+- `parseGoogleMapsLink`
+- `importPlaceFromGoogleLink`
+- `upsertPlace`
+- `refreshPlaceDetails`
+
+### Place List
+
+- `myPlaceLists`
+- `placeList`
+- `createPlaceList`
+- `updatePlaceList`
+- `deletePlaceList`
+- `addPlaceListItem`
+- `updatePlaceListItem`
+- `removePlaceListItem`
+
+### Schedule
+
+- `mySchedules`
+- `schedule`
+- `createSchedule` (리스트 기반 생성)
+- `regenerateSchedule`
+- `moveScheduleStop`
+- `deleteSchedule`
+
+## 5) MVP Generation Notes
+
+- 일정 생성은 리스트 아이템(`place_list_items`)을 기반으로 수행
+- `priority=true` 아이템은 `MUSTVISIT` 배지로 우선 배치
+- 정렬은 nearest-neighbor 기반 + 간단 이동 추정
+- stop 단위 필드 저장:
+  - `time`
+  - `label`
+  - `badges`
+  - `reason`
+  - `transport_to_next`
+
+## 6) 고도화 (Future Enhancements)
+
+나중에 마이루트 백엔드 서비스를 고도화할 때 체크해볼 만한 항목들입니다. (작업 재개 시 참고용)
+
+- **AI 백그라운드 워커 분리 (Microservice):** 현재 `crawler.js`와 `geminiOptimizer.js`가 Node.js 메인 서버에 일체형으로 통합되어 있습니다 (MVP 적합). 추후 LLM 응답 대기 시간이 길어져 병목 현상(Blocking)이 발생하면 Python 워커(혹은 Node.js `BullMQ` + `Redis`)를 도입하여 비동기로 처리하는 이벤트 소싱 구조로 분리하는 것이 좋습니다.
+- **일정 부분 편집 및 커스텀 장소 기능:** 현재는 일정 전체 생성 및 `moveScheduleStop`을 통한 순서 변경만 지원됩니다. 개별 장소를 새로 끼워넣거나(커스텀 장소), 삭제하는 기능을 GraphQL Mutation으로 확장해야 합니다.
+- **카테고리 필터 검색:** 장소를 `LANDMARK`, `FOODIE` 등으로 추론(`inferCategory`)하고 있으나, 이를 통한 목록 필터링 조회 API(`placesByCategory` 등)를 추가하면 좋습니다.
+- **최적화 DB 트랜잭션:** 다중 테이블 Insert/Update(`createSchedule` 등) 수행 도중 실패 시 부분 데이터가 남는 것을 방지하기 위해 Supabase RPC(Stored Procedure)를 통한 원자적 트랜잭션을 고려할 수 있습니다.
+- **에러 모니터링 및 로깅:** AWS나 운영 환경 배포 시, `winston`이나 `Sentry`를 통해 크롤링 에러와 외부 API(Google, Gemini) 응답 실패를 전문적으로 추적하도록 보강하세요.
