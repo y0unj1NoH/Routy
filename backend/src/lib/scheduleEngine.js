@@ -1,28 +1,48 @@
 const {
-  MUST_VISIT_BADGE,
   PLACE_CATEGORY,
   THEME_CATEGORY,
-  appendMustVisitBadge,
   buildCanonicalRouteStopLabel
 } = require("./route-taxonomy");
+const { getOpeningHoursSignals } = require("./googlePlaces");
 
 const MEAL_PATTERN =
-  /restaurant|meal|ramen|sushi|yakitori|yakiniku|bbq|barbecue|grill|shabu|sukiyaki|hot_pot|steak|seafood|bistro|diner|tempura|udon|soba|katsu|burger|pizza|pasta|food_court|brunch/i;
+  /restaurant|meal|ramen|sushi|yakitori|yakiniku|bbq|barbecue|grill|shabu|sukiyaki|hot_pot|steak|seafood|bistro|diner|tempura|udon|soba|katsu|burger|pizza|pasta|food_court/i;
+const STRONG_MEAL_PATTERN =
+  /ramen|sushi|yakiniku|steak|seafood|korean_restaurant|italian_restaurant|french_restaurant|pizza|burger|udon|soba|tempura|shabu|hot_pot|tonkatsu|curry|western_restaurant|chicken_restaurant|gyukatsu|okonomiyaki|규카츠|돈카츠|카츠|오코노미야키|라멘|초밥|스시|우동|소바|샤브|스키야키/i;
+const BRUNCH_PATTERN =
+  /breakfast|brunch|toast|sandwich|bagel|pancake|morning|브런치|모닝|아침/i;
+const CAFE_PATTERN =
+  /cafe|coffee|tea|roastery|espresso|latte|카페|커피|로스터리|찻집/i;
+const SNACK_PATTERN =
+  /dessert|pastry|bakery|patisserie|confectionery|juice_shop|ice_cream|gelato|macaron|cake|cheesecake|pudding|chocolate|donut|crepe|sweets|sweet|takoyaki|taiyaki|cookie|croquette|street_food|snack/i;
 const HEAVY_DINNER_PATTERN =
   /izakaya|yakitori|yakiniku|bbq|barbecue|grill|steak|omakase|sushi|seafood|shabu|sukiyaki|hot_pot|french_restaurant|italian_restaurant|korean_restaurant|wine_bar|bistro|fine_dining/i;
-const DESSERT_PATTERN =
-  /dessert|pastry|bakery|patisserie|confectionery|cafe|coffee|tea|juice_shop|ice_cream|gelato|macaron|cake|chocolate|donut|crepe/i;
+const DESSERT_PATTERN = new RegExp(`${SNACK_PATTERN.source}|${CAFE_PATTERN.source}`, "i");
 const NIGHTLIFE_PATTERN =
-  /bar|pub|wine_bar|cocktail|beer|night_club|club|karaoke|live_music|izakaya|speakeasy/i;
-const NIGHT_VIEW_PATTERN = /observation|view|tower|lookout|skywalk|wheel|night_view|scenic/i;
+  /bar|pub|wine_bar|cocktail|beer|night_club|club|karaoke|live_music|speakeasy/i;
+const NIGHT_VIEW_PATTERN = /observation|view|tower|lookout|skywalk|wheel|night_view|scenic|observatory/i;
+const ACTIVITY_PATTERN =
+  /amusement_center|amusement_park|bowling_alley|video_arcade|sports_activity_location|sports_complex|go_kart_track|public_bath|sauna/i;
+const GENERIC_MEAL_TYPE_PATTERN = /^(restaurant|food|food_store)$/i;
+const GENERIC_DESSERT_TYPE_PATTERN = /^cafe$/i;
+const COMPLEX_VENUE_TYPE_PATTERN =
+  /shopping_mall|department_store|tourist_attraction|museum|park|art_gallery|temple|shinto_shrine|shrine|church|mosque|synagogue|stadium|arena|amusement_park|zoo|aquarium/i;
+const NIGHTLIFE_TYPE_PATTERN =
+  /^(bar|pub|wine_bar|cocktail_bar|beer_hall|beer_garden|sports_bar|night_club|club|karaoke|live_music_venue|speakeasy|japanese_izakaya_restaurant|izakaya)$/i;
+const IZAKAYA_TYPE_PATTERN = /^(japanese_izakaya_restaurant|izakaya)$/i;
 const RESERVATION_RISK_PATTERN =
   /izakaya|wine_bar|omakase|sushi_restaurant|seafood_restaurant|french_restaurant|steak|yakitori|yakiniku|fine_dining|bistro/i;
 const LODGING_PATTERN = /hotel|lodging|hostel|motel|guest|inn|resort|ryokan|accommodation/i;
-const SHOPPING_PATTERN = /shopping|store|mall|market|department_store|drugstore|toy_store/i;
-const LANDMARK_PATTERN = /tourist_attraction|museum|park|art_gallery|landmark|temple/i;
-const MORNING_FRIENDLY_PATTERN = /park|museum|market|shopping|cafe|bakery|dessert|tourist_attraction/i;
+const SHOPPING_PATTERN =
+  /shopping|shopping_mall|mall|market|department_store|drugstore|toy_store|gift_shop|clothing_store|electronics_store|furniture_store|book_store|shoe_store|jewelry_store|outlet/i;
+const LANDMARK_PATTERN = /tourist_attraction|museum|art_gallery|landmark|temple|castle|historical/i;
+const NATURE_PATTERN = /natural_feature|national_park|garden|botanical_garden|beach|mountain|waterfall|forest|park|hiking/i;
+const MORNING_FRIENDLY_PATTERN = /park|museum|market|shopping|cafe|bakery|dessert|tourist_attraction|garden/i;
 const MINUTES_PER_DAY = 24 * 60;
 const MINUTES_PER_WEEK = MINUTES_PER_DAY * 7;
+const FAME_REVIEW_FLOOR = 30;
+const FAME_PRIOR_REVIEWS = 100;
+const FAME_PRIOR_RATING = 4.2;
 const SLOT_MINIMUM_WINDOW_MINUTES = {
   MORNING: 50,
   LUNCH: 60,
@@ -113,6 +133,24 @@ function estimateTransport(from, to) {
   };
 }
 
+function toTransportPayload(transport) {
+  if (!transport) return null;
+  return {
+    mode: transport.mode,
+    distance: transport.distance,
+    duration: transport.duration
+  };
+}
+
+function recomputeStopTransports(stops) {
+  const list = Array.isArray(stops) ? stops : [];
+
+  return list.map((stop, index) => ({
+    ...stop,
+    transportToNext: toTransportPayload(estimateTransport(stop?.place || null, list[index + 1]?.place || null))
+  }));
+}
+
 function orderCandidatesByNearestNeighbor(candidates, anchor) {
   if (!anchor || anchor.lat == null || anchor.lng == null) {
     return [...candidates];
@@ -190,8 +228,19 @@ function isFoodieTrip(generationInput = {}) {
   return normalizeThemes(generationInput.themes).has(THEME_CATEGORY.FOODIE);
 }
 
+function hasTheme(generationInput = {}, theme) {
+  return normalizeThemes(generationInput.themes).has(theme);
+}
+
+function getCandidateReviewCount(candidate) {
+  const value = candidate?.place?.user_rating_count ?? candidate?.place?.userRatingCount;
+  const normalized = Number(value);
+  return Number.isFinite(normalized) ? normalized : 0;
+}
+
 function inferLandmark(place) {
-  if (typeof place.category === "string" && place.category.toUpperCase().includes(PLACE_CATEGORY.LANDMARK)) {
+  const category = String(place?.category || "").toUpperCase();
+  if (category === PLACE_CATEGORY.LANDMARK) {
     return true;
   }
 
@@ -199,9 +248,17 @@ function inferLandmark(place) {
   return types.some((type) => LANDMARK_PATTERN.test(String(type)));
 }
 
+function inferNature(place) {
+  const category = String(place?.category || "").toUpperCase();
+  if (category === PLACE_CATEGORY.NATURE) {
+    return true;
+  }
+
+  const types = Array.isArray(place?.types_raw) ? place.types_raw : [];
+  return types.some((type) => NATURE_PATTERN.test(String(type)));
+}
+
 function isViewSpot(candidate) {
-  const category = String(candidate?.place?.category || "").toUpperCase();
-  if (category.includes(PLACE_CATEGORY.VIEW)) return true;
   const types = Array.isArray(candidate?.place?.types_raw) ? candidate.place.types_raw : [];
   return types.some((type) => /observation|view|tower|lookout|skywalk|wheel|observatory|scenic/i.test(String(type)));
 }
@@ -217,7 +274,7 @@ function getCandidateOpeningHours(candidate) {
 }
 
 function isLodgingCandidate(candidate) {
-  if (String(candidate?.itemLabel || "").trim().toUpperCase() === "STAY") {
+  if (String(candidate?.place?.category || "").trim().toUpperCase() === PLACE_CATEGORY.STAY) {
     return true;
   }
 
@@ -348,25 +405,120 @@ function getCandidateTraits(candidate) {
   const category = String(place.category || "")
     .trim()
     .toUpperCase();
-  const types = Array.isArray(place.types_raw) ? place.types_raw.map((type) => String(type)) : [];
+  const types = Array.isArray(place.types_raw)
+    ? place.types_raw.map((type) => String(type || "").trim().toLowerCase()).filter(Boolean)
+    : Array.isArray(place.typesRaw)
+      ? place.typesRaw.map((type) => String(type || "").trim().toLowerCase()).filter(Boolean)
+      : [];
   const name = String(place.name || "").trim();
-  const searchable = [name, category, ...types].join(" ").toLowerCase();
+  const searchableName = name.toLowerCase();
+  const searchableMeta = [category, ...types].join(" ").toLowerCase();
   const priceLevel = getCandidatePriceLevel(candidate);
   const rating = Number.isFinite(Number(place.rating)) ? Number(place.rating) : null;
-
-  const isDessert = DESSERT_PATTERN.test(searchable);
-  const isMeal = MEAL_PATTERN.test(searchable) || (category.includes(PLACE_CATEGORY.FOODIE) && !isDessert);
-  const isDinnerPreferred = isMeal && (HEAVY_DINNER_PATTERN.test(searchable) || (priceLevel != null && priceLevel >= 2));
-  const isNightlife = NIGHTLIFE_PATTERN.test(searchable);
-  const isNightView = isViewSpot(candidate) || NIGHT_VIEW_PATTERN.test(searchable);
-  const isNight = isNightlife || isNightView;
+  const reviewCount = getCandidateReviewCount(candidate);
+  const openingSignals = getOpeningHoursSignals(getCandidateOpeningHours(candidate));
+  const isNightCategory = category === PLACE_CATEGORY.NIGHT;
+  const isComplexVenue =
+    category === PLACE_CATEGORY.ACTIVITY ||
+    category === PLACE_CATEGORY.SHOP ||
+    category === PLACE_CATEGORY.LANDMARK ||
+    category === PLACE_CATEGORY.NATURE ||
+    types.some((type) => COMPLEX_VENUE_TYPE_PATTERN.test(type));
+  const hasExplicitMealType = types.some(
+    (type) => MEAL_PATTERN.test(type) && !GENERIC_MEAL_TYPE_PATTERN.test(type)
+  );
+  const hasGenericMealType = types.some((type) => GENERIC_MEAL_TYPE_PATTERN.test(type));
+  const hasExplicitBrunchType = types.some((type) => BRUNCH_PATTERN.test(type));
+  const hasExplicitCafeType = types.some((type) => CAFE_PATTERN.test(type));
+  const hasExplicitDessertType = types.some(
+    (type) => DESSERT_PATTERN.test(type) && !GENERIC_DESSERT_TYPE_PATTERN.test(type)
+  );
+  const hasGenericDessertType = types.some((type) => GENERIC_DESSERT_TYPE_PATTERN.test(type));
+  const hasIzakayaType = types.some((type) => IZAKAYA_TYPE_PATTERN.test(type));
+  const hasStrongMealType = types.some((type) => STRONG_MEAL_PATTERN.test(type) && !IZAKAYA_TYPE_PATTERN.test(type));
+  const hasNightlifeType = types.some((type) => NIGHTLIFE_TYPE_PATTERN.test(type));
+  const hasMealNameHint = MEAL_PATTERN.test(searchableName);
+  const hasStrongMealNameHint = STRONG_MEAL_PATTERN.test(searchableName);
+  const hasBrunchNameHint = BRUNCH_PATTERN.test(searchableName);
+  const hasCafeNameHint = CAFE_PATTERN.test(searchableName);
+  const hasDessertNameHint = DESSERT_PATTERN.test(searchableName);
+  const hasNightlifeNameHint = NIGHTLIFE_PATTERN.test(searchableName);
+  const hasActivityType = types.some((type) => ACTIVITY_PATTERN.test(type));
+  const isBrunch =
+    category === PLACE_CATEGORY.BRUNCH ||
+    hasExplicitBrunchType ||
+    hasBrunchNameHint;
+  const isCafe =
+    category === PLACE_CATEGORY.CAFE ||
+    ((!hasExplicitMealType || hasExplicitBrunchType) && (hasExplicitCafeType || hasCafeNameHint));
+  const isSnack =
+    category === PLACE_CATEGORY.SNACK ||
+    hasDessertNameHint ||
+    (!isComplexVenue && (hasExplicitDessertType || hasGenericDessertType));
+  const isDessert = isCafe || isSnack;
+  const hasFoodSignal =
+    isBrunch ||
+    isCafe ||
+    isSnack ||
+    hasExplicitMealType ||
+    hasGenericMealType ||
+    hasMealNameHint ||
+    hasStrongMealNameHint;
+  const preferFoodOverNight =
+    hasStrongMealType ||
+    hasStrongMealNameHint ||
+    (hasFoodSignal && openingSignals.hasDaytimeService);
+  const isMeal =
+    !isNightCategory &&
+    (category === PLACE_CATEGORY.MEAL ||
+      hasMealNameHint ||
+      hasExplicitMealType ||
+      (!isComplexVenue && hasGenericMealType && !isDessert && !isBrunch));
+  const isDinnerPreferred =
+    isMeal && (HEAVY_DINNER_PATTERN.test(searchableMeta) || (priceLevel != null && priceLevel >= 2));
+  const hasNightViewSignal = isViewSpot(candidate) || NIGHT_VIEW_PATTERN.test(`${searchableName} ${searchableMeta}`);
+  const isNightView = hasNightViewSignal;
+  const isNightlife =
+    !isNightView &&
+    (isNightCategory || hasNightlifeType || hasNightlifeNameHint) &&
+    !preferFoodOverNight;
+  const isNight = isNightCategory || isNightlife || isNightView;
+  const nightSubtype = isNightView
+    ? "VIEW"
+    : /night_club|club/i.test(searchableMeta)
+      ? "CLUB"
+      : /live_music/i.test(searchableMeta)
+        ? "LIVE"
+        : isNightlife
+          ? "BAR"
+          : "OTHER";
   const reservationRisk =
     (isMeal || isNightlife) &&
-    (RESERVATION_RISK_PATTERN.test(searchable) || (priceLevel != null && priceLevel >= 3));
-  const isShopping = category.includes(PLACE_CATEGORY.SHOPPING) || SHOPPING_PATTERN.test(searchable);
+    (RESERVATION_RISK_PATTERN.test(searchableMeta) || (priceLevel != null && priceLevel >= 3));
+  const isActivity =
+    category === PLACE_CATEGORY.ACTIVITY ||
+    (hasActivityType && category !== PLACE_CATEGORY.LANDMARK && category !== PLACE_CATEGORY.SHOP);
+  const isShopping = category === PLACE_CATEGORY.SHOP || SHOPPING_PATTERN.test(searchableMeta);
   const isLandmark = inferLandmark(place);
+  const isNature = inferNature(place);
+  const isVisitCandidate = isShopping || isLandmark || isNature || isActivity;
   const isMorningFriendly =
-    MORNING_FRIENDLY_PATTERN.test(searchable) || isShopping || isLandmark || (isDessert && !isNightlife);
+    MORNING_FRIENDLY_PATTERN.test(searchableMeta) || isVisitCandidate || isBrunch || isCafe || isSnack;
+  const mealFit = isBrunch ? "LUNCH" : isDinnerPreferred ? "DINNER" : isMeal ? "BOTH" : null;
+  const fameScore =
+    rating == null
+      ? 0
+      : (reviewCount / (reviewCount + FAME_PRIOR_REVIEWS)) * rating +
+        (FAME_PRIOR_REVIEWS / (reviewCount + FAME_PRIOR_REVIEWS)) * FAME_PRIOR_RATING;
+  const isAnchorMeal =
+    isMeal &&
+    reviewCount >= FAME_REVIEW_FLOOR &&
+    ((fameScore >= 4.3 && reviewCount >= 100) ||
+      (fameScore >= 4.2 && reviewCount >= 300) ||
+      (fameScore >= 4.1 && reviewCount >= 1000));
+  const isAnchorVisit =
+    isVisitCandidate &&
+    (candidate?.isMustVisit || reviewCount >= 50 || rating >= 4.3);
 
   return {
     category,
@@ -374,16 +526,28 @@ function getCandidateTraits(candidate) {
     name,
     priceLevel,
     rating,
+    reviewCount,
     isMeal,
+    isBrunch,
+    isCafe,
     isDessert,
+    isSnack,
     isDinnerPreferred,
     isNightlife,
     isNightView,
     isNight,
+    nightSubtype,
     reservationRisk,
+    isActivity,
     isShopping,
     isLandmark,
-    isMorningFriendly
+    isNature,
+    isVisitCandidate,
+    isMorningFriendly,
+    mealFit,
+    fameScore,
+    isAnchorMeal,
+    isAnchorVisit
   };
 }
 
@@ -530,19 +694,27 @@ function buildPromptDaySlotSummary(candidate, tripDays = [], pace) {
 }
 
 function isCandidateCompatibleWithLabel(label, traits) {
+  if (label === "MORNING") {
+    return traits.isBrunch || traits.isCafe || traits.isSnack || traits.isVisitCandidate;
+  }
+
   if (label === "LUNCH" || label === "DINNER") {
     return traits.isMeal;
   }
 
   if (label === "DESSERT") {
-    return traits.isDessert;
+    return traits.isCafe || traits.isSnack;
   }
 
   if (label === "NIGHT") {
     return traits.isNight;
   }
 
-  return true;
+  if (label === "VISIT") {
+    return traits.isVisitCandidate;
+  }
+
+  return false;
 }
 
 function countMatchingCandidates(candidates, predicate) {
@@ -562,31 +734,24 @@ function isDessertHeavyTrip(candidates, generationInput = {}) {
 function getThemeMatchScore(candidate, themes) {
   if (!themes.size) return 0;
 
-  const category = String(candidate?.place?.category || "")
-    .trim()
-    .toUpperCase();
-  const types = Array.isArray(candidate?.place?.types_raw) ? candidate.place.types_raw : [];
+  const traits = getCandidateTraits(candidate);
 
   let score = 0;
 
-  if (themes.has(category)) {
-    score += 3;
+  if (themes.has(THEME_CATEGORY.FOODIE) && (traits.isMeal || traits.isBrunch || traits.isCafe || traits.isSnack || traits.isNight)) {
+    score += traits.isAnchorMeal ? 4 : 2;
   }
 
-  if (themes.has(THEME_CATEGORY.NATURE) && (category === PLACE_CATEGORY.VIEW || category === PLACE_CATEGORY.NATURE)) {
-    score += 2;
+  if (themes.has(THEME_CATEGORY.LANDMARK) && traits.isLandmark) {
+    score += 4;
   }
 
-  if (themes.has(THEME_CATEGORY.FOODIE) && types.some((type) => /restaurant|cafe|bakery|meal|food/i.test(String(type)))) {
-    score += 1;
+  if (themes.has(THEME_CATEGORY.NATURE) && traits.isNature) {
+    score += 4;
   }
 
-  if (themes.has(THEME_CATEGORY.LANDMARK) && types.some((type) => LANDMARK_PATTERN.test(String(type)))) {
-    score += 1;
-  }
-
-  if (themes.has(THEME_CATEGORY.SHOPPING) && types.some((type) => SHOPPING_PATTERN.test(String(type)))) {
-    score += 1;
+  if (themes.has(THEME_CATEGORY.SHOPPING) && traits.isShopping) {
+    score += 4;
   }
 
   return score;
@@ -604,7 +769,7 @@ function normalizeCandidates(candidates) {
       const normalized = {
         place,
         note: candidate.note || null,
-        priority: Boolean(candidate.priority)
+        isMustVisit: Boolean(candidate.isMustVisit)
       };
       byPlaceId.set(place.id, normalized);
       deduped.push(normalized);
@@ -612,7 +777,7 @@ function normalizeCandidates(candidates) {
     }
 
     const existing = byPlaceId.get(place.id);
-    existing.priority = existing.priority || Boolean(candidate.priority);
+    existing.isMustVisit = existing.isMustVisit || Boolean(candidate.isMustVisit);
     if (!existing.note && candidate.note) {
       existing.note = candidate.note;
     }
@@ -630,17 +795,19 @@ function rankCandidates(normalizedCandidates, generationInput = {}) {
       return {
         candidate,
         index,
-        priorityScore: candidate.priority ? 1 : 0,
+        mustVisitScore: candidate.isMustVisit ? 1 : 0,
         themeScore: getThemeMatchScore(candidate, themes),
         noteScore: candidate.note ? 1 : 0,
         ratingScore: Number.isFinite(rating) ? rating : 0,
+        fameScore: traits.fameScore || 0,
         dinnerScore: traits.isDinnerPreferred ? 1 : 0,
         nightScore: traits.isNight ? 1 : 0
       };
     })
     .sort((left, right) => {
-      if (right.priorityScore !== left.priorityScore) return right.priorityScore - left.priorityScore;
+      if (right.mustVisitScore !== left.mustVisitScore) return right.mustVisitScore - left.mustVisitScore;
       if (right.themeScore !== left.themeScore) return right.themeScore - left.themeScore;
+      if (right.fameScore !== left.fameScore) return right.fameScore - left.fameScore;
       if (right.noteScore !== left.noteScore) return right.noteScore - left.noteScore;
       if (right.dinnerScore !== left.dinnerScore) return right.dinnerScore - left.dinnerScore;
       if (right.nightScore !== left.nightScore) return right.nightScore - left.nightScore;
@@ -650,7 +817,7 @@ function rankCandidates(normalizedCandidates, generationInput = {}) {
 }
 
 function isPinnedCandidate(candidate) {
-  return Boolean(candidate?.priority || candidate?.note);
+  return Boolean(candidate?.isMustVisit || candidate?.note);
 }
 
 function selectCandidatesForLimit(normalizedCandidates, limit, generationInput = {}, options = {}) {
@@ -683,38 +850,15 @@ function selectCandidatesForLimit(normalizedCandidates, limit, generationInput =
 }
 
 function selectCandidatesForTrip(candidates, dayCount, generationInput = {}) {
-  const normalizedCandidates = normalizeCandidates(candidates);
-  const tripStopLimit = resolveTripStopLimit(dayCount, generationInput);
-  return selectCandidatesForLimit(normalizedCandidates, tripStopLimit, generationInput);
+  return normalizeCandidates(candidates);
 }
 
 function selectCandidatesForAiPlanning(candidates, dayCount, generationInput = {}) {
-  const normalizedCandidates = normalizeCandidates(candidates);
-  const pinnedCount = normalizedCandidates.filter((candidate) => isPinnedCandidate(candidate)).length;
-  const keepAllThreshold = pinnedCount > 0 ? 30 : 36;
-
-  if (normalizedCandidates.length <= keepAllThreshold) {
-    return normalizedCandidates;
-  }
-
-  const tripStopLimit = resolveTripStopLimit(dayCount, generationInput);
-  const aiLimit = Math.min(
-    normalizedCandidates.length,
-    Math.max(tripStopLimit + (pinnedCount > 0 ? 8 : 12), pinnedCount + 8, 32)
-  );
-
-  if (aiLimit >= normalizedCandidates.length) {
-    return normalizedCandidates;
-  }
-
-  return selectCandidatesForLimit(normalizedCandidates, aiLimit, generationInput, {
-    preservePinned: true
-  });
+  return normalizeCandidates(candidates);
 }
 
-function buildBadges(candidate) {
-  const badges = inferLandmark(candidate.place) ? [PLACE_CATEGORY.LANDMARK] : [];
-  return appendMustVisitBadge(badges, candidate.priority);
+function resolveIsMustVisit(candidate) {
+  return Boolean(candidate?.isMustVisit);
 }
 
 function formatWeekday(dateString, outputLanguage) {
@@ -737,7 +881,7 @@ function buildReason(candidate, transport, outputLanguage, label) {
     } else if (label === "DESSERT") {
       chunks.push("Placed here as a natural cafe or dessert break between bigger stops.");
     } else {
-      chunks.push(candidate.priority ? "Placed early because it is marked as a must-visit." : "Placed here to keep the route efficient.");
+      chunks.push(candidate.isMustVisit ? "Placed early because it is marked as a must-visit." : "Placed here to keep the route efficient.");
     }
 
     if (transport?.travelMinutes) {
@@ -751,7 +895,7 @@ function buildReason(candidate, transport, outputLanguage, label) {
     } else if (label === "DESSERT") {
       chunks.push("큰 식사 사이에 쉬어 가기 좋은 디저트/카페 타이밍으로 넣었어요.");
     } else {
-      chunks.push(candidate.priority ? "MustVisit 장소라 먼저 반영했어요." : "전체 동선과 시간대를 같이 보고 넣었어요.");
+      chunks.push(candidate.isMustVisit ? "MustVisit 장소라 먼저 반영했어요." : "전체 동선과 시간대를 같이 보고 넣었어요.");
     }
 
     if (transport?.travelMinutes) {
@@ -808,41 +952,13 @@ function buildVisitTip({ candidate, transport, time, label, visitDate, outputLan
       : "해가 진 뒤에 가야 분위기가 더 살아나요. 너무 이르게 가지 않는 편이 좋아요.";
   }
 
-  if (traits.isMeal) {
-    if (outputLanguage === "en") {
-      return weekday
-        ? `Food hours can shift on ${weekday}s, so check opening hours and arrive around ${time || "meal time"}.`
-        : `Arrive around ${time || "meal time"} so this stop still works as a proper meal break.`;
-    }
-
-    return weekday
-      ? `${weekday} 운영 시간이 달라질 수 있어요. ${time || "식사 시간"} 전에 도착하도록 영업시간을 한 번 더 확인해 보세요.`
-      : `${time || "식사 시간"} 전에 도착하면 식사 흐름이 끊기지 않아요. 영업시간을 한 번 더 확인해 보세요.`;
-  }
-
-  if (traits.isNight && outputLanguage === "en") {
-    return "Evening spots can have last-entry or closing-time quirks, so do a quick hours check before heading over.";
-  }
-
-  if (traits.isNight) {
-    return "밤 시간대엔 입장 마감이나 운영 시간이 달라질 수 있어요. 가기 전에 한 번 더 확인해 보세요.";
-  }
-
   if (transport?.travelMinutes >= 30) {
     return outputLanguage === "en"
       ? `The transfer takes about ${formatDurationByLanguage(transport.travelMinutes, outputLanguage)}, so leave a little buffer before heading here.`
       : `이동이 약 ${formatDurationByLanguage(transport.travelMinutes, outputLanguage)} 걸릴 수 있어 조금 여유 있게 출발하는 편이 좋아요.`;
   }
 
-  if (visitDate) {
-    return outputLanguage === "en"
-      ? `Hours can vary on ${weekday}, so do a quick check before you go.`
-      : `${weekday} 운영 시간이 달라질 수 있어 방문 전에 한 번 더 확인하는 편이 좋아요.`;
-  }
-
-  return outputLanguage === "en"
-    ? "Check the latest hours before you go so this stop does not slip in the schedule."
-    : "현장 운영 시간이 달라질 수 있으니 가기 전에 한 번 더 확인해 보세요.";
+  return null;
 }
 
 function distributeStopCounts(totalStops, dayCount) {
@@ -853,66 +969,97 @@ function distributeStopCounts(totalStops, dayCount) {
   return Array.from({ length: normalizedDayCount }, (_, index) => baseSize + (index < remainder ? 1 : 0));
 }
 
-function buildDayLabelPlan({ stopCount, remainingCandidates, daysLeft, generationInput = {} }) {
-  if (stopCount <= 0) return [];
+function buildDayLabelPlan({ remainingCandidates, daysLeft, generationInput = {} }) {
+  const totalDays = Math.max(1, Number(generationInput.dayCount) || Math.max(1, daysLeft));
+  const pace = String(generationInput.pace || "").toUpperCase();
+  const softStopTarget = resolveDailyStopTarget(generationInput) + (isFoodieTrip(generationInput) ? 1 : 0);
+  const mealCount = countMatchingCandidates(remainingCandidates, (candidate) => getCandidateTraits(candidate).isMeal);
+  const brunchLikeCount = countMatchingCandidates(remainingCandidates, (candidate) => {
+    const traits = getCandidateTraits(candidate);
+    return traits.isBrunch || traits.isCafe || traits.isSnack;
+  });
+  const dessertCount = countMatchingCandidates(remainingCandidates, (candidate) => {
+    const traits = getCandidateTraits(candidate);
+    return traits.isCafe || traits.isSnack;
+  });
+  const nightCount = countMatchingCandidates(remainingCandidates, (candidate) => getCandidateTraits(candidate).isNight);
+  const visitAnchorCount = countMatchingCandidates(remainingCandidates, (candidate) => getCandidateTraits(candidate).isVisitCandidate);
+  const mustVisitVisitCount = countMatchingCandidates(remainingCandidates, (candidate) => {
+    const traits = getCandidateTraits(candidate);
+    return candidate.isMustVisit && traits.isVisitCandidate;
+  });
+  const mustVisitNightCount = countMatchingCandidates(remainingCandidates, (candidate) => {
+    const traits = getCandidateTraits(candidate);
+    return candidate.isMustVisit && traits.isNight;
+  });
 
-  const remainingMealCount = countMatchingCandidates(remainingCandidates, (candidate) => getCandidateTraits(candidate).isMeal);
-  const remainingDessertCount = countMatchingCandidates(remainingCandidates, (candidate) => getCandidateTraits(candidate).isDessert);
-  const remainingNightCount = countMatchingCandidates(remainingCandidates, (candidate) => getCandidateTraits(candidate).isNight);
-
-  const wantMorning =
-    stopCount >= 4 &&
-    (String(generationInput.pace || "").toUpperCase() !== "RELAXED" ||
-      (isFoodieTrip(generationInput) && remainingMealCount >= 3 && stopCount >= 5));
-  const wantLunch = stopCount >= 1 && remainingMealCount > 0;
-  const wantDinner = stopCount >= 2 && remainingMealCount > 1;
-
-  let dessertQuota = 0;
-  if (isCoupleTrip(generationInput) && remainingDessertCount >= daysLeft && stopCount >= 3) {
-    dessertQuota = 1;
+  if (mealCount < 2) {
+    return [];
   }
 
-  if ((isDessertHeavyTrip(remainingCandidates, generationInput) || isFoodieTrip(generationInput)) && stopCount >= 5) {
-    const extraDessertSlots = Math.max(0, remainingDessertCount - dessertQuota);
-    dessertQuota += Math.min(extraDessertSlots, isFoodieTrip(generationInput) ? 2 : 1);
-  }
+  const anchorThreshold = Math.min(2, totalDays);
+  const activeVisitTheme =
+    (hasTheme(generationInput, THEME_CATEGORY.LANDMARK) &&
+      countMatchingCandidates(remainingCandidates, (candidate) => getCandidateTraits(candidate).isLandmark) >= anchorThreshold) ||
+    (hasTheme(generationInput, THEME_CATEGORY.NATURE) &&
+      countMatchingCandidates(remainingCandidates, (candidate) => getCandidateTraits(candidate).isNature) >= anchorThreshold) ||
+    (hasTheme(generationInput, THEME_CATEGORY.SHOPPING) &&
+      countMatchingCandidates(remainingCandidates, (candidate) => getCandidateTraits(candidate).isShopping) >= anchorThreshold);
 
-  const wantNight =
-    wantDinner &&
-    remainingNightCount > 0 &&
-    ((isGroupTrip(generationInput) && stopCount >= 4) ||
-      ((isCoupleTrip(generationInput) || String(generationInput.pace || "").toUpperCase() === "INTENSE") && stopCount >= 5));
-
-  const headLabels = [];
-  if (wantMorning) headLabels.push("MORNING");
-  if (wantLunch) headLabels.push("LUNCH");
-
-  const tailLabels = [];
-  if (wantDinner) tailLabels.unshift("DINNER");
-  if (wantNight) tailLabels.push("NIGHT");
-
-  const availableMiddleSlots = Math.max(0, stopCount - headLabels.length - tailLabels.length);
-  dessertQuota = Math.min(dessertQuota, availableMiddleSlots);
-
+  const labels = [];
   const middleLabels = [];
-  for (let index = 0; index < dessertQuota; index += 1) {
+  const wantsFoodieMorning = isFoodieTrip(generationInput) && brunchLikeCount > 0;
+  const wantsVisitMorning = !wantsFoodieMorning && activeVisitTheme && visitAnchorCount > 0 && pace !== "RELAXED";
+  if (wantsFoodieMorning || wantsVisitMorning) {
+    labels.push("MORNING");
+  }
+
+  labels.push("LUNCH");
+
+  let visitQuota = 0;
+  if (mustVisitVisitCount > 0) {
+    visitQuota = Math.max(visitQuota, Math.ceil(mustVisitVisitCount / Math.max(1, daysLeft)));
+  }
+  if (activeVisitTheme && visitAnchorCount > 0) {
+    visitQuota = Math.max(visitQuota, 1);
+  } else if (!hasTheme(generationInput, THEME_CATEGORY.SHOPPING) && visitAnchorCount > daysLeft) {
+    visitQuota = Math.max(visitQuota, 1);
+  }
+  if (pace === "INTENSE" && visitAnchorCount > daysLeft * 2) {
+    visitQuota = Math.max(visitQuota, 2);
+  }
+  visitQuota = Math.min(2, visitQuota);
+
+  const wantsDessert = dessertCount > 0 && (isFoodieTrip(generationInput) || isCoupleTrip(generationInput) || softStopTarget >= 5);
+  const dessertQuota = wantsDessert ? 1 : 0;
+  const nonNightLimit = Math.max(2, softStopTarget);
+  const maxMiddleSlots = Math.max(0, nonNightLimit - labels.length - 1);
+
+  if (isFoodieTrip(generationInput) && dessertQuota > 0 && middleLabels.length < maxMiddleSlots) {
     middleLabels.push("DESSERT");
   }
 
-  while (headLabels.length + middleLabels.length + tailLabels.length < stopCount) {
-    const shouldAddDessert =
-      middleLabels.length > 0 &&
-      isFoodieTrip(generationInput) &&
-      isDessertHeavyTrip(remainingCandidates, generationInput) &&
-      middleLabels.length < 3 &&
-      middleLabels.length + tailLabels.length + headLabels.length < stopCount;
-
-    middleLabels.unshift(shouldAddDessert ? "DESSERT" : "VISIT");
+  for (let index = 0; index < visitQuota && middleLabels.length < maxMiddleSlots; index += 1) {
+    middleLabels.push("VISIT");
   }
 
-  const labels = [...headLabels, ...middleLabels, ...tailLabels].slice(0, stopCount);
-  if (labels.length === 0) {
-    return Array.from({ length: stopCount }, () => "VISIT");
+  if (!isFoodieTrip(generationInput) && dessertQuota > 0 && middleLabels.length < maxMiddleSlots) {
+    middleLabels.push("DESSERT");
+  }
+
+  labels.push(...middleLabels, "DINNER");
+
+  let nightQuota = nightCount > 0 ? 1 : 0;
+  if (mustVisitNightCount > 0) {
+    nightQuota = Math.max(nightQuota, Math.ceil(mustVisitNightCount / Math.max(1, daysLeft)));
+  }
+  if (pace === "INTENSE" && nightCount > daysLeft) {
+    nightQuota = Math.max(nightQuota, 2);
+  }
+  nightQuota = Math.min(2, nightQuota);
+
+  for (let index = 0; index < nightQuota; index += 1) {
+    labels.push("NIGHT");
   }
 
   return labels;
@@ -925,7 +1072,8 @@ function scoreCandidateForLabel({
   generationInput = {},
   visitDate = null,
   currentMinutes = 0,
-  occurrenceIndex = 0
+  occurrenceIndex = 0,
+  dailyActivityCount = 0
 }) {
   const traits = getCandidateTraits(candidate);
   const routeIndex = Number.isFinite(Number(candidate.routeIndex)) ? Number(candidate.routeIndex) : 0;
@@ -953,6 +1101,15 @@ function scoreCandidateForLabel({
     };
   }
 
+  if (traits.isActivity && dailyActivityCount >= 1) {
+    return {
+      score: Number.NEGATIVE_INFINITY,
+      transport,
+      arrivalMinutes,
+      availability
+    };
+  }
+
   if (availability.isKnown && !availability.isSlotValid) {
     return {
       score: Number.NEGATIVE_INFINITY,
@@ -963,7 +1120,7 @@ function scoreCandidateForLabel({
   }
 
   let score = 0;
-  score += candidate.priority ? 45 : 0;
+  score += candidate.isMustVisit ? 45 : 0;
   score += candidate.note ? 8 : 0;
   score += Number.isFinite(traits.rating) ? traits.rating * 4 : 0;
   score += Math.max(0, 24 - routeIndex);
@@ -979,23 +1136,29 @@ function scoreCandidateForLabel({
   }
 
   if (label === "MORNING") {
-    score += traits.isMorningFriendly ? 26 : 0;
-    score += traits.isNightlife ? -18 : 0;
-    score += traits.isDinnerPreferred ? -10 : 0;
-    score += traits.isDessert ? 6 : 0;
-    score += isFoodieTrip(generationInput) && traits.isMeal ? 8 : 0;
-    score += traits.isLandmark || traits.isShopping ? 8 : 0;
+    score += traits.isBrunch ? 40 : 0;
+    score += traits.isCafe ? 24 : 0;
+    score += traits.isSnack ? 16 : 0;
+    score += !isFoodieTrip(generationInput) && traits.isVisitCandidate ? 18 : 0;
+    score += traits.isActivity ? 12 : 0;
+    score += traits.isNight ? -24 : 0;
   } else if (label === "LUNCH") {
     score += traits.isMeal ? 55 : -30;
     score += traits.isDessert ? -18 : 0;
     score += traits.isDinnerPreferred ? 4 : 12;
     score += traits.priceLevel != null ? Math.max(0, 4 - traits.priceLevel) * 5 : 0;
+    score += traits.fameScore * 6;
   } else if (label === "VISIT") {
-    score += !traits.isMeal && !traits.isDessert && !traits.isNight ? 20 : 0;
-    score += traits.isLandmark || traits.isShopping ? 10 : 0;
-    score += traits.isNight ? -10 : 0;
+    score += traits.isVisitCandidate ? 40 : -80;
+    score += traits.isActivity ? 16 : 0;
+    score += traits.isLandmark ? (hasTheme(generationInput, THEME_CATEGORY.LANDMARK) ? 20 : 8) : 0;
+    score += traits.isNature ? (hasTheme(generationInput, THEME_CATEGORY.NATURE) ? 20 : 8) : 0;
+    score += traits.isShopping ? (hasTheme(generationInput, THEME_CATEGORY.SHOPPING) ? 18 : 6) : 0;
+    score += traits.isMeal || traits.isBrunch || traits.isCafe || traits.isSnack ? -60 : 0;
+    score += traits.isAnchorVisit ? 8 : 0;
   } else if (label === "DESSERT") {
-    score += traits.isDessert ? 60 : -35;
+    score += traits.isCafe ? 64 : 0;
+    score += traits.isSnack ? 56 : -35;
     score += isCoupleTrip(generationInput) ? 12 : 0;
     score += isFoodieTrip(generationInput) ? 8 : 0;
     score += traits.priceLevel != null ? Math.max(0, 3 - traits.priceLevel) * 2 : 0;
@@ -1005,6 +1168,7 @@ function scoreCandidateForLabel({
     score += traits.priceLevel != null ? traits.priceLevel * 6 : 0;
     score += traits.reservationRisk ? 6 : 0;
     score += traits.isDessert ? -25 : 0;
+    score += traits.fameScore * 10;
   } else if (label === "NIGHT") {
     score += traits.isNight ? 65 : -40;
     score += traits.isNightlife ? 16 : 0;
@@ -1029,7 +1193,8 @@ function selectCandidateForLabel({
   generationInput = {},
   visitDate = null,
   currentMinutes = 0,
-  occurrenceIndex = 0
+  occurrenceIndex = 0,
+  dailyActivityCount = 0
 }) {
   if (!remainingCandidates.length) return null;
 
@@ -1047,7 +1212,8 @@ function selectCandidateForLabel({
       generationInput,
       visitDate,
       currentMinutes,
-      occurrenceIndex
+      occurrenceIndex,
+      dailyActivityCount
     });
 
     if (evaluation.score > bestScore) {
@@ -1079,85 +1245,51 @@ function removeCandidateByPlaceId(candidates, placeId) {
   }
 }
 
-function pickCandidatesForDay({ remainingCandidates, stopCount, daysLeft = 1, generationInput = {}, tripDay = null }) {
-  if (stopCount <= 0) return [];
-
-  const dayWindowSize = Math.max(stopCount * 4, 12);
+function pickCandidatesForDay({ remainingCandidates, daysLeft = 1, generationInput = {}, tripDay = null }) {
   const labels = buildDayLabelPlan({
-    stopCount,
     remainingCandidates,
     daysLeft,
     generationInput
   });
+  if (labels.length === 0) return [];
 
   const selected = [];
   const occurrenceCounter = new Map();
+  let dailyActivityCount = 0;
   let currentMinutes = resolveInitialMinutes(generationInput, labels);
 
   for (const label of labels) {
     const occurrenceIndex = occurrenceCounter.get(label) || 0;
     occurrenceCounter.set(label, occurrenceIndex + 1);
     const previousCandidate = selected[selected.length - 1]?.candidate || null;
-    const windowCandidates = remainingCandidates.slice(0, dayWindowSize);
-
-    let selection = selectCandidateForLabel({
-      label,
-      remainingCandidates: windowCandidates,
-      previousCandidate,
-      generationInput,
-      visitDate: tripDay?.date || null,
-      currentMinutes,
-      occurrenceIndex
-    });
-
-    if (!selection && remainingCandidates.length > windowCandidates.length) {
-      selection = selectCandidateForLabel({
-        label,
-        remainingCandidates,
-        previousCandidate,
-        generationInput,
-        visitDate: tripDay?.date || null,
-        currentMinutes,
-        occurrenceIndex
-      });
-    }
-
-    if (!selection) continue;
-
-    selected.push({
-      label,
-      candidate: selection.candidate,
-      plannedStartMinutes: selection.arrivalMinutes,
-      availability: selection.availability
-    });
-    currentMinutes = selection.arrivalMinutes + resolveStopDurationMinutes(label, selection.candidate);
-    removeCandidateByPlaceId(remainingCandidates, selection.candidate.place.id);
-  }
-
-  while (selected.length < stopCount) {
-    const previousCandidate = selected[selected.length - 1]?.candidate || null;
-    const fallbackLabel = "VISIT";
-    const occurrenceIndex = occurrenceCounter.get(fallbackLabel) || 0;
-    occurrenceCounter.set(fallbackLabel, occurrenceIndex + 1);
     const selection = selectCandidateForLabel({
-      label: fallbackLabel,
+      label,
       remainingCandidates,
       previousCandidate,
       generationInput,
       visitDate: tripDay?.date || null,
       currentMinutes,
-      occurrenceIndex
+      occurrenceIndex,
+      dailyActivityCount
     });
 
-    if (!selection) break;
+    if (!selection) {
+      if (label === "LUNCH" || label === "DINNER") {
+        return [];
+      }
+      continue;
+    }
 
     selected.push({
-      label: fallbackLabel,
+      label,
       candidate: selection.candidate,
       plannedStartMinutes: selection.arrivalMinutes,
       availability: selection.availability
     });
-    currentMinutes = selection.arrivalMinutes + resolveStopDurationMinutes(fallbackLabel, selection.candidate);
+    if (getCandidateTraits(selection.candidate).isActivity) {
+      dailyActivityCount += 1;
+    }
+    currentMinutes = selection.arrivalMinutes + resolveStopDurationMinutes(label, selection.candidate);
     removeCandidateByPlaceId(remainingCandidates, selection.candidate.place.id);
   }
 
@@ -1207,7 +1339,7 @@ function resolveStopDurationMinutes(label, candidate) {
   if (label === "DINNER") return traits.priceLevel != null && traits.priceLevel >= 3 ? 120 : 100;
   if (label === "LUNCH") return 80;
   if (label === "MORNING") return 75;
-  return candidate.priority ? 120 : 90;
+  return candidate.isMustVisit ? 120 : 90;
 }
 
 function resolveInitialMinutes(generationInput = {}, labelPlan = []) {
@@ -1235,7 +1367,7 @@ function buildDayStops({ daySelections, tripDay, generationInput = {} }) {
       placeId: candidate.place.id,
       time,
       label,
-      badges: buildBadges(candidate),
+      isMustVisit: resolveIsMustVisit(candidate),
       note: candidate.note || null,
       reason: buildReason(candidate, transport, outputLanguage, label),
       visitTip: buildVisitTip({
@@ -1269,8 +1401,8 @@ function buildDayStops({ daySelections, tripDay, generationInput = {} }) {
 
 function buildSchedulePlan({ candidates, dayCount, stayPlace, generationInput = {} }) {
   const normalizedCandidates = selectCandidatesForTrip(candidates, dayCount, generationInput);
-  const prioritized = normalizedCandidates.filter((candidate) => candidate.priority);
-  const normal = normalizedCandidates.filter((candidate) => !candidate.priority);
+  const prioritized = normalizedCandidates.filter((candidate) => candidate.isMustVisit);
+  const normal = normalizedCandidates.filter((candidate) => !candidate.isMustVisit);
   const orderedCandidates = [
     ...orderCandidatesByNearestNeighbor(prioritized, stayPlace),
     ...orderCandidatesByNearestNeighbor(normal, stayPlace)
@@ -1280,19 +1412,24 @@ function buildSchedulePlan({ candidates, dayCount, stayPlace, generationInput = 
   }));
 
   const tripDays = Array.isArray(generationInput.tripDays) ? generationInput.tripDays : [];
-  const stopCounts = distributeStopCounts(orderedCandidates.length, dayCount);
   const remainingCandidates = [...orderedCandidates];
+  let allowMoreDays = true;
 
-  return stopCounts.map((stopCount, index) => {
+  return Array.from({ length: dayCount }, (_, index) => {
     const dayNumber = index + 1;
     const tripDay = tripDays.find((day) => Number(day.day) === dayNumber) || null;
-    const daySelections = pickCandidatesForDay({
-      remainingCandidates,
-      stopCount,
-      daysLeft: Math.max(1, dayCount - index),
-      generationInput,
-      tripDay
-    });
+    const daySelections = allowMoreDays
+      ? pickCandidatesForDay({
+          remainingCandidates,
+          daysLeft: Math.max(1, dayCount - index),
+          generationInput,
+          tripDay
+        })
+      : [];
+
+    if (allowMoreDays && daySelections.length === 0) {
+      allowMoreDays = false;
+    }
 
     return {
       dayNumber,
@@ -1306,13 +1443,17 @@ function buildSchedulePlan({ candidates, dayCount, stayPlace, generationInput = 
 }
 
 module.exports = {
+  buildReason,
   buildSchedulePlan,
+  buildVisitTip,
   buildPromptDaySlotSummary,
+  recomputeStopTransports,
   evaluateCandidateVisitWindow,
   filterNonLodgingCandidates,
   getCandidateTraits,
   isLodgingCandidate,
   resolveLabelAnchorMinutes,
   resolveDailyStopTarget,
+  resolveStopDurationMinutes,
   selectCandidatesForAiPlanning
 };

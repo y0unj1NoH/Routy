@@ -6,11 +6,16 @@
     "reserved": []
   },
   "placeCategory": {
+    "STAY": "STAY",
+    "MEAL": "MEAL",
+    "BRUNCH": "BRUNCH",
+    "CAFE": "CAFE",
+    "SNACK": "SNACK",
+    "NIGHT": "NIGHT",
+    "ACTIVITY": "ACTIVITY",
     "LANDMARK": "LANDMARK",
-    "FOODIE": "FOODIE",
-    "SHOPPING": "SHOPPING",
     "NATURE": "NATURE",
-    "VIEW": "VIEW"
+    "SHOP": "SHOP"
   },
   "themeCategory": {
     "FOODIE": "FOODIE",

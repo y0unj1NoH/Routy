@@ -51,8 +51,7 @@ const typeDefs = /* GraphQL */ `
   type PlaceListItem {
     id: ID!
     note: String
-    priority: Boolean!
-    itemLabel: String
+    isMustVisit: Boolean!
     createdAt: String!
     place: Place!
   }
@@ -76,7 +75,7 @@ const typeDefs = /* GraphQL */ `
     stopOrder: Int!
     time: String
     label: String
-    badges: [String!]!
+    isMustVisit: Boolean!
     note: String
     reason: String
     visitTip: String
@@ -151,14 +150,12 @@ const typeDefs = /* GraphQL */ `
     listId: ID!
     placeId: ID!
     note: String
-    priority: Boolean = false
-    itemLabel: String
+    isMustVisit: Boolean = false
   }
 
   input UpdatePlaceListItemInput {
     note: String
-    priority: Boolean
-    itemLabel: String
+    isMustVisit: Boolean
   }
 
   input CreateScheduleInput {

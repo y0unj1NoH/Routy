@@ -6,7 +6,7 @@ with ranked_items as (
     id,
     row_number() over (
       partition by list_id
-      order by priority desc, created_at asc, id asc
+      order by is_must_visit desc, created_at asc, id asc
     ) as next_sort_order
   from public.place_list_items
 )

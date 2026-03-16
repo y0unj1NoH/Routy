@@ -2,8 +2,9 @@ const { GraphQLError } = require("graphql");
 const { createHash } = require("node:crypto");
 const GraphQLJSON = require("graphql-type-json");
 const { createSupabaseAdminClient, extractBearerToken } = require("./lib/supabase");
-const { buildSchedulePlan } = require("./lib/scheduleEngine");
+const { buildSchedulePlan, recomputeStopTransports } = require("./lib/scheduleEngine");
 const { buildAiSchedulePlan } = require("./lib/geminiOptimizer");
+const { sanitizeScheduledDayStops } = require("./lib/scheduleStopSanitizer");
 const { buildStayRecommendation } = require("./lib/stayRecommendation");
 const { scrapeList } = require("./lib/aiCrawler");
 const {
@@ -11,8 +12,10 @@ const {
   resolveGoogleMapsLink,
   searchPlacesByText,
   fetchPlaceDetailsById,
-  normalizePlacePayload
+  normalizePlacePayload,
+  inferCategory
 } = require("./lib/googlePlaces");
+const { PLACE_CATEGORY } = require("./lib/route-taxonomy");
 
 const TABLES = {
   places: "places",
@@ -26,7 +29,6 @@ const MAX_SCHEDULE_DAY_COUNT = 7;
 const MAX_PLACE_LIST_NAME_LENGTH = 12;
 const MAX_PLACE_LIST_CITY_LENGTH = 12;
 const DEFAULT_OUTPUT_LANGUAGE = "ko";
-const ITEM_LABEL_STAY = "STAY";
 const SUPPORTED_APP_LANGUAGES = new Set(["ko", "en"]);
 const GENERATION_VERSION = "mvp_v2_visit_tip";
 const CITY_ALIAS_GROUPS = [
@@ -158,35 +160,36 @@ function isInsideBangkokBounds(place) {
 }
 
 function isLodgingPlace(place) {
-  const types = Array.isArray(place?.types_raw) ? place.types_raw : [];
+  if (String(place?.category || "").trim().toUpperCase() === PLACE_CATEGORY.STAY) {
+    return true;
+  }
+
+  const types = Array.isArray(place?.types_raw)
+    ? place.types_raw
+    : Array.isArray(place?.typesRaw)
+      ? place.typesRaw
+      : [];
   return types.some((type) => LODGING_TYPE_PATTERN.test(String(type || "")));
 }
 
+function normalizeStoredPlaceRow(row) {
+  if (!row) return row;
+
+  const typesRaw = Array.isArray(row.types_raw)
+    ? row.types_raw
+    : Array.isArray(row.typesRaw)
+      ? row.typesRaw
+      : [];
+
+  return {
+    ...row,
+    types_raw: typesRaw,
+    category: inferCategory(typesRaw, null, row.category, row.name, row.opening_hours || row.openingHours || null)
+  };
+}
+
 function filterSchedulableCandidates(candidates) {
-  return (candidates || []).filter(
-    (candidate) => candidate?.itemLabel !== ITEM_LABEL_STAY && !isLodgingPlace(candidate?.place)
-  );
-}
-
-function normalizeItemLabel(value) {
-  if (value == null || value === "") return null;
-  const normalized = String(value).trim().toUpperCase();
-  if (normalized === ITEM_LABEL_STAY) {
-    return ITEM_LABEL_STAY;
-  }
-  fail(`itemLabel must be ${ITEM_LABEL_STAY}`, "BAD_USER_INPUT");
-}
-
-function resolvePlaceListItemLabel({ explicitItemLabel, existingItemLabel = null, place }) {
-  if (explicitItemLabel !== undefined) {
-    return normalizeItemLabel(explicitItemLabel);
-  }
-
-  if (existingItemLabel) {
-    return normalizeItemLabel(existingItemLabel);
-  }
-
-  return isLodgingPlace(place) ? ITEM_LABEL_STAY : null;
+  return (candidates || []).filter((candidate) => !isLodgingPlace(candidate?.place));
 }
 
 function filterCandidatesByCity(candidates, cityName) {
@@ -322,26 +325,27 @@ function mapAuthPayload(authData) {
 function mapPlace(row) {
   if (!row) return null;
   const ratingNumber = row.rating == null ? null : Number(row.rating);
+  const normalizedRow = normalizeStoredPlaceRow(row);
   return {
-    id: row.id,
-    googlePlaceId: row.google_place_id,
-    name: row.name,
-    formattedAddress: row.formatted_address,
-    lat: row.lat,
-    lng: row.lng,
+    id: normalizedRow.id,
+    googlePlaceId: normalizedRow.google_place_id,
+    name: normalizedRow.name,
+    formattedAddress: normalizedRow.formatted_address,
+    lat: normalizedRow.lat,
+    lng: normalizedRow.lng,
     rating: Number.isNaN(ratingNumber) ? null : ratingNumber,
-    userRatingCount: row.user_rating_count,
-    priceLevel: row.price_level,
-    typesRaw: Array.isArray(row.types_raw) ? row.types_raw : [],
-    category: row.category,
-    openingHours: row.opening_hours,
-    photos: Array.isArray(row.photos) ? row.photos : [],
-    reviews: Array.isArray(row.reviews) ? row.reviews : [],
-    phone: row.phone,
-    website: row.website,
-    googleMapsUrl: row.google_maps_url,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at
+    userRatingCount: normalizedRow.user_rating_count,
+    priceLevel: normalizedRow.price_level,
+    typesRaw: Array.isArray(normalizedRow.types_raw) ? normalizedRow.types_raw : [],
+    category: normalizedRow.category,
+    openingHours: normalizedRow.opening_hours,
+    photos: Array.isArray(normalizedRow.photos) ? normalizedRow.photos : [],
+    reviews: Array.isArray(normalizedRow.reviews) ? normalizedRow.reviews : [],
+    phone: normalizedRow.phone,
+    website: normalizedRow.website,
+    googleMapsUrl: normalizedRow.google_maps_url,
+    createdAt: normalizedRow.created_at,
+    updatedAt: normalizedRow.updated_at
   };
 }
 
@@ -366,8 +370,7 @@ function mapPlaceListItem(row) {
     listId: row.list_id,
     placeId: row.place_id,
     note: row.note,
-    priority: row.priority,
-    itemLabel: row.item_label || null,
+    isMustVisit: Boolean(row.is_must_visit),
     createdAt: row.created_at
   };
 }
@@ -416,7 +419,7 @@ function mapScheduleStop(row) {
     stopOrder: row.stop_order,
     time: row.time ? String(row.time).slice(0, 5) : null,
     label: row.label,
-    badges: Array.isArray(row.badges) ? row.badges : [],
+    isMustVisit: Boolean(row.is_must_visit),
     note: row.note,
     reason: row.reason,
     visitTip: row.visit_tip,
@@ -454,7 +457,7 @@ async function requireUser(context) {
 async function fetchPlaceById(supabase, id) {
   const { data, error } = await supabase.from(TABLES.places).select("*").eq("id", id).maybeSingle();
   assertSupabase(error, "Failed to fetch place");
-  return data || null;
+  return normalizeStoredPlaceRow(data || null);
 }
 
 async function fetchPlaceByGooglePlaceId(supabase, googlePlaceId) {
@@ -464,7 +467,7 @@ async function fetchPlaceByGooglePlaceId(supabase, googlePlaceId) {
     .eq("google_place_id", googlePlaceId)
     .maybeSingle();
   assertSupabase(error, "Failed to fetch place by google_place_id");
-  return data || null;
+  return normalizeStoredPlaceRow(data || null);
 }
 
 async function fetchPlacesByIds(supabase, ids) {
@@ -481,7 +484,7 @@ async function fetchPlacesByIds(supabase, ids) {
     fail(`Some places were not found: ${missing.join(", ")}`, "BAD_USER_INPUT");
   }
 
-  return rows;
+  return rows.map((row) => normalizeStoredPlaceRow(row));
 }
 
 async function upsertSharedPlace(supabase, payload) {
@@ -492,7 +495,7 @@ async function upsertSharedPlace(supabase, payload) {
     .single();
 
   assertSupabase(error, "Failed to upsert place");
-  return data;
+  return normalizeStoredPlaceRow(data);
 }
 
 async function fetchOwnedPlaceList(supabase, userId, listId) {
@@ -610,8 +613,7 @@ async function fetchPlaceListCandidates(supabase, listId) {
     .map((item) => ({
       place: byId.get(item.place_id),
       note: item.note,
-      priority: item.priority,
-      itemLabel: item.item_label || null
+      isMustVisit: Boolean(item.is_must_visit)
     }))
     .filter((entry) => entry.place);
 
@@ -742,10 +744,23 @@ async function preloadScheduleDetail(supabase, userId, scheduleRow) {
     stopsByDayId.set(stopRow.schedule_day_id, currentStops);
   }
 
-  const days = (dayRows || []).map((row) => ({
-    ...mapScheduleDay(row),
-    stops: stopsByDayId.get(row.id) || []
-  }));
+  const days = (dayRows || []).map((row) => {
+    const sanitizedStops = recomputeStopTransports(
+      sanitizeScheduledDayStops({
+        stops: stopsByDayId.get(row.id) || [],
+        visitDate: row.date,
+        outputLanguage: mappedSchedule.outputLanguage
+      })
+    ).map((stop) => {
+      const { corrected, ...resolvedStop } = stop;
+      return resolvedStop;
+    });
+
+    return {
+      ...mapScheduleDay(row),
+      stops: sanitizedStops
+    };
+  });
 
   return {
     ...mappedSchedule,
@@ -773,16 +788,16 @@ async function writeScheduleDaysAndStops({ supabase, scheduleId, planDays, start
     if (!dayId) fail("Schedule day mapping failed");
 
     day.stops.forEach((stop, index) => {
-      stopPayload.push({
-        schedule_day_id: dayId,
-        stop_order: index + 1,
-        place_id: stop.placeId,
-        time: stop.time || null,
-        label: stop.label || null,
-        badges: Array.isArray(stop.badges) ? stop.badges : [],
-        note: stop.note || null,
-        reason: stop.reason || null,
-        visit_tip: stop.visitTip || null,
+        stopPayload.push({
+          schedule_day_id: dayId,
+          stop_order: index + 1,
+          place_id: stop.placeId,
+          time: stop.time || null,
+          label: stop.label || null,
+          is_must_visit: Boolean(stop.isMustVisit),
+          note: stop.note || null,
+          reason: stop.reason || null,
+          visit_tip: stop.visitTip || null,
         transport_to_next: stop.transportToNext || null,
         is_user_modified: isUserModified
       });
@@ -795,10 +810,37 @@ async function writeScheduleDaysAndStops({ supabase, scheduleId, planDays, start
   }
 }
 
+function sanitizePlanDaysForPersistence({ planDays, placeById, outputLanguage, tripDays }) {
+  const tripDayByNumber = new Map((tripDays || []).map((tripDay) => [Number(tripDay.day), tripDay]));
+
+  return (planDays || []).map((day) => {
+    const enrichedStops = (day.stops || []).map((stop) => ({
+      ...stop,
+      place: placeById.get(stop.placeId) || null
+    }));
+    const sanitizedStops = recomputeStopTransports(
+      sanitizeScheduledDayStops({
+        stops: enrichedStops,
+        visitDate: tripDayByNumber.get(Number(day.dayNumber))?.date || null,
+        outputLanguage
+      })
+    ).map((stop) => {
+      const { corrected, place, ...persistedStop } = stop;
+      return persistedStop;
+    });
+
+    return {
+      ...day,
+      stops: sanitizedStops
+    };
+  });
+}
+
 function buildGenerationInput(payload) {
   return {
     startDate: payload.startDate,
     endDate: payload.endDate,
+    dayCount: payload.dayCount,
     city: payload.city || null,
     companions: payload.companions || null,
     pace: payload.pace || null,
@@ -984,8 +1026,7 @@ const resolvers = {
           importedItems.push({
             place_id: row.id,
             note: placeData.note ?? null,
-            priority: false,
-            item_label: resolvePlaceListItemLabel({ place: row })
+            is_must_visit: false
           });
         } catch (e) {
           console.warn(`Could not import place ${placeData.name}`, e);
@@ -1012,8 +1053,7 @@ const resolvers = {
         list_id: listRow.id,
         place_id: item.place_id,
         note: item.note,
-        priority: item.priority,
-        item_label: item.item_label,
+        is_must_visit: item.is_must_visit,
         sort_order: index + 1
       }));
 
@@ -1189,20 +1229,13 @@ const resolvers = {
       if (!place) fail("Place not found", "NOT_FOUND");
 
       const existing = await fetchPlaceListItemByListAndPlaceId(context.supabase, input.listId, input.placeId);
-      const hasExplicitItemLabel = Object.prototype.hasOwnProperty.call(input, "itemLabel");
-      const itemLabel = resolvePlaceListItemLabel({
-        explicitItemLabel: hasExplicitItemLabel ? input.itemLabel : undefined,
-        existingItemLabel: existing?.item_label ?? null,
-        place
-      });
 
       if (existing) {
         const { error } = await context.supabase
           .from(TABLES.placeListItems)
           .update({
             note: input.note ?? null,
-            priority: Boolean(input.priority),
-            item_label: itemLabel
+            is_must_visit: Boolean(input.isMustVisit)
           })
           .eq("id", existing.id);
         assertSupabase(error, "Failed to update existing place list item");
@@ -1212,8 +1245,7 @@ const resolvers = {
           list_id: input.listId,
           place_id: input.placeId,
           note: input.note ?? null,
-          priority: Boolean(input.priority),
-          item_label: itemLabel,
+          is_must_visit: Boolean(input.isMustVisit),
           sort_order: sortOrder
         });
         assertSupabase(error, "Failed to add place to list");
@@ -1226,19 +1258,10 @@ const resolvers = {
       const user = await requireUser(context);
       const existing = await ensureOwnedPlaceListItem(context.supabase, user.id, id);
       if (!existing) fail("Place list item not found", "NOT_FOUND");
-      const place = await fetchPlaceById(context.supabase, existing.place_id);
-      if (!place) fail("Place not found", "NOT_FOUND");
 
       const patch = {};
       if (Object.prototype.hasOwnProperty.call(input, "note")) patch.note = input.note ?? null;
-      if (Object.prototype.hasOwnProperty.call(input, "priority")) patch.priority = Boolean(input.priority);
-      if (Object.prototype.hasOwnProperty.call(input, "itemLabel")) {
-        patch.item_label = resolvePlaceListItemLabel({
-          explicitItemLabel: input.itemLabel,
-          existingItemLabel: existing.item_label ?? null,
-          place
-        });
-      }
+      if (Object.prototype.hasOwnProperty.call(input, "isMustVisit")) patch.is_must_visit = Boolean(input.isMustVisit);
       if (Object.keys(patch).length === 0) fail("No fields provided for update", "BAD_USER_INPUT");
 
       const { data, error } = await context.supabase
@@ -1341,6 +1364,13 @@ const resolvers = {
           generationInput
         });
       }
+
+      planDays = sanitizePlanDaysForPersistence({
+        planDays,
+        placeById,
+        outputLanguage,
+        tripDays: generationInput.tripDays
+      });
 
       const stayRecommendation = stayPlace ? null : buildStayRecommendation(planDays, placeById);
 
@@ -1472,6 +1502,13 @@ const resolvers = {
           generationInput
         });
       }
+
+      planDays = sanitizePlanDaysForPersistence({
+        planDays,
+        placeById,
+        outputLanguage,
+        tripDays: generationInput.tripDays
+      });
 
       const stayRecommendation = stayPlace ? null : buildStayRecommendation(planDays, placeById);
 

@@ -11,12 +11,11 @@ const {
   selectCandidatesForAiPlanning
 } = require("./scheduleEngine");
 const {
-  MUST_VISIT_BADGE,
   ROUTE_STOP_LABEL_FALLBACK,
   ROUTE_STOP_LABEL_VALUES,
-  appendMustVisitBadge,
   buildCanonicalRouteStopLabel
 } = require("./route-taxonomy");
+const { sanitizeScheduledDayStops } = require("./scheduleStopSanitizer");
 
 const DEFAULT_GEMINI_MODELS = ["gemini-2.5-flash", "gemini-1.5-flash"];
 const DEFAULT_OPENAI_MODELS = ["gpt-5-nano", "gpt-4.1-nano", "gpt-4o-mini", "gpt-4.1-mini"];
@@ -24,6 +23,7 @@ const DEFAULT_OUTPUT_LANGUAGE = "ko";
 const OPENAI_CHAT_COMPLETIONS_URL = "https://api.openai.com/v1/chat/completions";
 const SUPPORTED_AI_PROVIDERS = new Set(["gemini", "openai"]);
 const AI_STAY_DISTANCE_OUTLIER_KM = 8;
+const AI_DINNER_START_MINUTES = 16 * 60;
 
 function toRadians(value) {
   return (value * Math.PI) / 180;
@@ -145,8 +145,95 @@ function normalizeStopOrder(stops) {
 
   return sortedStops.map((stop, index) => ({
     ...stop,
-    label: buildCanonicalRouteStopLabel(index, sortedStops.length)
+    label: stop.label || buildCanonicalRouteStopLabel(index, sortedStops.length)
   }));
+}
+
+function collectPlanDayIssues(dayBucket) {
+  const seenTimes = new Set();
+  const duplicateTimes = new Set();
+  let lunchCount = 0;
+  let dinnerCount = 0;
+  let nightCount = 0;
+  let activityCount = 0;
+  const issues = [];
+
+  for (const stop of dayBucket?.stops || []) {
+    const time = typeof stop?.time === "string" ? stop.time.slice(0, 5) : null;
+    const timeMinutes = parseTimeToMinutes(time);
+    const traits = stop?.place ? getCandidateTraits({ place: stop.place }) : null;
+
+    if (time) {
+      if (seenTimes.has(time)) {
+        duplicateTimes.add(time);
+      }
+      seenTimes.add(time);
+    }
+
+    if (stop?.label === "LUNCH") {
+      lunchCount += 1;
+      if (Number.isFinite(timeMinutes) && timeMinutes >= AI_DINNER_START_MINUTES) {
+        issues.push(`late_lunch:${time}`);
+      }
+    }
+
+    if (stop?.label === "DINNER") {
+      dinnerCount += 1;
+      if (Number.isFinite(timeMinutes) && timeMinutes < AI_DINNER_START_MINUTES) {
+        issues.push(`early_dinner:${time}`);
+      }
+    }
+
+    if (stop?.label === "NIGHT") {
+      nightCount += 1;
+    }
+
+    if (traits?.isActivity) {
+      activityCount += 1;
+    }
+  }
+
+  if (lunchCount > 1) {
+    issues.push(`duplicate_lunch:${lunchCount}`);
+  }
+
+  if (dinnerCount > 1) {
+    issues.push(`duplicate_dinner:${dinnerCount}`);
+  }
+
+  if ((dayBucket?.stops || []).length > 0 && lunchCount === 0) {
+    issues.push("missing_lunch");
+  }
+
+  if ((dayBucket?.stops || []).length > 0 && dinnerCount === 0) {
+    issues.push("missing_dinner");
+  }
+
+  if (nightCount > 2) {
+    issues.push(`too_many_night:${nightCount}`);
+  }
+
+  if (activityCount > 1) {
+    issues.push(`too_many_activity:${activityCount}`);
+  }
+
+  for (const time of duplicateTimes) {
+    issues.push(`duplicate_time:${time}`);
+  }
+
+  return issues;
+}
+
+function assertAiPlanLooksCoherent(planDays) {
+  const issueSummary = (planDays || []).flatMap((dayBucket) =>
+    collectPlanDayIssues(dayBucket).map((issue) => `day ${dayBucket?.dayNumber || "?"}:${issue}`)
+  );
+
+  if (issueSummary.length === 0) {
+    return;
+  }
+
+  throw new Error(`AI planner returned structurally invalid day slots (${issueSummary.join(", ")})`);
 }
 
 function normalizeGeneratedStopLabel(label, index, totalStops) {
@@ -201,7 +288,7 @@ function normalizeGeneratedStopLabel(label, index, totalStops) {
 function buildFallbackStop(fallbackStop, matchedCandidate) {
   return {
     ...fallbackStop,
-    badges: appendMustVisitBadge(fallbackStop?.badges, matchedCandidate?.priority),
+    isMustVisit: Boolean(fallbackStop?.isMustVisit || matchedCandidate?.isMustVisit),
     note: matchedCandidate?.note || fallbackStop?.note || null
   };
 }
@@ -276,10 +363,16 @@ function buildPromptTags(candidate) {
   const tags = new Set();
 
   if (traits.isLandmark) tags.add("landmark");
+  if (traits.isNature) tags.add("nature");
   if (traits.isShopping) tags.add("shopping");
+  if (traits.isActivity) tags.add("activity");
   if (traits.isMeal) tags.add("meal");
-  if (traits.isDessert) tags.add("dessert");
+  if (traits.isBrunch) tags.add("brunch");
+  if (traits.isCafe) tags.add("cafe");
+  if (traits.isSnack) tags.add("snack");
   if (traits.isDinnerPreferred) tags.add("dinner_worthy");
+  if (traits.isAnchorMeal) tags.add("anchor_meal");
+  if (traits.isAnchorVisit) tags.add("anchor_visit");
   if (traits.isNightlife) tags.add("nightlife");
   if (traits.isNightView) tags.add("night_view");
   if (traits.isNight) tags.add("night");
@@ -299,11 +392,18 @@ function buildPromptPlaceSummary(candidate, generationInput = {}, stayPlace = nu
   const summary = {
     id: place.id,
     name: place.name,
+    category: place.category || null,
+    types: Array.isArray(place.types_raw) ? place.types_raw.slice(0, 8) : [],
     coord: [roundCoordinate(place.lat), roundCoordinate(place.lng)],
     tags: buildPromptTags(candidate),
     price_level: traits.priceLevel,
     rating: traits.rating,
-    must_visit: Boolean(candidate.priority),
+    review_count: traits.reviewCount,
+    fame_score: Number(traits.fameScore.toFixed(3)),
+    meal_fit: traits.mealFit,
+    night_subtype: traits.nightSubtype,
+    anchor_candidate: Boolean(traits.isAnchorMeal || traits.isAnchorVisit),
+    must_visit: Boolean(candidate.isMustVisit),
     user_note: candidate.note || null,
     reservation_risk: traits.reservationRisk
   };
@@ -407,6 +507,10 @@ ${JSON.stringify(places)}
 
 Field notes:
 - "day_slots" is optional. Each entry looks like "1:MLVCDN" where M=morning, L=lunch, V=visit, C=dessert/cafe, D=dinner, N=night, and "-" means do not schedule that place on that trip day.
+- Treat place "tags" as hard hints for labels. A place tagged "meal" should be LUNCH or DINNER. "brunch", "cafe", and "snack" should usually be MORNING or DESSERT. "landmark", "nature", "shopping", and "activity" should usually be MORNING or VISIT.
+- "category" is already backend-normalized for scheduling. Trust it first. "types" are supporting raw Google hints.
+- "night_subtype" explains whether a NIGHT place is more like a bar, club, live venue, or night view. Use it to build a realistic evening sequence.
+- "meal_fit", "fame_score", and "anchor_candidate" show which meal or visit places are stronger anchors.
 
 Task:
 Generate a valid JSON object with the following structure:
@@ -436,17 +540,29 @@ Rules:
 5. Use only places located in "${targetCity}".
 6. Write both "reason" and "visitTip" in ${outputLanguage}.
 7. If a place includes "day_slots", only schedule it on allowed trip days and slot windows.
-8. Use every trip day when there are enough candidates. Aim for about ${dailyStopTarget} major stops per day.
-9. Include LUNCH and DINNER every day when meal candidates are available.
-10. If companions are COUPLE and dessert candidates are available, include at least one DESSERT per day.
+8. Use every trip day only when there are enough places for a coherent day. If there are not enough places, it is acceptable to leave later days empty.
+9. Every non-empty day must include exactly one LUNCH and exactly one DINNER.
+10. If themes include FOODIE and brunch/cafe/snack candidates are available, include a MORNING stop on that day.
 11. For RELAXED pace, starting around 11:00 or 12:00 is allowed.
-12. Use NIGHT for bars, pubs, clubs, late-night spots, or night views after dinner. NIGHT can be nightlife or a night-view stop.
-13. When choosing DINNER, prefer stronger meal types and higher price_level over lighter cafe-style places.
+12. Use NIGHT only for real night places after dinner. A day may have up to two NIGHT stops when they are close together and logically sequenced.
+13. When choosing LUNCH or DINNER, prefer places with higher "fame_score", stronger meal types, and higher review counts over tiny low-signal places.
 14. If "reservation_risk" is true, mention that reservations may be worth checking in "visitTip".
 15. "visitTip" must be practical and concise, not generic praise.
 16. If the output language is Korean, write in natural spoken Korean with polite "~요" endings and avoid stiff phrasing like "~합니다".
 17. Do not schedule hotels, lodging, or accommodations as itinerary stops.
-18. Return JSON only. No markdown, no code fences, no explanations.
+18. Never label a non-dessert venue as DESSERT. Seafood restaurants, general restaurants, landmarks, markets, parks, museums, and shopping places must not be labeled DESSERT.
+19. If the candidate list does not contain a real dessert/cafe/bakery place for that day, skip DESSERT entirely instead of inventing one.
+20. Landmarks, tourist attractions, parks, museums, natural spots, and shops should normally use MORNING or VISIT, not DESSERT.
+20a. ACTIVITY places such as karting, arcades, or bowling should use MORNING or VISIT, and use at most one ACTIVITY place per day.
+21. MEAL places must never be labeled VISIT. If they do not fit as LUNCH or DINNER, leave them out.
+22. BRUNCH, CAFE, and SNACK places should generally use MORNING or DESSERT, not VISIT.
+23. If non-food themes such as LANDMARK, NATURE, or SHOPPING are selected and there are enough matching anchors, use those as the main daytime anchors and place meals around them.
+24. If those non-food theme anchors are too scarce to support the trip, fall back to a more general route instead of forcing bad anchors.
+25. Must-visit places are higher priority than theme preference. Keep every must-visit exactly once unless it is impossible because of opening constraints.
+26. Do not schedule more than three restaurant-style meal stops in the same day, including morning brunch restaurants.
+27. Within each day, activity times must be strictly increasing. Do not assign the same time to multiple stops.
+28. Keep realistic spacing between stops. Do not stack two meal venues into the same time slot.
+29. Return JSON only. No markdown, no code fences, no explanations.
 `;
   return prompt;
 }
@@ -652,6 +768,7 @@ async function buildAiSchedulePlan({ candidates, dayCount, startDate, stayPlace,
       const tripDay = getTripDayByDayNumber(generationInput, dayNumber);
       const activities = Array.isArray(dayPlan?.activities) ? dayPlan.activities : [];
       const labelOccurrenceCounter = new Map();
+      const rawStops = [];
 
       for (let activityIndex = 0; activityIndex < activities.length; activityIndex += 1) {
         const activity = activities[activityIndex];
@@ -684,17 +801,14 @@ async function buildAiSchedulePlan({ candidates, dayCount, startDate, stayPlace,
           continue;
         }
 
-        const badges = [];
-        if (matchedCandidate.priority) badges.push(MUST_VISIT_BADGE);
-
-        dayBucket.stops.push({
+        rawStops.push({
           placeId,
           time:
             activity?.time && Number.isFinite(parseTimeToMinutes(activity.time))
               ? activity.time
               : minutesToTimeString(availabilityCheck.plannedMinutes),
           label: normalizedLabel,
-          badges,
+          isMustVisit: Boolean(matchedCandidate.isMustVisit),
           note: matchedCandidate.note || null,
           reason: activity?.reason || null,
           visitTip: activity?.visitTip || null,
@@ -702,10 +816,44 @@ async function buildAiSchedulePlan({ candidates, dayCount, startDate, stayPlace,
         });
         usedPlaceIds.add(placeId);
       }
+
+      const rawStopByPlaceId = new Map(rawStops.map((stop) => [stop.placeId, stop]));
+
+      const sanitizedStops = sanitizeScheduledDayStops({
+        stops: rawStops.map((stop) => ({
+          ...stop,
+          place: candidateById.get(stop.placeId)?.place || null
+        })),
+        visitDate: tripDay?.date || null,
+        outputLanguage: generationInput.outputLanguage
+      });
+      const keptPlaceIds = new Set(sanitizedStops.map((stop) => stop.placeId));
+      for (const rawStop of rawStops) {
+        if (!keptPlaceIds.has(rawStop.placeId)) {
+          usedPlaceIds.delete(rawStop.placeId);
+        }
+      }
+
+      dayBucket.stops = sanitizedStops.map((sanitizedStop) => {
+        const originalStop = rawStopByPlaceId.get(sanitizedStop.placeId) || null;
+
+        if (sanitizedStop.corrected) {
+          console.warn("Adjusted incompatible AI stop label before save.", {
+            dayNumber,
+            placeId: sanitizedStop.placeId,
+            from: originalStop?.label || null,
+            to: sanitizedStop.label,
+            time: sanitizedStop.time || null
+          });
+        }
+
+        const { corrected, place, ...persistedStop } = sanitizedStop;
+        return persistedStop;
+      });
     }
 
     const missingPriorityPlaceIds = (schedulableCandidates || [])
-      .filter((candidate) => Boolean(candidate?.priority && candidate?.place?.id && !usedPlaceIds.has(candidate.place.id)))
+      .filter((candidate) => Boolean(candidate?.isMustVisit && candidate?.place?.id && !usedPlaceIds.has(candidate.place.id)))
       .map((candidate) => candidate.place.id);
 
     if (missingPriorityPlaceIds.length > 0) {
@@ -743,7 +891,7 @@ async function buildAiSchedulePlan({ candidates, dayCount, startDate, stayPlace,
 
         dayBucket.stops.push({
           ...fallbackEntry.stop,
-          badges: appendMustVisitBadge(fallbackEntry.stop?.badges, matchedCandidate.priority),
+          isMustVisit: Boolean(fallbackEntry.stop?.isMustVisit || matchedCandidate.isMustVisit),
           note: matchedCandidate.note || fallbackEntry.stop?.note || null,
           transportToNext: null
         });
@@ -759,41 +907,11 @@ async function buildAiSchedulePlan({ candidates, dayCount, startDate, stayPlace,
     }
 
     let totalStops = planDays.reduce((count, day) => count + day.stops.length, 0);
-    const hasEmptyDay = planDays.some((day) => day.stops.length === 0);
-    const minimumTotalStops = Math.min(candidateById.size, resolveDailyStopTarget(generationInput) * dayCount);
-
-    if (hasEmptyDay && totalStops > 0) {
-      planDays = redistributeSelectedStopsAcrossDays({
-        planDays,
-        candidates: schedulableCandidates,
-        dayCount,
-        stayPlace,
-        generationInput
-      });
-      totalStops = planDays.reduce((count, day) => count + day.stops.length, 0);
-    }
-
-    if (totalStops > 0 && totalStops < minimumTotalStops) {
-      const fallbackPlanDays = buildSchedulePlan({
-        candidates: schedulableCandidates,
-        dayCount,
-        stayPlace,
-        generationInput
-      });
-
-      backfillSparseDaysFromFallback({
-        planDays,
-        fallbackPlanDays,
-        candidateById,
-        usedPlaceIds,
-        generationInput
-      });
-      totalStops = planDays.reduce((count, day) => count + day.stops.length, 0);
-    }
-
     if (totalStops === 0) {
       throw new Error(`${resolveAiProvider()} returned no valid place IDs from the provided city-filtered candidates.`);
     }
+
+    assertAiPlanLooksCoherent(planDays);
 
     return planDays;
 }

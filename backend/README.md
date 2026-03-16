@@ -97,12 +97,12 @@ Legacy fallback:
 ## 5) MVP Generation Notes
 
 - 일정 생성은 리스트 아이템(`place_list_items`)을 기반으로 수행
-- `priority=true` 아이템은 `MUSTVISIT` 배지로 우선 배치
+- `is_must_visit=true` 아이템은 `MUSTVISIT` 상태로 우선 배치
 - 정렬은 nearest-neighbor 기반 + 간단 이동 추정
 - stop 단위 필드 저장:
   - `time`
   - `label`
-  - `badges`
+  - `is_must_visit`
   - `reason`
   - `visit_tip`
   - `transport_to_next`
@@ -115,6 +115,6 @@ Legacy fallback:
 
 - **AI 백그라운드 워커 분리 (Microservice):** 현재 `crawler.js`와 `geminiOptimizer.js`가 Node.js 메인 서버에 일체형으로 통합되어 있습니다 (MVP 적합). 추후 LLM 응답 대기 시간이 길어져 병목 현상(Blocking)이 발생하면 Python 워커(혹은 Node.js `BullMQ` + `Redis`)를 도입하여 비동기로 처리하는 이벤트 소싱 구조로 분리하는 것이 좋습니다.
 - **일정 부분 편집 및 커스텀 장소 기능:** 현재는 일정 전체 생성 및 `moveScheduleStop`을 통한 순서 변경만 지원됩니다. 개별 장소를 새로 끼워넣거나(커스텀 장소), 삭제하는 기능을 GraphQL Mutation으로 확장해야 합니다.
-- **카테고리 필터 검색:** 장소를 `LANDMARK`, `FOODIE` 등으로 추론(`inferCategory`)하고 있으나, 이를 통한 목록 필터링 조회 API(`placesByCategory` 등)를 추가하면 좋습니다.
+- **카테고리 필터 검색:** 장소를 `LANDMARK`, `MEAL`, `BRUNCH`, `CAFE`, `SNACK`, `NIGHT`, `SHOP`, `NATURE`, `STAY` 등으로 추론(`inferCategory`)하고 있으나, 이를 통한 목록 필터링 조회 API(`placesByCategory` 등)를 추가하면 좋습니다.
 - **최적화 DB 트랜잭션:** 다중 테이블 Insert/Update(`createSchedule` 등) 수행 도중 실패 시 부분 데이터가 남는 것을 방지하기 위해 Supabase RPC(Stored Procedure)를 통한 원자적 트랜잭션을 고려할 수 있습니다.
 - **에러 모니터링 및 로깅:** AWS나 운영 환경 배포 시, `winston`이나 `Sentry`를 통해 크롤링 에러와 외부 API(Google, Gemini) 응답 실패를 전문적으로 추적하도록 보강하세요.

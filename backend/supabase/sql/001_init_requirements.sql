@@ -53,8 +53,7 @@ create table public.place_list_items (
   list_id uuid not null references public.place_lists(id) on delete cascade,
   place_id uuid not null references public.places(id) on delete cascade,
   note text,
-  priority boolean not null default false,
-  item_label text check (item_label in ('STAY')),
+  is_must_visit boolean not null default false,
   sort_order integer not null,
   created_at timestamptz not null default now(),
   unique (list_id, place_id)
@@ -98,7 +97,7 @@ create table public.schedule_stops (
   place_id uuid not null references public.places(id),
   time time,
   label text,
-  badges jsonb not null default '[]'::jsonb,
+  is_must_visit boolean not null default false,
   note text,
   reason text,
   visit_tip text,

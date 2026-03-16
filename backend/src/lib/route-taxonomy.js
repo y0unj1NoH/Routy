@@ -45,20 +45,6 @@ function buildCanonicalRouteStopLabel(index, total) {
   return labels[index] || ROUTE_STOP_LABEL_FALLBACK;
 }
 
-function appendMustVisitBadge(badges, mustVisit) {
-  const merged = new Set(
-    (Array.isArray(badges) ? badges : [])
-      .map((badge) => String(badge || "").trim().toUpperCase())
-      .filter(Boolean)
-  );
-
-  if (mustVisit) {
-    merged.add(MUST_VISIT_BADGE);
-  }
-
-  return [...merged];
-}
-
 module.exports = {
   MUST_VISIT_BADGE,
   ROUTE_STOP_LABEL_FALLBACK,
@@ -68,6 +54,5 @@ module.exports = {
   PLACE_CATEGORY_VALUES,
   THEME_CATEGORY,
   THEME_CATEGORY_VALUES,
-  buildCanonicalRouteStopLabel,
-  appendMustVisitBadge
+  buildCanonicalRouteStopLabel
 };
