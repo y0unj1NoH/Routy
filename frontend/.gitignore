@@ -1,0 +1,28 @@
+node_modules/
+
+# next build outputs
+.next/
+.next-dev/
+.next-verify/
+out/
+dist/
+coverage/
+
+# types and lint cache
+*.tsbuildinfo
+.eslintcache
+
+# env
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# deployment and e2e outputs
+.vercel/
+playwright-report/
+test-results/
+
+# local test pages
+src/app/(test)/
