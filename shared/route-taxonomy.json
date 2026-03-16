@@ -1,0 +1,21 @@
+{
+  "mustVisitBadge": "MUSTVISIT",
+  "routeStopLabels": {
+    "fallback": "VISIT",
+    "canonical": ["MORNING", "LUNCH", "VISIT", "DESSERT", "DINNER", "NIGHT"],
+    "reserved": []
+  },
+  "placeCategory": {
+    "LANDMARK": "LANDMARK",
+    "FOODIE": "FOODIE",
+    "SHOPPING": "SHOPPING",
+    "NATURE": "NATURE",
+    "VIEW": "VIEW"
+  },
+  "themeCategory": {
+    "FOODIE": "FOODIE",
+    "LANDMARK": "LANDMARK",
+    "SHOPPING": "SHOPPING",
+    "NATURE": "NATURE"
+  }
+}
