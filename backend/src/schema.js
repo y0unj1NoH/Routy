@@ -52,6 +52,7 @@ const typeDefs = /* GraphQL */ `
     id: ID!
     note: String
     priority: Boolean!
+    itemLabel: String
     createdAt: String!
     place: Place!
   }
@@ -100,6 +101,7 @@ const typeDefs = /* GraphQL */ `
     dayCount: Int!
     placeList: PlaceList!
     stayPlace: Place
+    stayRecommendation: JSON
     companions: String
     pace: String
     themes: [String!]!
@@ -150,11 +152,13 @@ const typeDefs = /* GraphQL */ `
     placeId: ID!
     note: String
     priority: Boolean = false
+    itemLabel: String
   }
 
   input UpdatePlaceListItemInput {
     note: String
     priority: Boolean
+    itemLabel: String
   }
 
   input CreateScheduleInput {

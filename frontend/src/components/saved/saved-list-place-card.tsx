@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 
 import { CategoryBadge } from "@/components/common/category-badge";
 import { PlacePhoto } from "@/components/common/place-photo";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { buttonStyles } from "@/components/ui/button-styles";
 import { Textarea } from "@/components/ui/textarea";
@@ -327,6 +328,7 @@ export function SavedListPlaceCard({
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 space-y-3">
               <div className="flex flex-wrap items-center gap-2">
+                {item.itemLabel === "STAY" ? <Badge tone="primary">STAY</Badge> : null}
                 <CategoryBadge value={item.place.category} />
                 <StatusInline label={statusLabel} detail={openingHint.warningText} tone={statusTone} />
               </div>

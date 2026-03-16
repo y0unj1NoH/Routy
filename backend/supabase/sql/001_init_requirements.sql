@@ -54,6 +54,7 @@ create table public.place_list_items (
   place_id uuid not null references public.places(id) on delete cascade,
   note text,
   priority boolean not null default false,
+  item_label text check (item_label in ('STAY')),
   sort_order integer not null,
   created_at timestamptz not null default now(),
   unique (list_id, place_id)
@@ -68,6 +69,7 @@ create table public.schedules (
   day_count integer not null check (day_count between 1 and 30),
   place_list_id uuid not null references public.place_lists(id),
   stay_place_id uuid references public.places(id) on delete set null,
+  stay_recommendation jsonb,
   companions text,
   pace text,
   themes jsonb not null default '[]'::jsonb,

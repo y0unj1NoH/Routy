@@ -88,6 +88,7 @@ export async function updatePlaceListItem(
   input: {
     note?: string | null;
     priority?: boolean;
+    itemLabel?: "STAY" | null;
   }
 ) {
   await gqlRequest<{ updatePlaceListItem: { id: string } }, { id: string; input: typeof input }>(
@@ -113,6 +114,7 @@ export async function addPlaceListItem(
     placeId: string;
     note?: string | null;
     priority?: boolean;
+    itemLabel?: "STAY" | null;
   }
 ) {
   const data = await gqlRequest<{ addPlaceListItem: { id: string } }, { input: typeof input }>(

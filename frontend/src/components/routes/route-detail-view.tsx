@@ -1,11 +1,12 @@
 "use client";
 
 import { Check, PencilLine, Plus, Trash2, X } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useState, type ComponentProps, type ReactNode } from "react";
 
 import { PageBackButton } from "@/components/common/page-back-button";
 import { PageTitle } from "@/components/common/page-title";
 import { RouteDaySelector } from "@/components/routes/route-day-selector";
+import { GoogleRouteMap } from "@/components/routes/google-route-map";
 import { RouteSchedulePageShell } from "@/components/routes/route-schedule-page-shell";
 import { RouteStopCard, type RouteStopCardEditActions } from "@/components/routes/route-stop-card";
 import { RouteStopList } from "@/components/routes/route-stop-list";
@@ -48,6 +49,11 @@ type RouteDetailViewProps = {
   editedDayNumbers?: number[];
   onAddPlace?: (dayNumber: number) => void;
   getStopEditActions?: (stop: ScheduleStop, day: ScheduleDay) => RouteStopCardEditActions | null;
+  mobileMapOverlay?: ReactNode;
+  desktopMapOverlay?: ReactNode;
+  showStayOverlay?: boolean;
+  stayMarker?: ComponentProps<typeof GoogleRouteMap>["stayMarker"];
+  stayRecommendation?: ComponentProps<typeof GoogleRouteMap>["stayRecommendation"];
 };
 
 export function RouteDetailView({
@@ -68,7 +74,12 @@ export function RouteDetailView({
   editCommitBusy = false,
   editedDayNumbers = [],
   onAddPlace,
-  getStopEditActions
+  getStopEditActions,
+  mobileMapOverlay,
+  desktopMapOverlay,
+  showStayOverlay = true,
+  stayMarker,
+  stayRecommendation
 }: RouteDetailViewProps) {
   const [selectedDay, setSelectedDay] = useState(1);
   const [viewMode, setViewMode] = useState<RouteViewMode>("split");
@@ -282,28 +293,36 @@ export function RouteDetailView({
         />
       }
       mobileSplit={{
-        points: currentDayPoints,
-        activePointId: activeStopId,
-        focusPointId: mapFocusRequest.pointId,
-        focusPointRequestKey: mapFocusRequest.key,
-        onPointClick: focusStopFromMap,
-        fallbackUrl: routeMapUrl,
-        mobileSheetMode,
-        sheetDragOffset,
-        isSheetDragging,
-        onSheetPointerDown: handleSheetPointerDown,
-        onSheetPointerMove: handleSheetPointerMove,
-        onSheetPointerEnd: handleSheetPointerEnd,
-        scrollRef: listRefs.mobile.scrollRef
-      }}
-      desktopMap={{
-        points: currentDayPoints,
-        activePointId: activeStopId,
-        focusPointId: mapFocusRequest.pointId,
-        focusPointRequestKey: mapFocusRequest.key,
-        onPointClick: focusStopFromMap,
-        fallbackUrl: routeMapUrl
-      }}
-    />
+          points: currentDayPoints,
+          activePointId: activeStopId,
+          focusPointId: mapFocusRequest.pointId,
+          focusPointRequestKey: mapFocusRequest.key,
+          onPointClick: focusStopFromMap,
+          fallbackUrl: routeMapUrl,
+          showStayOverlay,
+          stayMarker,
+          stayRecommendation,
+          mobileSheetMode,
+          sheetDragOffset,
+          isSheetDragging,
+          onSheetPointerDown: handleSheetPointerDown,
+          onSheetPointerMove: handleSheetPointerMove,
+          onSheetPointerEnd: handleSheetPointerEnd,
+          scrollRef: listRefs.mobile.scrollRef
+        }}
+        mobileMapOverlay={mobileMapOverlay}
+        desktopMap={{
+          points: currentDayPoints,
+          activePointId: activeStopId,
+          focusPointId: mapFocusRequest.pointId,
+          focusPointRequestKey: mapFocusRequest.key,
+          onPointClick: focusStopFromMap,
+          fallbackUrl: routeMapUrl,
+          showStayOverlay,
+          stayMarker,
+          stayRecommendation
+        }}
+        desktopMapOverlay={desktopMapOverlay}
+      />
   );
 }

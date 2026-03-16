@@ -14,6 +14,18 @@ type RoutePoint = {
   label?: string;
 };
 
+type StayMarkerPoint = {
+  lat: number;
+  lng: number;
+  name?: string | null;
+};
+
+type StayRecommendationCircle = {
+  centerLat: number;
+  centerLng: number;
+  radiusKm: number;
+};
+
 type GoogleRouteMapProps = {
   points: RoutePoint[];
   fallbackUrl: string;
@@ -22,6 +34,9 @@ type GoogleRouteMapProps = {
   focusPointId?: string | null;
   focusPointRequestKey?: number;
   onPointClick?: (pointId: string) => void;
+  showStayOverlay?: boolean;
+  stayMarker?: StayMarkerPoint | null;
+  stayRecommendation?: StayRecommendationCircle | null;
 };
 
 type MarkerEntry = {
@@ -43,6 +58,11 @@ const MAP_MARKER_ACTIVE = "#3C9DFF";
 const MAP_MARKER_LEAD = "#7CC7FF";
 const MAP_MARKER_DEFAULT = "#A9DBFF";
 const MAP_ROUTE_LINE = "#4AA5FF";
+const STAY_MARKER_FILL = "#14B8A6";
+
+function toRadians(value: number) {
+  return (value * Math.PI) / 180;
+}
 
 function getMarkerIcon(google: any, isActive: boolean, isLead: boolean) {
   return {
@@ -62,6 +82,30 @@ function getMarkerLabel(labelText: string) {
     fontSize: "13px",
     fontWeight: "700"
   };
+}
+
+function getStayMarkerIcon(google: any) {
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 44 44">
+      <circle cx="22" cy="22" r="20" fill="${STAY_MARKER_FILL}" stroke="white" stroke-width="2.5" />
+      <path d="M22 12.5 12.5 20v11a2 2 0 0 0 2 2h5.8v-8h3.4v8h5.8a2 2 0 0 0 2-2V20L22 12.5Z" fill="white"/>
+    </svg>
+  `;
+
+  return {
+    url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`,
+    scaledSize: new google.maps.Size(44, 44),
+    anchor: new google.maps.Point(22, 22)
+  };
+}
+
+function extendBoundsWithCircle(bounds: any, circle: StayRecommendationCircle) {
+  const latDelta = circle.radiusKm / 111;
+  const lngBase = Math.cos(toRadians(circle.centerLat));
+  const lngDelta = circle.radiusKm / (111 * Math.max(0.25, Math.abs(lngBase)));
+
+  bounds.extend({ lat: circle.centerLat + latDelta, lng: circle.centerLng + lngDelta });
+  bounds.extend({ lat: circle.centerLat - latDelta, lng: circle.centerLng - lngDelta });
 }
 
 function loadGoogleMapsScript(apiKey: string) {
@@ -105,7 +149,10 @@ export function GoogleRouteMap({
   activePointId,
   focusPointId,
   focusPointRequestKey = 0,
-  onPointClick
+  onPointClick,
+  showStayOverlay = true,
+  stayMarker = null,
+  stayRecommendation = null
 }: GoogleRouteMapProps) {
   const mapElementRef = useRef<HTMLDivElement | null>(null);
   const googleMapsRef = useRef<any>(null);
@@ -119,6 +166,14 @@ export function GoogleRouteMap({
 
   const apiKey = publicEnv.googleMapsApiKey;
   const pointsSignature = useMemo(() => points.map((point) => `${point.lat},${point.lng}`).join("|"), [points]);
+  const stayOverlaySignature = useMemo(() => {
+    if (!showStayOverlay) return "hidden";
+    if (stayMarker) return `marker:${stayMarker.lat},${stayMarker.lng}`;
+    if (stayRecommendation) {
+      return `circle:${stayRecommendation.centerLat},${stayRecommendation.centerLng},${stayRecommendation.radiusKm}`;
+    }
+    return "none";
+  }, [showStayOverlay, stayMarker, stayRecommendation]);
 
   useEffect(() => {
     if (points.length > 0) {
@@ -168,13 +223,13 @@ export function GoogleRouteMap({
         };
 
         if (!mapInstanceRef.current) {
-          if (points.length === 0) {
+          if (points.length === 0 && !(showStayOverlay && (stayMarker || stayRecommendation))) {
             clearOverlays();
             return;
           }
 
           mapInstanceRef.current = new google.maps.Map(mapElementRef.current, {
-            center: points[0],
+            center: points[0] || (stayMarker ? { lat: stayMarker.lat, lng: stayMarker.lng } : { lat: 37.5665, lng: 126.978 }),
             zoom: 12,
             disableDefaultUI: true,
             zoomControl: true,
@@ -196,11 +251,14 @@ export function GoogleRouteMap({
 
           google.maps.event.trigger(map, "resize");
 
-          if (points.length === 0) {
+          const hasStayMarker = showStayOverlay && stayMarker;
+          const hasStayRecommendation = showStayOverlay && stayRecommendation;
+
+          if (points.length === 0 && !hasStayMarker && !hasStayRecommendation) {
             return;
           }
 
-          if (points.length === 1) {
+          if (points.length === 1 && !hasStayMarker && !hasStayRecommendation) {
             map.setCenter(points[0]);
             map.setZoom(13);
             return;
@@ -208,6 +266,12 @@ export function GoogleRouteMap({
 
           const bounds = new google.maps.LatLngBounds();
           points.forEach((point) => bounds.extend(point));
+          if (hasStayMarker) {
+            bounds.extend({ lat: stayMarker.lat, lng: stayMarker.lng });
+          }
+          if (hasStayRecommendation) {
+            extendBoundsWithCircle(bounds, stayRecommendation);
+          }
           map.fitBounds(bounds, 52);
         };
         const queueViewportSync = () => {
@@ -254,6 +318,34 @@ export function GoogleRouteMap({
           }
         }
 
+        if (showStayOverlay && stayMarker) {
+          const marker = new google.maps.Marker({
+            map,
+            position: { lat: stayMarker.lat, lng: stayMarker.lng },
+            icon: getStayMarkerIcon(google),
+            zIndex: 4
+          });
+          overlaysRef.current.push(marker);
+        }
+
+        if (showStayOverlay && stayRecommendation) {
+          const circle = new google.maps.Circle({
+            map,
+            center: {
+              lat: stayRecommendation.centerLat,
+              lng: stayRecommendation.centerLng
+            },
+            radius: stayRecommendation.radiusKm * 1000,
+            fillColor: "#2DD4BF",
+            fillOpacity: 0.18,
+            strokeColor: "#2DD4BF",
+            strokeOpacity: 0.55,
+            strokeWeight: 1.5,
+            zIndex: 0
+          });
+          overlaysRef.current.push(circle);
+        }
+
         queueViewportSync();
 
         if (typeof ResizeObserver !== "undefined") {
@@ -276,7 +368,7 @@ export function GoogleRouteMap({
         window.cancelAnimationFrame(frameId);
       }
     };
-  }, [apiKey, pointsSignature, points, scriptLoadFailed]);
+  }, [apiKey, pointsSignature, points, scriptLoadFailed, showStayOverlay, stayMarker, stayRecommendation, stayOverlaySignature]);
 
   useEffect(() => {
     const google = googleMapsRef.current;
@@ -306,7 +398,8 @@ export function GoogleRouteMap({
   }, [focusPointId, focusPointRequestKey, points]);
 
   const iframeSrc = points.length === 0 ? lastNonEmptyFallbackUrlRef.current : fallbackUrl;
-  const emptyState = points.length === 0 ? (
+  const hasOverlayOnlyState = showStayOverlay && Boolean(stayMarker || stayRecommendation);
+  const emptyState = points.length === 0 && !hasOverlayOnlyState ? (
     <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-background/36 px-4">
       <div className="inline-flex items-center gap-2 rounded-full border border-border/80 bg-background/90 px-4 py-2 text-sm font-semibold text-foreground/72 shadow-xs backdrop-blur-xs">
         <TriangleAlert className="h-4 w-4 shrink-0 text-danger" />

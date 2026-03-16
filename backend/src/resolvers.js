@@ -4,6 +4,7 @@ const GraphQLJSON = require("graphql-type-json");
 const { createSupabaseAdminClient, extractBearerToken } = require("./lib/supabase");
 const { buildSchedulePlan } = require("./lib/scheduleEngine");
 const { buildAiSchedulePlan } = require("./lib/geminiOptimizer");
+const { buildStayRecommendation } = require("./lib/stayRecommendation");
 const { scrapeList } = require("./lib/aiCrawler");
 const {
   hasGooglePlacesApiKey,
@@ -25,6 +26,7 @@ const MAX_SCHEDULE_DAY_COUNT = 7;
 const MAX_PLACE_LIST_NAME_LENGTH = 12;
 const MAX_PLACE_LIST_CITY_LENGTH = 12;
 const DEFAULT_OUTPUT_LANGUAGE = "ko";
+const ITEM_LABEL_STAY = "STAY";
 const SUPPORTED_APP_LANGUAGES = new Set(["ko", "en"]);
 const GENERATION_VERSION = "mvp_v2_visit_tip";
 const CITY_ALIAS_GROUPS = [
@@ -161,7 +163,30 @@ function isLodgingPlace(place) {
 }
 
 function filterSchedulableCandidates(candidates) {
-  return (candidates || []).filter((candidate) => !isLodgingPlace(candidate?.place));
+  return (candidates || []).filter(
+    (candidate) => candidate?.itemLabel !== ITEM_LABEL_STAY && !isLodgingPlace(candidate?.place)
+  );
+}
+
+function normalizeItemLabel(value) {
+  if (value == null || value === "") return null;
+  const normalized = String(value).trim().toUpperCase();
+  if (normalized === ITEM_LABEL_STAY) {
+    return ITEM_LABEL_STAY;
+  }
+  fail(`itemLabel must be ${ITEM_LABEL_STAY}`, "BAD_USER_INPUT");
+}
+
+function resolvePlaceListItemLabel({ explicitItemLabel, existingItemLabel = null, place }) {
+  if (explicitItemLabel !== undefined) {
+    return normalizeItemLabel(explicitItemLabel);
+  }
+
+  if (existingItemLabel) {
+    return normalizeItemLabel(existingItemLabel);
+  }
+
+  return isLodgingPlace(place) ? ITEM_LABEL_STAY : null;
 }
 
 function filterCandidatesByCity(candidates, cityName) {
@@ -342,6 +367,7 @@ function mapPlaceListItem(row) {
     placeId: row.place_id,
     note: row.note,
     priority: row.priority,
+    itemLabel: row.item_label || null,
     createdAt: row.created_at
   };
 }
@@ -357,6 +383,8 @@ function mapSchedule(row) {
     dayCount: row.day_count,
     placeListId: row.place_list_id,
     stayPlaceId: row.stay_place_id,
+    stayRecommendation:
+      row.stay_recommendation && typeof row.stay_recommendation === "object" ? row.stay_recommendation : null,
     companions: row.companions,
     pace: row.pace,
     themes: normalizeThemes(row.themes),
@@ -582,11 +610,12 @@ async function fetchPlaceListCandidates(supabase, listId) {
     .map((item) => ({
       place: byId.get(item.place_id),
       note: item.note,
-      priority: item.priority
+      priority: item.priority,
+      itemLabel: item.item_label || null
     }))
     .filter((entry) => entry.place);
 
-  return { items, candidates };
+  return { items, candidates, placeById: byId };
 }
 
 async function buildPlaceListPreviewData(supabase, listIds, previewLimit = 4) {
@@ -955,7 +984,8 @@ const resolvers = {
           importedItems.push({
             place_id: row.id,
             note: placeData.note ?? null,
-            priority: false
+            priority: false,
+            item_label: resolvePlaceListItemLabel({ place: row })
           });
         } catch (e) {
           console.warn(`Could not import place ${placeData.name}`, e);
@@ -983,6 +1013,7 @@ const resolvers = {
         place_id: item.place_id,
         note: item.note,
         priority: item.priority,
+        item_label: item.item_label,
         sort_order: index + 1
       }));
 
@@ -1158,13 +1189,20 @@ const resolvers = {
       if (!place) fail("Place not found", "NOT_FOUND");
 
       const existing = await fetchPlaceListItemByListAndPlaceId(context.supabase, input.listId, input.placeId);
+      const hasExplicitItemLabel = Object.prototype.hasOwnProperty.call(input, "itemLabel");
+      const itemLabel = resolvePlaceListItemLabel({
+        explicitItemLabel: hasExplicitItemLabel ? input.itemLabel : undefined,
+        existingItemLabel: existing?.item_label ?? null,
+        place
+      });
 
       if (existing) {
         const { error } = await context.supabase
           .from(TABLES.placeListItems)
           .update({
             note: input.note ?? null,
-            priority: Boolean(input.priority)
+            priority: Boolean(input.priority),
+            item_label: itemLabel
           })
           .eq("id", existing.id);
         assertSupabase(error, "Failed to update existing place list item");
@@ -1175,6 +1213,7 @@ const resolvers = {
           place_id: input.placeId,
           note: input.note ?? null,
           priority: Boolean(input.priority),
+          item_label: itemLabel,
           sort_order: sortOrder
         });
         assertSupabase(error, "Failed to add place to list");
@@ -1187,10 +1226,19 @@ const resolvers = {
       const user = await requireUser(context);
       const existing = await ensureOwnedPlaceListItem(context.supabase, user.id, id);
       if (!existing) fail("Place list item not found", "NOT_FOUND");
+      const place = await fetchPlaceById(context.supabase, existing.place_id);
+      if (!place) fail("Place not found", "NOT_FOUND");
 
       const patch = {};
       if (Object.prototype.hasOwnProperty.call(input, "note")) patch.note = input.note ?? null;
       if (Object.prototype.hasOwnProperty.call(input, "priority")) patch.priority = Boolean(input.priority);
+      if (Object.prototype.hasOwnProperty.call(input, "itemLabel")) {
+        patch.item_label = resolvePlaceListItemLabel({
+          explicitItemLabel: input.itemLabel,
+          existingItemLabel: existing.item_label ?? null,
+          place
+        });
+      }
       if (Object.keys(patch).length === 0) fail("No fields provided for update", "BAD_USER_INPUT");
 
       const { data, error } = await context.supabase
@@ -1228,7 +1276,7 @@ const resolvers = {
       const dayCount = computeDayCount(startDate, endDate);
       const themes = normalizeThemes(input.themes);
 
-      const { candidates } = await fetchPlaceListCandidates(context.supabase, list.id);
+      const { items, candidates, placeById } = await fetchPlaceListCandidates(context.supabase, list.id);
       if (candidates.length === 0) {
         fail("Selected place list has no places", "BAD_USER_INPUT");
       }
@@ -1243,7 +1291,15 @@ const resolvers = {
         fail(`선택한 도시(${list.city})와 일치하는 장소가 없습니다. 리스트 장소를 확인해 주세요.`, "BAD_USER_INPUT");
       }
 
-      const stayPlace = null;
+      const stayPlaceId = input.stayPlaceId || null;
+      const stayListItem = stayPlaceId ? items.find((item) => item.place_id === stayPlaceId) || null : null;
+      if (stayPlaceId && !stayListItem) {
+        fail("선택한 숙소가 저장 리스트에 없어요. 다시 선택해 주세요.", "BAD_USER_INPUT");
+      }
+      const stayPlace = stayPlaceId ? placeById.get(stayPlaceId) || null : null;
+      if (stayPlaceId && !stayPlace) {
+        fail("선택한 숙소 정보를 찾지 못했어요. 다시 선택해 주세요.", "BAD_USER_INPUT");
+      }
 
       const outputLanguage = normalizeLanguage(
         input.outputLanguage,
@@ -1258,7 +1314,7 @@ const resolvers = {
         pace: input.pace,
         themes,
         placeListId: list.id,
-        stayPlaceId: null,
+        stayPlaceId,
         outputLanguage,
         dayCount
       });
@@ -1286,6 +1342,8 @@ const resolvers = {
         });
       }
 
+      const stayRecommendation = stayPlace ? null : buildStayRecommendation(planDays, placeById);
+
       const { data: scheduleRow, error: scheduleError } = await context.supabase
         .from(TABLES.schedules)
         .insert({
@@ -1295,7 +1353,8 @@ const resolvers = {
           end_date: endDate,
           day_count: dayCount,
           place_list_id: list.id,
-          stay_place_id: null,
+          stay_place_id: stayPlaceId,
+          stay_recommendation: stayRecommendation,
           companions: input.companions ?? null,
           pace: input.pace ?? null,
           themes,
@@ -1348,10 +1407,22 @@ const resolvers = {
       const outputLanguage = Object.prototype.hasOwnProperty.call(input, "outputLanguage")
         ? normalizeLanguage(input.outputLanguage, normalizeLanguage(list.language, DEFAULT_OUTPUT_LANGUAGE))
         : normalizeLanguage(list.language || existing.output_language, DEFAULT_OUTPUT_LANGUAGE);
-      const stayPlaceId = null;
-      const stayPlace = null;
 
-      const { candidates } = await fetchPlaceListCandidates(context.supabase, list.id);
+      const { items, candidates, placeById } = await fetchPlaceListCandidates(context.supabase, list.id);
+      const stayPlaceId = Object.prototype.hasOwnProperty.call(input, "stayPlaceId")
+        ? input.stayPlaceId || null
+        : placeListId === existing.place_list_id
+          ? existing.stay_place_id || null
+          : null;
+      const stayListItem = stayPlaceId ? items.find((item) => item.place_id === stayPlaceId) || null : null;
+      if (stayPlaceId && !stayListItem) {
+        fail("선택한 숙소가 저장 리스트에 없어요. 다시 선택해 주세요.", "BAD_USER_INPUT");
+      }
+      const stayPlace = stayPlaceId ? placeById.get(stayPlaceId) || null : null;
+      if (stayPlaceId && !stayPlace) {
+        fail("선택한 숙소 정보를 찾지 못했어요. 다시 선택해 주세요.", "BAD_USER_INPUT");
+      }
+
       if (candidates.length === 0) {
         fail("Selected place list has no places", "BAD_USER_INPUT");
       }
@@ -1402,6 +1473,8 @@ const resolvers = {
         });
       }
 
+      const stayRecommendation = stayPlace ? null : buildStayRecommendation(planDays, placeById);
+
       const { data: updatedSchedule, error: updateError } = await context.supabase
         .from(TABLES.schedules)
         .update({
@@ -1411,6 +1484,7 @@ const resolvers = {
           day_count: dayCount,
           place_list_id: list.id,
           stay_place_id: stayPlaceId ?? null,
+          stay_recommendation: stayRecommendation,
           companions: companions ?? null,
           pace: pace ?? null,
           themes,

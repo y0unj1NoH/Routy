@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   AlertTriangle,
+  Check,
   ChevronLeft,
   ChevronRight,
   Compass,
@@ -13,7 +14,10 @@ import {
   Home,
   Landmark,
   Leaf,
+  MapPin,
+  NotebookPen,
   PartyPopper,
+  Plus,
   ShoppingBag,
   TreePine,
   type LucideIcon,
@@ -24,17 +28,22 @@ import {
 
 import { LoadingPanel } from "@/components/common/loading-panel";
 import { PageEmptyState } from "@/components/common/page-empty-state";
+import { DialogFieldHint, DialogFieldLabel } from "@/components/common/dialog-field";
+import { DialogShell } from "@/components/common/dialog-shell";
 import { ImportListModal } from "@/components/import/import-list-modal";
+import { LinkInput } from "@/components/common/link-input";
+import { PlacePhoto } from "@/components/common/place-photo";
 import { UI_COPY } from "@/constants/ui-copy";
 import { type ThemeValue } from "@/constants/route-taxonomy";
 import { Mascot, MASCOT_SIZE_CLASS, type MascotVariant } from "@/components/layout/mascot";
 import { PageContainer } from "@/components/layout/page-container";
 import { ProgressHeader } from "@/components/layout/progress-header";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { buttonVariantToneClasses } from "@/components/ui/button-styles";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/cn";
-import { createSchedule, fetchMyPlaceLists } from "@/lib/graphql/api";
+import { addPlaceListItem, createSchedule, fetchMyPlaceLists, fetchPlaceListDetail, importPlaceFromGoogleLink } from "@/lib/graphql/api";
 import { queryKeys } from "@/lib/query-keys";
 import {
   mapFunnelQueryToRenderStep,
@@ -45,24 +54,28 @@ import {
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import { useCreateScheduleStore } from "@/stores/create-schedule-store";
 import { useUiStore } from "@/stores/ui-store";
+import type { PlaceListItem } from "@/types/domain";
 
 type FunnelContext = {
   title?: string;
   placeListId?: string;
   startDate?: string;
   endDate?: string;
+  stayMode?: "booked" | "unbooked" | null;
+  stayPlaceId?: string | null;
   companions?: string | null;
   pace?: string | null;
   themes?: string[];
 };
 
-type RenderStep = "List" | "Date" | "Companions" | "Style";
+type RenderStep = "List" | "Date" | "Stay" | "Companions" | "Style";
 
 const STEP_INDEX: Record<FunnelQueryStep, number> = {
   list: 1,
   date: 2,
-  companions: 3,
-  style: 4
+  stay: 3,
+  companions: 4,
+  style: 5
 };
 const MAX_SCHEDULE_DAYS = 7;
 
@@ -293,6 +306,177 @@ function ChoiceButton({
   );
 }
 
+function compactLocation(address: string | null) {
+  if (!address) return "주소 정보 없음";
+
+  const cleaned = address
+    .split(",")
+    .map((part) => part.replace(/\bThailand\b/gi, "").replace(/\b\d{5,6}\b/g, "").trim())
+    .filter(Boolean);
+
+  if (cleaned.length >= 2) {
+    return `${cleaned[cleaned.length - 2]} · ${cleaned[cleaned.length - 1]}`;
+  }
+
+  return cleaned[0] || address;
+}
+
+function StayModeChoice({
+  active,
+  title,
+  description
+}: {
+  active: boolean;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "rounded-[24px] border px-4 py-4 transition-[background-color,border-color,box-shadow]",
+        active
+          ? "border-primary bg-primary/12 shadow-[0_18px_34px_rgba(60,157,255,0.14)]"
+          : "border-border/75 bg-white"
+      )}
+    >
+      <p className={cn("text-sm font-black", active ? "text-primary" : "text-slate-900")}>{title}</p>
+      <p className={cn("mt-1.5 text-xs leading-5", active ? "text-primary/82" : "text-slate-500")}>{description}</p>
+    </div>
+  );
+}
+
+function StayOptionCard({
+  item,
+  selected,
+  isNewlyAdded,
+  onSelect
+}: {
+  item: PlaceListItem;
+  selected: boolean;
+  isNewlyAdded: boolean;
+  onSelect: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      aria-pressed={selected}
+      className={cn(
+        "w-full rounded-[24px] border px-4 py-4 text-left transition-[background-color,border-color,box-shadow]",
+        selected
+          ? "border-primary bg-primary/10 shadow-[0_18px_34px_rgba(60,157,255,0.12)]"
+          : "border-border/75 bg-white hover:border-primary/25 hover:bg-primary/5"
+      )}
+    >
+      <div className="flex items-start gap-4">
+        <PlacePhoto
+          name={item.place.name}
+          photos={item.place.photos}
+          className="h-24 w-28 shrink-0 rounded-[20px]"
+          sizes="112px"
+        />
+
+        <div className="min-w-0 flex-1 space-y-2">
+          <div className="flex flex-wrap items-center gap-2">
+            {item.priority ? <Badge tone="primary">Must Visit</Badge> : null}
+            {isNewlyAdded ? <Badge className="bg-white/90">Google 추가</Badge> : null}
+          </div>
+
+          <div className="space-y-1.5">
+            <p className="text-sm font-black text-slate-950">{item.place.name || UI_COPY.saved.detail.placesSection.placeFallback}</p>
+            <div className="flex items-start gap-2 text-xs font-medium text-slate-500">
+              <MapPin className="mt-[2px] h-3.5 w-3.5 shrink-0 text-primary" />
+              <span className="leading-5">{compactLocation(item.place.formattedAddress)}</span>
+            </div>
+          </div>
+
+          {item.note ? (
+            <div className="flex items-start gap-2 text-xs text-slate-600">
+              <NotebookPen className="mt-[2px] h-3.5 w-3.5 shrink-0 text-slate-400" />
+              <p className="leading-5">{item.note}</p>
+            </div>
+          ) : null}
+        </div>
+
+        <span
+          className={cn(
+            "mt-1 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border",
+            selected ? "border-primary bg-primary text-white" : "border-border bg-white text-transparent"
+          )}
+        >
+          <Check className="h-3.5 w-3.5" />
+        </span>
+      </div>
+    </button>
+  );
+}
+
+function AddStayDialog({
+  open,
+  googleUrl,
+  errorMessage,
+  isSubmitting,
+  onClose,
+  onChangeUrl,
+  onConfirm
+}: {
+  open: boolean;
+  googleUrl: string;
+  errorMessage: string | null;
+  isSubmitting: boolean;
+  onClose: () => void;
+  onChangeUrl: (value: string) => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <DialogShell
+      open={open}
+      onClose={onClose}
+      title="Google 링크로 숙소 추가"
+      description="숙소 링크를 붙여넣으면 이 리스트에 추가하고 바로 선택할 수 있어요"
+      mascotVariant="hotel"
+      busy={isSubmitting}
+      showCloseButton={false}
+      size="lg"
+      headerClassName="bg-[linear-gradient(135deg,rgba(232,244,255,0.96),rgba(255,255,255,1)_72%)]"
+      footer={
+        <>
+          <Button variant="secondary" size="sm" className="min-w-[88px]" onClick={onClose} disabled={isSubmitting}>
+            취소
+          </Button>
+          <Button size="sm" className="min-w-[132px]" onClick={onConfirm} disabled={isSubmitting || !googleUrl.trim()}>
+            {isSubmitting ? "추가 중" : "추가하고 선택"}
+          </Button>
+        </>
+      }
+    >
+      <div className="space-y-5">
+        <div className="space-y-2">
+          <DialogFieldLabel htmlFor="stay-google-url" required>
+            Google Maps 링크
+          </DialogFieldLabel>
+          <LinkInput
+            id="stay-google-url"
+            value={googleUrl}
+            onChange={(event) => onChangeUrl(event.target.value)}
+            placeholder="https://maps.app.goo.gl/..."
+          />
+          <DialogFieldHint error={Boolean(errorMessage)}>
+            {errorMessage || "호텔, 레지던스, 료칸처럼 실제로 묵을 숙소 링크를 넣어 주세요"}
+          </DialogFieldHint>
+        </div>
+
+        <div className="rounded-[24px] border border-border/75 bg-slate-50/80 p-4">
+          <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">Preview</p>
+          <div className="mt-3 rounded-[24px] border border-border/75 bg-white p-4 shadow-[0_18px_34px_rgba(15,23,42,0.04)]">
+            <p className="text-sm font-black text-slate-950">추가되면 이 리스트에 저장되고, 지금 여행 숙소로 바로 선택돼요</p>
+          </div>
+        </div>
+      </div>
+    </DialogShell>
+  );
+}
+
 function MonthCalendar({
   month,
   minSelectableDate,
@@ -385,6 +569,8 @@ export default function NewRoutePage() {
     title: storeValues.title || "",
     placeListId: storeValues.placeListId || "",
     ...initialDateRange,
+    stayMode: storeValues.stayMode,
+    stayPlaceId: storeValues.stayPlaceId,
     companions: storeValues.companions,
     pace: storeValues.pace,
     themes: storeValues.themes
@@ -393,6 +579,10 @@ export default function NewRoutePage() {
   const [viewMonthStart, setViewMonthStart] = useState(() =>
     startOfMonth(parseIsoDate(initialDateRange.startDate) || minViewMonth)
   );
+  const [isAddStayModalOpen, setIsAddStayModalOpen] = useState(false);
+  const [googleStayUrl, setGoogleStayUrl] = useState("");
+  const [googleStayUrlError, setGoogleStayUrlError] = useState<string | null>(null);
+  const [newlyAddedStayPlaceIds, setNewlyAddedStayPlaceIds] = useState<string[]>([]);
 
   const { session, isLoading: isAuthLoading, isAuthed } = useRequireAuth();
   const accessToken = session?.access_token;
@@ -403,20 +593,24 @@ export default function NewRoutePage() {
     enabled: Boolean(accessToken)
   });
 
+  const selectedListDetailQuery = useQuery({
+    queryKey: queryKeys.placeListDetail(context.placeListId || "missing"),
+    queryFn: () => fetchPlaceListDetail(context.placeListId || "", accessToken ?? ""),
+    enabled: Boolean(accessToken && context.placeListId)
+  });
+
   const createMutation = useMutation({
     mutationFn: (input: {
       title: string;
       placeListId: string;
       startDate: string;
       endDate: string;
+      stayPlaceId: string | null;
       companions: string | null;
       pace: string | null;
       themes: string[];
     }) =>
-      createSchedule(accessToken ?? "", {
-        ...input,
-        stayPlaceId: null
-      }),
+      createSchedule(accessToken ?? "", input),
     onSuccess: (data) => {
       pushToast({ kind: "success", message: UI_COPY.routes.new.toast.success });
       resetStoreValues();
@@ -426,6 +620,63 @@ export default function NewRoutePage() {
       console.error(error);
       pushToast({ kind: "error", message: UI_COPY.routes.new.toast.error });
       router.push("/routes/recommendation?status=error");
+    }
+  });
+
+  const addStayByLinkMutation = useMutation({
+    mutationFn: async (url: string) => {
+      if (!context.placeListId) {
+        throw new Error(UI_COPY.routes.new.toast.missingSelection);
+      }
+
+      const places = await importPlaceFromGoogleLink(accessToken ?? "", url);
+      if (!places || places.length === 0) {
+        throw new Error(UI_COPY.saved.detail.addPlaceNotFound);
+      }
+
+      await Promise.all(
+        places.map((place) =>
+          addPlaceListItem(accessToken ?? "", {
+            listId: context.placeListId as string,
+            placeId: place.id,
+            note: null,
+            priority: false,
+            itemLabel: "STAY"
+          })
+        )
+      );
+
+      return places;
+    },
+    onSuccess: (places) => {
+      const primaryPlace = places[0];
+      selectedListDetailQuery.refetch();
+      placeListsQuery.refetch();
+      setNewlyAddedStayPlaceIds((current) => [...new Set([...current, ...places.map((place) => place.id)])]);
+      setStoreValues({
+        stayMode: "booked",
+        stayPlaceId: primaryPlace?.id ?? null
+      });
+      setContext((current) => ({
+        ...current,
+        stayMode: "booked",
+        stayPlaceId: primaryPlace?.id ?? null
+      }));
+      setGoogleStayUrl("");
+      setGoogleStayUrlError(null);
+      setIsAddStayModalOpen(false);
+      pushToast({
+        kind: "success",
+        message: UI_COPY.routes.new.toast.addedStaySuccess(
+          primaryPlace?.name || UI_COPY.saved.detail.placesSection.placeFallback
+        )
+      });
+    },
+    onError: (error: Error) => {
+      console.error(error);
+      const message = error.message === UI_COPY.saved.detail.addPlaceNotFound ? error.message : UI_COPY.routes.new.toast.addedStayError;
+      setGoogleStayUrlError(message);
+      pushToast({ kind: "error", message });
     }
   });
 
@@ -465,6 +716,40 @@ export default function NewRoutePage() {
     }
   }, [minViewMonth, viewMonthStart]);
 
+  const stayItems = useMemo(
+    () => (selectedListDetailQuery.data?.items || []).filter((item) => item.itemLabel === "STAY"),
+    [selectedListDetailQuery.data?.items]
+  );
+
+  useEffect(() => {
+    if (context.stayMode !== "booked") return;
+    if (!context.stayPlaceId) return;
+    if (stayItems.some((item) => item.place.id === context.stayPlaceId)) return;
+
+    setStoreValues({ stayPlaceId: null });
+    setContext((current) => ({ ...current, stayPlaceId: null }));
+  }, [context.stayMode, context.stayPlaceId, setStoreValues, stayItems]);
+
+  const closeAddStayModal = () => {
+    if (addStayByLinkMutation.isPending) return;
+    setGoogleStayUrl("");
+    setGoogleStayUrlError(null);
+    setIsAddStayModalOpen(false);
+  };
+
+  const handleConfirmAddStay = () => {
+    const trimmedUrl = googleStayUrl.trim();
+    const isValidGoogleMapsUrl = /^https?:\/\/(www\.)?(maps\.app\.goo\.gl|maps\.google\.com|goo\.gl\/maps)\//i.test(trimmedUrl);
+
+    if (!isValidGoogleMapsUrl) {
+      setGoogleStayUrlError("Google Maps 링크를 확인해 주세요");
+      return;
+    }
+
+    setGoogleStayUrlError(null);
+    addStayByLinkMutation.mutate(trimmedUrl);
+  };
+
   const moveStep = (step: RenderStep, nextContext: FunnelContext = context) => {
     setContext(nextContext);
     setCurrentStep(step);
@@ -474,19 +759,25 @@ export default function NewRoutePage() {
   };
 
   const applySelectedList = (listId: string, title: string) => {
-    const next = { ...context, placeListId: listId, title };
+    const next = { ...context, placeListId: listId, title, stayMode: null, stayPlaceId: null };
+    setNewlyAddedStayPlaceIds([]);
     setStoreValues({
       placeListId: listId,
-      title
+      title,
+      stayMode: null,
+      stayPlaceId: null
     });
     setContext(next);
   };
 
   const clearSelectedList = () => {
-    const next = { ...context, placeListId: "", title: "" };
+    const next = { ...context, placeListId: "", title: "", stayMode: null, stayPlaceId: null };
+    setNewlyAddedStayPlaceIds([]);
     setStoreValues({
       placeListId: "",
-      title: ""
+      title: "",
+      stayMode: null,
+      stayPlaceId: null
     });
     setContext(next);
   };
@@ -561,10 +852,11 @@ export default function NewRoutePage() {
   const lists = placeListsQuery.data || [];
   const hasLists = lists.length > 0;
   const selectedList = lists.find((list) => list.id === context.placeListId);
+  const selectedListDetail = selectedListDetailQuery.data;
 
   return (
     <PageContainer className="space-y-8">
-      <ProgressHeader currentStep={STEP_INDEX[queryStep]} totalSteps={4} />
+      <ProgressHeader currentStep={STEP_INDEX[queryStep]} totalSteps={5} />
 
       {currentStep === "List" ? (
         <section
@@ -717,9 +1009,140 @@ export default function NewRoutePage() {
             <Button
               size="lg"
               disabled={!context.startDate || !context.endDate || hasBlockedDateSelection}
-              onClick={() => moveStep("Companions")}
+              onClick={() => moveStep("Stay")}
             >
               {UI_COPY.routes.new.dateStep.next}
+            </Button>
+          </div>
+        </section>
+      ) : null}
+
+      {currentStep === "Stay" ? (
+        <section className="mx-auto w-full max-w-[1194px] space-y-8">
+          <StepTitle
+            title={UI_COPY.routes.new.stayStep.title}
+            description={UI_COPY.routes.new.stayStep.description}
+            mascotVariant="hotel"
+          />
+
+          <Card className="overflow-hidden rounded-[34px] border-border/70 bg-[radial-gradient(circle_at_top_left,rgba(60,157,255,0.14),rgba(255,255,255,0.98)_38%)] p-4 shadow-[0_28px_64px_rgba(15,23,42,0.08)]">
+            <div className="rounded-[30px] border border-white/80 bg-white/96 p-4 shadow-[0_22px_44px_rgba(15,23,42,0.08)] md:p-5">
+              <div className="space-y-6">
+                <div className="grid gap-3 md:grid-cols-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setStoreValues({ stayMode: "booked" });
+                      setContext((current) => ({ ...current, stayMode: "booked" }));
+                    }}
+                    className="text-left"
+                  >
+                    <StayModeChoice
+                      active={context.stayMode === "booked"}
+                      title={UI_COPY.routes.new.stayStep.bookedOption}
+                      description={UI_COPY.routes.new.stayStep.bookedOptionDescription}
+                    />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setStoreValues({ stayMode: "unbooked", stayPlaceId: null });
+                      setContext((current) => ({ ...current, stayMode: "unbooked", stayPlaceId: null }));
+                    }}
+                    className="text-left"
+                  >
+                    <StayModeChoice
+                      active={context.stayMode === "unbooked"}
+                      title={UI_COPY.routes.new.stayStep.unbookedOption}
+                      description={UI_COPY.routes.new.stayStep.unbookedOptionDescription}
+                    />
+                  </button>
+                </div>
+
+                {context.stayMode === "booked" ? (
+                  <div className="space-y-4 rounded-[28px] border border-border/75 bg-white p-5">
+                    <div className="space-y-1">
+                      <h4 className="text-base font-black text-slate-950">{UI_COPY.routes.new.stayStep.bookedTitle}</h4>
+                      <p className="text-sm leading-6 text-slate-600">{UI_COPY.routes.new.stayStep.bookedDescription}</p>
+                    </div>
+
+                    {selectedListDetailQuery.isLoading ? (
+                      <LoadingPanel message="숙소 목록 불러오는 중" />
+                    ) : stayItems.length > 0 ? (
+                      <div className="space-y-3">
+                        {stayItems.map((item) => (
+                          <StayOptionCard
+                            key={item.id}
+                            item={item}
+                            selected={context.stayPlaceId === item.place.id}
+                            isNewlyAdded={newlyAddedStayPlaceIds.includes(item.place.id)}
+                            onSelect={() => {
+                              setStoreValues({ stayMode: "booked", stayPlaceId: item.place.id });
+                              setContext((current) => ({ ...current, stayMode: "booked", stayPlaceId: item.place.id }));
+                            }}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="rounded-[24px] border border-dashed border-border bg-slate-50/80 px-4 py-8 text-center text-sm font-medium text-slate-500">
+                        선택할 숙소가 아직 없어요
+                      </div>
+                    )}
+
+                    <div className="rounded-[24px] border border-dashed border-primary/35 bg-primary/6 p-4">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div className="space-y-1">
+                          <p className="text-sm font-black text-slate-950">{UI_COPY.routes.new.stayStep.helperTitle}</p>
+                          <p className="text-xs leading-5 text-slate-500">{UI_COPY.routes.new.stayStep.helperDescription}</p>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => {
+                            setGoogleStayUrl("");
+                            setGoogleStayUrlError(null);
+                            setIsAddStayModalOpen(true);
+                          }}
+                        >
+                          <Plus className="mr-1 h-4 w-4" />
+                          {UI_COPY.routes.new.stayStep.addAction}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ) : context.stayMode === "unbooked" ? (
+                  <div className="space-y-4 rounded-[28px] border border-border/75 bg-white p-5">
+                    <div className="space-y-1">
+                      <h4 className="text-base font-black text-slate-950">{UI_COPY.routes.new.stayStep.unbookedTitle}</h4>
+                      <p className="text-sm leading-6 text-slate-600">{UI_COPY.routes.new.stayStep.unbookedDescription}</p>
+                    </div>
+
+                    <div className="space-y-3">
+                      {UI_COPY.routes.new.stayStep.unbookedSteps.map((item, index) => (
+                        <div key={item} className="flex items-start gap-3 rounded-[22px] border border-border/70 bg-slate-50/80 px-4 py-3.5">
+                          <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-black text-white">
+                            {index + 1}
+                          </span>
+                          <p className="text-sm leading-6 text-slate-600">{item}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          </Card>
+
+          <div className="grid gap-3 md:grid-cols-2">
+            <Button variant="secondary" size="lg" onClick={() => moveStep("Date")}>
+              {UI_COPY.routes.new.stayStep.previous}
+            </Button>
+            <Button
+              size="lg"
+              disabled={!context.stayMode || (context.stayMode === "booked" && !context.stayPlaceId)}
+              onClick={() => moveStep("Companions")}
+            >
+              {UI_COPY.routes.new.stayStep.next}
             </Button>
           </div>
         </section>
@@ -750,7 +1173,7 @@ export default function NewRoutePage() {
             ))}
           </Card>
           <div className="grid gap-3 md:grid-cols-2">
-            <Button variant="secondary" size="lg" onClick={() => moveStep("Date")}>
+            <Button variant="secondary" size="lg" onClick={() => moveStep("Stay")}>
               {UI_COPY.routes.new.companionsStep.previous}
             </Button>
             <Button size="lg" disabled={!context.companions} onClick={() => moveStep("Style")}>
@@ -862,6 +1285,7 @@ export default function NewRoutePage() {
                       placeListId: context.placeListId,
                       startDate: context.startDate,
                       endDate: context.endDate,
+                      stayPlaceId: context.stayMode === "booked" ? context.stayPlaceId ?? null : null,
                       companions: context.companions ?? null,
                       pace: context.pace ?? null,
                       themes: context.themes || []
@@ -884,6 +1308,21 @@ export default function NewRoutePage() {
           applySelectedList(list.id, list.name);
           pushToast({ kind: "info", message: UI_COPY.routes.new.toast.importedListSelected(list.name) });
         }}
+      />
+
+      <AddStayDialog
+        open={isAddStayModalOpen}
+        googleUrl={googleStayUrl}
+        errorMessage={googleStayUrlError}
+        isSubmitting={addStayByLinkMutation.isPending}
+        onClose={closeAddStayModal}
+        onChangeUrl={(value) => {
+          setGoogleStayUrl(value);
+          if (googleStayUrlError) {
+            setGoogleStayUrlError(null);
+          }
+        }}
+        onConfirm={handleConfirmAddStay}
       />
     </PageContainer>
   );

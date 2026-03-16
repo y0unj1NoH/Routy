@@ -1,6 +1,6 @@
 "use client";
 
-import { type PointerEvent as ReactPointerEvent, type ReactNode, type RefObject } from "react";
+import { type ComponentProps, type PointerEvent as ReactPointerEvent, type ReactNode, type RefObject } from "react";
 
 import { PAGE_CONTENT_X_PADDING_CLASS } from "@/components/layout/page-container";
 import { GoogleRouteMap } from "@/components/routes/google-route-map";
@@ -26,6 +26,10 @@ type RouteMobileSplitLayoutProps = {
   scrollRef: RefObject<HTMLDivElement | null>;
   sheetContent: ReactNode;
   sheetScrollClassName?: string;
+  mapOverlay?: ReactNode;
+  showStayOverlay?: boolean;
+  stayMarker?: ComponentProps<typeof GoogleRouteMap>["stayMarker"];
+  stayRecommendation?: ComponentProps<typeof GoogleRouteMap>["stayRecommendation"];
 };
 
 export function RouteMobileSplitLayout({
@@ -43,7 +47,11 @@ export function RouteMobileSplitLayout({
   points,
   scrollRef,
   sheetContent,
-  sheetScrollClassName
+  sheetScrollClassName,
+  mapOverlay,
+  showStayOverlay = true,
+  stayMarker,
+  stayRecommendation
 }: RouteMobileSplitLayoutProps) {
   const sheetTop = (mobileSheetMode === "peek" ? ROUTE_MOBILE_SHEET_PEEK_TOP : 0) + sheetDragOffset;
 
@@ -57,8 +65,12 @@ export function RouteMobileSplitLayout({
           focusPointRequestKey={focusPointRequestKey}
           onPointClick={onPointClick}
           fallbackUrl={fallbackUrl}
+          showStayOverlay={showStayOverlay}
+          stayMarker={stayMarker}
+          stayRecommendation={stayRecommendation}
           className="route-map-mobile h-full w-full"
         />
+        {mapOverlay}
       </div>
       <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-linear-to-b from-background/55 to-transparent" />
 

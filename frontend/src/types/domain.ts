@@ -32,10 +32,13 @@ export type Place = {
   updatedAt: string;
 };
 
+export type PlaceListItemLabel = "STAY";
+
 export type PlaceListItem = {
   id: string;
   note: string | null;
   priority: boolean;
+  itemLabel: PlaceListItemLabel | null;
   createdAt: string;
   place: Place;
 };
@@ -78,6 +81,13 @@ export type ScheduleDay = {
   stops: ScheduleStop[];
 };
 
+export type ScheduleStayRecommendation = {
+  centerLat: number;
+  centerLng: number;
+  radiusKm: number;
+  wideSpread: boolean;
+};
+
 export type Schedule = {
   id: string;
   userId: string;
@@ -87,6 +97,7 @@ export type Schedule = {
   dayCount: number;
   placeList: PlaceList;
   stayPlace: Place | null;
+  stayRecommendation: ScheduleStayRecommendation | null;
   companions: string | null;
   pace: string | null;
   themes: string[];
@@ -104,6 +115,7 @@ export type CreateScheduleFormValues = {
   startDate: string;
   endDate: string;
   placeListId: string;
+  stayMode: "booked" | "unbooked" | null;
   stayPlaceId: string | null;
   companions: string | null;
   pace: string | null;

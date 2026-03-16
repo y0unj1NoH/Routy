@@ -13,7 +13,15 @@ import { cn } from "@/lib/cn";
 
 type RouteScheduleMapProps = Pick<
   ComponentProps<typeof GoogleRouteMap>,
-  "activePointId" | "fallbackUrl" | "focusPointId" | "focusPointRequestKey" | "onPointClick" | "points"
+  | "activePointId"
+  | "fallbackUrl"
+  | "focusPointId"
+  | "focusPointRequestKey"
+  | "onPointClick"
+  | "points"
+  | "showStayOverlay"
+  | "stayMarker"
+  | "stayRecommendation"
 >;
 
 type RouteSchedulePageShellProps = {
@@ -24,6 +32,7 @@ type RouteSchedulePageShellProps = {
   deleteDialog?: ReactNode;
   desktopAsideTop?: ReactNode;
   desktopStopList: ReactNode;
+  desktopMapOverlay?: ReactNode;
   headerActions?: ReactNode;
   headerLeading: ReactNode;
   listLabel: string;
@@ -31,6 +40,7 @@ type RouteSchedulePageShellProps = {
   listModeStopList: ReactNode;
   listModeTop?: ReactNode;
   mobileFooter?: ReactNode;
+  mobileMapOverlay?: ReactNode;
   mobileSplit: Omit<ComponentProps<typeof RouteMobileSplitLayout>, "sheetContent">;
   mobileStopList: ReactNode;
   onDelete: () => void;
@@ -50,6 +60,7 @@ export function RouteSchedulePageShell({
   deleteDialog,
   desktopAsideTop,
   desktopMap,
+  desktopMapOverlay,
   desktopStopList,
   headerActions,
   headerLeading,
@@ -58,6 +69,7 @@ export function RouteSchedulePageShell({
   listModeStopList,
   listModeTop,
   mobileFooter,
+  mobileMapOverlay,
   mobileSplit,
   mobileStopList,
   onDelete,
@@ -106,6 +118,7 @@ export function RouteSchedulePageShell({
         <>
           <RouteMobileSplitLayout
             {...mobileSplit}
+            mapOverlay={mobileMapOverlay}
             sheetContent={
               <>
                 {daySelector}
@@ -122,6 +135,7 @@ export function RouteSchedulePageShell({
             </aside>
             <section className="relative min-h-0 overflow-hidden rounded-2xl border border-border shadow-[0_16px_34px_rgba(56,123,194,0.1)]">
               <GoogleRouteMap {...desktopMap} className="absolute inset-0 h-full w-full" />
+              {desktopMapOverlay}
             </section>
           </div>
         </>

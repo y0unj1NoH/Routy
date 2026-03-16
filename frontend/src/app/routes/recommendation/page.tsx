@@ -16,6 +16,7 @@ import { CelebrationMascot } from "@/components/layout/celebration-mascot";
 import { PAGE_CONTENT_X_PADDING_CLASS, PageContainer } from "@/components/layout/page-container";
 import { RouteDaySelector } from "@/components/routes/route-day-selector";
 import { RouteSchedulePageShell } from "@/components/routes/route-schedule-page-shell";
+import { RouteStayMapControl, RouteStayRecommendationCallout } from "@/components/routes/route-stay-map-ui";
 import { RouteStopCard } from "@/components/routes/route-stop-card";
 import { RouteStopList } from "@/components/routes/route-stop-list";
 import type { RouteViewMode } from "@/components/routes/route-view-mode";
@@ -28,6 +29,7 @@ import { cn } from "@/lib/cn";
 import { deleteSchedule, fetchScheduleDetail, regenerateSchedule } from "@/lib/graphql/api";
 import { buildGoogleDirectionsEmbedUrl } from "@/lib/maps";
 import { queryKeys } from "@/lib/query-keys";
+import { getRouteStayMarker, getRouteStayOverlayMode, getRouteStayRecommendation } from "@/lib/route-stay";
 import { useUiStore } from "@/stores/ui-store";
 import type { Schedule, ScheduleStop } from "@/types/domain";
 
@@ -71,6 +73,7 @@ export default function RecommendationPage() {
   const [selectedDay, setSelectedDay] = useState(1);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [viewMode, setViewMode] = useState<RouteViewMode>("split");
+  const [isStayOverlayVisible, setIsStayOverlayVisible] = useState(true);
 
   useEffect(() => {
     const currentParams = new URLSearchParams(window.location.search);
@@ -126,6 +129,15 @@ export default function RecommendationPage() {
   }, [scheduleDays, selectedDay]);
 
   const currentDayStops = useMemo(() => currentDay?.stops ?? [], [currentDay]);
+  const stayMarker = useMemo(() => getRouteStayMarker(schedule?.stayPlace ?? null), [schedule?.stayPlace]);
+  const stayRecommendation = useMemo(
+    () => getRouteStayRecommendation(schedule?.stayRecommendation ?? null),
+    [schedule?.stayRecommendation]
+  );
+  const stayOverlayMode = useMemo(
+    () => getRouteStayOverlayMode({ stayPlace: schedule?.stayPlace ?? null, stayRecommendation: schedule?.stayRecommendation ?? null }),
+    [schedule?.stayPlace, schedule?.stayRecommendation]
+  );
   const currentDayPoints = useMemo(() => buildDayPoints(currentDay), [currentDay]);
   const routeMapUrl = useMemo(
     () => buildGoogleDirectionsEmbedUrl(currentDayPoints, schedule?.placeList.city),
@@ -168,6 +180,10 @@ export default function RecommendationPage() {
     router.push(`/routes/${scheduleId}`);
   };
 
+  useEffect(() => {
+    setIsStayOverlayVisible(true);
+  }, [scheduleId, stayOverlayMode]);
+
   const renderPreviewHero = (className?: string) => (
     <section
       className={cn(
@@ -185,13 +201,37 @@ export default function RecommendationPage() {
         <h1 className="mt-3 overflow-hidden text-ellipsis whitespace-nowrap text-[1.28rem] font-black leading-[1.16] tracking-[-0.03em] text-foreground sm:text-[1.42rem]">
           {UI_COPY.routes.recommendation.heroTitle(schedule?.placeList.city)}
         </h1>
-        <p className="mt-1.5 line-clamp-2 text-[12px] font-medium text-foreground/58">{UI_COPY.routes.recommendation.heroDescription}</p>
+        <p className="mt-1.5 line-clamp-2 text-[12px] font-medium text-foreground/58">
+          {stayOverlayMode === "stay"
+            ? UI_COPY.routes.recommendation.heroDescriptionWithStay
+            : stayOverlayMode === "recommendation"
+              ? UI_COPY.routes.recommendation.heroDescriptionWithRecommendation
+              : UI_COPY.routes.recommendation.heroDescription}
+        </p>
       </div>
       <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-primary-soft/70 p-1.5">
         <CelebrationMascot className="h-20 w-20" />
       </div>
     </section>
   );
+
+  const stayMapOverlay =
+    stayOverlayMode != null ? (
+      <>
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-40 flex items-center justify-end px-3 py-3">
+          <div className="pointer-events-auto">
+            <RouteStayMapControl
+              mode={stayOverlayMode}
+              enabled={isStayOverlayVisible}
+              onToggle={() => setIsStayOverlayVisible((current) => !current)}
+            />
+          </div>
+        </div>
+        {stayOverlayMode === "recommendation" && isStayOverlayVisible ? (
+          <RouteStayRecommendationCallout wideSpread={stayRecommendation?.wideSpread} />
+        ) : null}
+      </>
+    ) : null;
 
   const renderActionPanel = (className?: string) => (
     <section
@@ -378,6 +418,9 @@ export default function RecommendationPage() {
           focusPointRequestKey: mapFocusRequest.key,
           onPointClick: focusStopFromMap,
           fallbackUrl: routeMapUrl,
+          showStayOverlay: isStayOverlayVisible,
+          stayMarker,
+          stayRecommendation,
           mobileSheetMode,
           sheetDragOffset,
           isSheetDragging,
@@ -387,14 +430,19 @@ export default function RecommendationPage() {
           scrollRef: listRefs.mobile.scrollRef,
           sheetScrollClassName: "pb-[calc(7.5rem+env(safe-area-inset-bottom))]"
         }}
+        mobileMapOverlay={stayMapOverlay}
         desktopMap={{
           points: currentDayPoints,
           activePointId: activeStopId,
           focusPointId: mapFocusRequest.pointId,
           focusPointRequestKey: mapFocusRequest.key,
           onPointClick: focusStopFromMap,
-          fallbackUrl: routeMapUrl
+          fallbackUrl: routeMapUrl,
+          showStayOverlay: isStayOverlayVisible,
+          stayMarker,
+          stayRecommendation
         }}
+        desktopMapOverlay={stayMapOverlay}
         mobileFooter={
           <div
             className={cn(

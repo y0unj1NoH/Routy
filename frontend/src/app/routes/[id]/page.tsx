@@ -9,10 +9,12 @@ import { EmptyState } from "@/components/common/empty-state";
 import { LoadingPanel } from "@/components/common/loading-panel";
 import { PageContainer } from "@/components/layout/page-container";
 import { RouteDetailView } from "@/components/routes/route-detail-view";
+import { RouteStayMapControl, RouteStayRecommendationCallout } from "@/components/routes/route-stay-map-ui";
 import { UI_COPY } from "@/constants/ui-copy";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import { deleteSchedule, fetchScheduleDetail, updateScheduleStopNote } from "@/lib/graphql/api";
 import { queryKeys } from "@/lib/query-keys";
+import { getRouteStayMarker, getRouteStayOverlayMode, getRouteStayRecommendation } from "@/lib/route-stay";
 import { useUiStore } from "@/stores/ui-store";
 import type { Schedule } from "@/types/domain";
 
@@ -35,11 +37,26 @@ export default function RouteDetailPage() {
   const scheduleDays = useMemo(() => schedule?.days ?? [], [schedule?.days]);
   const [editingStopId, setEditingStopId] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isStayOverlayVisible, setIsStayOverlayVisible] = useState(true);
+
+  const stayMarker = useMemo(() => getRouteStayMarker(schedule?.stayPlace ?? null), [schedule?.stayPlace]);
+  const stayRecommendation = useMemo(
+    () => getRouteStayRecommendation(schedule?.stayRecommendation ?? null),
+    [schedule?.stayRecommendation]
+  );
+  const stayOverlayMode = useMemo(
+    () => getRouteStayOverlayMode({ stayPlace: schedule?.stayPlace ?? null, stayRecommendation: schedule?.stayRecommendation ?? null }),
+    [schedule?.stayPlace, schedule?.stayRecommendation]
+  );
 
   useEffect(() => {
     const currentStopExists = scheduleDays.some((day) => day.stops.some((stop) => stop.id === editingStopId));
     setEditingStopId((current) => (currentStopExists ? current : null));
   }, [editingStopId, scheduleDays]);
+
+  useEffect(() => {
+    setIsStayOverlayVisible(true);
+  }, [id, stayOverlayMode]);
 
   const deleteMutation = useMutation({
     mutationFn: () => deleteSchedule(accessToken ?? "", id),
@@ -141,6 +158,24 @@ export default function RouteDetailPage() {
     );
   }
 
+  const stayMapOverlay =
+    stayOverlayMode != null ? (
+      <>
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-40 flex items-center justify-end px-3 py-3">
+          <div className="pointer-events-auto">
+            <RouteStayMapControl
+              mode={stayOverlayMode}
+              enabled={isStayOverlayVisible}
+              onToggle={() => setIsStayOverlayVisible((current) => !current)}
+            />
+          </div>
+        </div>
+        {stayOverlayMode === "recommendation" && isStayOverlayVisible ? (
+          <RouteStayRecommendationCallout wideSpread={stayRecommendation?.wideSpread} />
+        ) : null}
+      </>
+    ) : null;
+
   return (
     <RouteDetailView
       schedule={schedule}
@@ -171,6 +206,11 @@ export default function RouteDetailPage() {
       noteSavingStopId={stopNoteMutation.variables?.stopId ?? null}
       onToggleStopNote={toggleStopNoteEditor}
       onSaveStopNote={saveStopNote}
+      mobileMapOverlay={stayMapOverlay}
+      desktopMapOverlay={stayMapOverlay}
+      showStayOverlay={isStayOverlayVisible}
+      stayMarker={stayMarker}
+      stayRecommendation={stayRecommendation}
     />
   );
 }

@@ -23,6 +23,25 @@ const DEFAULT_OPENAI_MODELS = ["gpt-5-nano", "gpt-4.1-nano", "gpt-4o-mini", "gpt
 const DEFAULT_OUTPUT_LANGUAGE = "ko";
 const OPENAI_CHAT_COMPLETIONS_URL = "https://api.openai.com/v1/chat/completions";
 const SUPPORTED_AI_PROVIDERS = new Set(["gemini", "openai"]);
+const AI_STAY_DISTANCE_OUTLIER_KM = 8;
+
+function toRadians(value) {
+  return (value * Math.PI) / 180;
+}
+
+function haversineKm(lat1, lng1, lat2, lng2) {
+  if (![lat1, lng1, lat2, lng2].every((value) => Number.isFinite(Number(value)))) {
+    return null;
+  }
+
+  const dLat = toRadians(lat2 - lat1);
+  const dLng = toRadians(lng2 - lng1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) * Math.sin(dLng / 2) ** 2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return 6371 * c;
+}
 
 function resolveOutputLanguageName(outputLanguage) {
   return String(outputLanguage || DEFAULT_OUTPUT_LANGUAGE).toLowerCase() === "en" ? "English" : "Korean";
@@ -269,10 +288,13 @@ function buildPromptTags(candidate) {
   return [...tags];
 }
 
-function buildPromptPlaceSummary(candidate, generationInput = {}) {
+function buildPromptPlaceSummary(candidate, generationInput = {}, stayPlace = null) {
   const place = candidate.place;
   const traits = getCandidateTraits(candidate);
   const daySlots = buildPromptDaySlotSummary(candidate, generationInput.tripDays, generationInput.pace);
+  const stayDistanceKm = stayPlace
+    ? haversineKm(stayPlace.lat, stayPlace.lng, place.lat, place.lng)
+    : null;
 
   const summary = {
     id: place.id,
@@ -288,6 +310,11 @@ function buildPromptPlaceSummary(candidate, generationInput = {}) {
 
   if (daySlots) {
     summary.day_slots = daySlots;
+  }
+
+  if (stayDistanceKm != null) {
+    summary.distance_from_stay_km = Number(stayDistanceKm.toFixed(2));
+    summary.far_from_stay = stayDistanceKm >= AI_STAY_DISTANCE_OUTLIER_KM;
   }
 
   return summary;
@@ -330,7 +357,7 @@ function isValidAiActivityForOpeningHours({ candidate, tripDay, activity, label,
   };
 }
 
-function generatePrompt(places, scenario, generationInput) {
+function generatePrompt(places, scenario, generationInput, stayPlace = null) {
   const isPersonalized = scenario === 'Personalized';
   const targetCity = generationInput.city || "Unknown";
   const outputLanguage = resolveOutputLanguageName(generationInput.outputLanguage);
@@ -361,6 +388,13 @@ User Preferences (${scenario}):
 - Goal: Build the most coherent trip from the provided list first. If the list is too large to fit realistically, use pace and themes only as tie-breakers for which places to keep.
 - Prioritize specifically: Every place with "must_visit": true must be included exactly once, but do not invent new must-visit places on your own. User notes should influence placement.
 `;
+      if (stayPlace && Number.isFinite(Number(stayPlace.lat)) && Number.isFinite(Number(stayPlace.lng))) {
+        prompt += `
+- Lodging Base: A booked stay exists at approximately [${Number(stayPlace.lat).toFixed(5)}, ${Number(stayPlace.lng).toFixed(5)}].
+- When several places are far from the stay, group them into the same day instead of bouncing back and forth across the city.
+- Prefer places with lower "distance_from_stay_km" unless a farther cluster is strong enough to justify a dedicated day.
+`;
+      }
   } else {
       prompt += `
 - Goal: Create a logical, distance-minimized route focusing on standard popular places.
@@ -586,9 +620,9 @@ async function buildAiSchedulePlan({ candidates, dayCount, startDate, stayPlace,
       });
     }
 
-    const placesList = aiCandidates.map((candidate) => buildPromptPlaceSummary(candidate, generationInput));
+    const placesList = aiCandidates.map((candidate) => buildPromptPlaceSummary(candidate, generationInput, stayPlace));
 
-    const prompt = generatePrompt(placesList, scenario, generationInput);
+    const prompt = generatePrompt(placesList, scenario, generationInput, stayPlace);
     
     const itineraryResponse = await callStructuredPlanner(prompt);
     

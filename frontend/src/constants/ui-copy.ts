@@ -310,7 +310,9 @@ export const UI_COPY = {
         success: "일정을 만들었어요",
         error: "일정을 만들지 못했어요",
         missingSelection: "리스트와 여행 날짜를 먼저 선택해 주세요",
-        importedListSelected: (listName: string) => `${listName} 리스트를 불러왔어요`
+        importedListSelected: (listName: string) => `${listName} 리스트를 불러왔어요`,
+        addedStaySuccess: (placeName: string) => `${placeName}를 숙소로 추가했어요`,
+        addedStayError: "숙소를 추가하지 못했어요"
       },
       titleFallback: "새 여행 일정",
       listStep: {
@@ -418,12 +420,20 @@ export const UI_COPY = {
       readyTitle: "AI 추천 일정이 준비됐어요",
       heroTitle: (city: string | null | undefined) => (city ? `${city} 여행 코스가 나왔어요` : "여행 코스가 나왔어요"),
       heroDescription: "이렇게 떠나보는 건 어떠신가요?",
+      heroDescriptionWithStay: "숙소 기준으로 이동하기 좋게 정리했어요",
+      heroDescriptionWithRecommendation: "일정 기준으로 숙소 잡기 좋은 위치를 함께 표시했어요",
       actionDescription: "추천 결과가 마음에 들면 상세 일정으로 이어서 볼 수 있어요",
       previewTitle: "추천 결과 미리보기",
       previewSummary: (count: number) => `${count}일 일정 요약`,
       previewDays: (count: number) => `${count}일 일정`,
       confirmAction: "내 일정으로 담기",
       regenerateAction: "새 추천받기",
+      stayOverlay: {
+        stayLabel: "숙소 표시",
+        recommendationLabel: "추천 위치",
+        recommendationHint: "이 근방에서 숙소를 찾아보세요",
+        wideSpreadHint: "일정이 여러 구역에 나뉘어 있어 중심 위치를 골랐어요"
+      },
       stopFallback: "추천 장소가 없어요",
       stopCount: (count: number) => `${count}개 장소`
     },

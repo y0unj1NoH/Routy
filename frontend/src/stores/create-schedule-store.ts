@@ -15,6 +15,7 @@ const initialValues: CreateScheduleFormValues = {
   startDate: "",
   endDate: "",
   placeListId: "",
+  stayMode: null,
   stayPlaceId: null,
   companions: null,
   pace: null,
@@ -32,4 +33,3 @@ export const useCreateScheduleStore = create<CreateScheduleStore>((set) => ({
     })),
   resetValues: () => set({ values: initialValues })
 }));
-

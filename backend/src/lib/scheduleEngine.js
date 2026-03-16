@@ -217,6 +217,10 @@ function getCandidateOpeningHours(candidate) {
 }
 
 function isLodgingCandidate(candidate) {
+  if (String(candidate?.itemLabel || "").trim().toUpperCase() === "STAY") {
+    return true;
+  }
+
   const types = Array.isArray(candidate?.place?.types_raw)
     ? candidate.place.types_raw
     : Array.isArray(candidate?.place?.typesRaw)

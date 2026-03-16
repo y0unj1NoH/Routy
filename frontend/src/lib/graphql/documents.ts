@@ -44,6 +44,7 @@ export const PLACE_LIST_DETAIL_FIELDS = /* GraphQL */ `
     id
     note
     priority
+    itemLabel
     createdAt
     place {
       ${PLACE_FIELDS}
@@ -121,10 +122,11 @@ export const SCHEDULE_DETAIL_QUERY = /* GraphQL */ `
       placeList {
         ${PLACE_LIST_CARD_FIELDS}
       }
-      stayPlace {
-        ${PLACE_FIELDS}
-      }
-      days {
+    stayPlace {
+      ${PLACE_FIELDS}
+    }
+    stayRecommendation
+    days {
         id
         dayNumber
         date
@@ -162,6 +164,7 @@ export const UPDATE_PLACE_LIST_ITEM_MUTATION = /* GraphQL */ `
       id
       note
       priority
+      itemLabel
       createdAt
     }
   }
