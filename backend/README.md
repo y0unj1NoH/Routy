@@ -21,6 +21,9 @@ GraphQL endpoint:
 - `SUPABASE_PUBLISHABLE_KEY`
 - `SUPABASE_SECRET_KEY`
 - `GOOGLE_PLACES_API_KEY` (선택, 장소 상세 동기화 시 사용)
+- `AI_PROVIDER` (`gemini` 또는 `openai`)
+- `GEMINI_API_KEY` / `GEMINI_MODEL`
+- `OPENAI_API_KEY` / `OPENAI_MODEL`
 - `OAUTH_REDIRECT_TO` (Google OAuth URL 생성 시 사용)
 
 Legacy fallback:
@@ -28,6 +31,10 @@ Legacy fallback:
 - `SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `GOOGLE_MAPS_API_KEY`
+- `GEMINI_FALLBACK_MODELS`
+- `OPENAI_FALLBACK_MODELS`
+- `OPENAI_ORGANIZATION`
+- `OPENAI_PROJECT`
 
 ## 3) Supabase SQL Bootstrap
 
@@ -42,11 +49,11 @@ Legacy fallback:
 생성 테이블:
 
 - `places` (공용 장소 원본)
-- `place_lists` (유저 리스트 헤더)
+- `place_lists` (유저 리스트 헤더, 출력 언어 포함)
 - `place_list_items` (리스트별 장소 + 메모/우선순위)
-- `schedules`
+- `schedules` (생성 시점 출력 언어 스냅샷 포함)
 - `schedule_days`
-- `schedule_stops`
+- `schedule_stops` (`reason` + `visit_tip` 저장)
 
 ## 4) GraphQL Domain Summary
 
@@ -97,7 +104,10 @@ Legacy fallback:
   - `label`
   - `badges`
   - `reason`
+  - `visit_tip`
   - `transport_to_next`
+- AI 생성 프롬프트는 `generationInput.outputLanguage`와 `generationInput.tripDays`를 받아, 방문 날짜와 언어를 기준으로 `visit_tip`을 생성하도록 구성
+- AI provider는 `AI_PROVIDER`로 선택하며, 미설정 시에는 기본적으로 Gemini를 쓰고 `OPENAI_API_KEY`만 있는 환경에서는 OpenAI를 자동 선택
 
 ## 6) 고도화 (Future Enhancements)
 

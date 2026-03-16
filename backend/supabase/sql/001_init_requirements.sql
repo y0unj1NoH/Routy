@@ -42,6 +42,7 @@ create table public.place_lists (
   user_id uuid not null references auth.users(id) on delete cascade,
   name text not null,
   city text not null,
+  language text not null default 'ko' check (language in ('ko', 'en')),
   description text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -53,6 +54,7 @@ create table public.place_list_items (
   place_id uuid not null references public.places(id) on delete cascade,
   note text,
   priority boolean not null default false,
+  sort_order integer not null,
   created_at timestamptz not null default now(),
   unique (list_id, place_id)
 );
@@ -69,8 +71,9 @@ create table public.schedules (
   companions text,
   pace text,
   themes jsonb not null default '[]'::jsonb,
+  output_language text not null default 'ko' check (output_language in ('ko', 'en')),
   generation_input jsonb not null default '{}'::jsonb,
-  generation_version text not null default 'mvp_v1',
+  generation_version text not null default 'mvp_v2_visit_tip',
   is_manual_modified boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
@@ -96,6 +99,7 @@ create table public.schedule_stops (
   badges jsonb not null default '[]'::jsonb,
   note text,
   reason text,
+  visit_tip text,
   transport_to_next jsonb,
   is_user_modified boolean not null default false,
   created_at timestamptz not null default now(),
@@ -105,6 +109,7 @@ create table public.schedule_stops (
 create index places_google_place_id_idx on public.places(google_place_id);
 create index place_lists_user_idx on public.place_lists(user_id);
 create index place_list_items_list_idx on public.place_list_items(list_id);
+create index place_list_items_list_sort_idx on public.place_list_items(list_id, sort_order);
 create index place_list_items_place_idx on public.place_list_items(place_id);
 create index schedules_user_idx on public.schedules(user_id);
 create index schedules_place_list_idx on public.schedules(place_list_id);

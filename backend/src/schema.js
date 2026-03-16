@@ -61,9 +61,11 @@ const typeDefs = /* GraphQL */ `
     userId: ID!
     name: String!
     city: String!
+    language: String!
     description: String
     itemCount: Int!
     items: [PlaceListItem!]!
+    previewPlaces(limit: Int = 4): [Place!]!
     createdAt: String!
     updatedAt: String!
   }
@@ -76,6 +78,7 @@ const typeDefs = /* GraphQL */ `
     badges: [String!]!
     note: String
     reason: String
+    visitTip: String
     transportToNext: JSON
     isUserModified: Boolean!
     place: Place!
@@ -100,6 +103,7 @@ const typeDefs = /* GraphQL */ `
     companions: String
     pace: String
     themes: [String!]!
+    outputLanguage: String!
     generationInput: JSON
     generationVersion: String
     isManualModified: Boolean!
@@ -130,12 +134,14 @@ const typeDefs = /* GraphQL */ `
   input CreatePlaceListInput {
     name: String!
     city: String!
+    language: String
     description: String
   }
 
   input UpdatePlaceListInput {
     name: String
     city: String
+    language: String
     description: String
   }
 
@@ -160,6 +166,7 @@ const typeDefs = /* GraphQL */ `
     companions: String
     pace: String
     themes: [String!] = []
+    outputLanguage: String
   }
 
   input RegenerateScheduleInput {
@@ -170,12 +177,18 @@ const typeDefs = /* GraphQL */ `
     companions: String
     pace: String
     themes: [String!]
+    outputLanguage: String
   }
 
   input MoveScheduleStopInput {
     stopId: ID!
     targetDayNumber: Int!
     targetOrder: Int!
+  }
+
+  input UpdateScheduleStopInput {
+    stopId: ID!
+    note: String
   }
 
   type Query {
@@ -197,7 +210,7 @@ const typeDefs = /* GraphQL */ `
     signInWithGoogle(redirectTo: String): String!
     deleteMyAccount: Boolean!
 
-    importPlaceListFromCrawler(url: String!, listName: String!, city: String!, description: String): PlaceList!
+    importPlaceListFromCrawler(url: String!, listName: String!, city: String!, description: String, language: String): PlaceList!
     importPlaceFromGoogleLink(url: String!): [Place!]!
     upsertPlace(input: PlaceUpsertInput!): Place!
     refreshPlaceDetails(id: ID!): Place!
@@ -212,6 +225,7 @@ const typeDefs = /* GraphQL */ `
     createSchedule(input: CreateScheduleInput!): Schedule!
     regenerateSchedule(scheduleId: ID!, input: RegenerateScheduleInput!): Schedule!
     moveScheduleStop(scheduleId: ID!, input: MoveScheduleStopInput!): Schedule!
+    updateScheduleStop(scheduleId: ID!, input: UpdateScheduleStopInput!): ScheduleStop!
     deleteSchedule(id: ID!): Boolean!
   }
 `;
