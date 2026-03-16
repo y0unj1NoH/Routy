@@ -12,6 +12,7 @@ export type BrowserSessionPersistence = "session" | "local";
 const AUTH_STORAGE_KEY = "myroute.auth.token";
 const AUTH_CODE_VERIFIER_STORAGE_KEY = `${AUTH_STORAGE_KEY}-code-verifier`;
 const AUTH_PERSISTENCE_MARKER_KEY = "myroute.auth.persistence";
+const AUTH_OAUTH_RETURN_PERSISTENCE_KEY = "myroute.auth.oauth.return.persistence";
 const LEGACY_AUTH_STORAGE_KEY = getLegacyProjectAuthStorageKey();
 const LEGACY_CODE_VERIFIER_STORAGE_KEY = LEGACY_AUTH_STORAGE_KEY ? `${LEGACY_AUTH_STORAGE_KEY}-code-verifier` : null;
 
@@ -99,6 +100,16 @@ function clearStoredPersistenceMode() {
   safeRemove(getStorage("local"), AUTH_PERSISTENCE_MARKER_KEY);
 }
 
+function setStoredOAuthReturnPersistence(mode: BrowserSessionPersistence) {
+  safeRemove(getStorage("session"), AUTH_OAUTH_RETURN_PERSISTENCE_KEY);
+  safeSet(getStorage("local"), AUTH_OAUTH_RETURN_PERSISTENCE_KEY, mode);
+}
+
+function clearStoredOAuthReturnPersistence() {
+  safeRemove(getStorage("session"), AUTH_OAUTH_RETURN_PERSISTENCE_KEY);
+  safeRemove(getStorage("local"), AUTH_OAUTH_RETURN_PERSISTENCE_KEY);
+}
+
 function getStoredPersistenceMode(): BrowserSessionPersistence | null {
   const sessionMode = safeGet(getStorage("session"), AUTH_PERSISTENCE_MARKER_KEY);
   if (sessionMode === "session") return "session";
@@ -107,6 +118,11 @@ function getStoredPersistenceMode(): BrowserSessionPersistence | null {
   if (localMode === "local") return "local";
 
   return null;
+}
+
+function getStoredOAuthReturnPersistence(): BrowserSessionPersistence | null {
+  const value = safeGet(getStorage("local"), AUTH_OAUTH_RETURN_PERSISTENCE_KEY);
+  return value === "local" || value === "session" ? value : null;
 }
 
 function migrateLegacyValue(storage: Storage | null, sourceKey: string, targetKey: string, value: string) {
@@ -144,6 +160,34 @@ function detectPersistenceFromStoredValue(key: string) {
   }
 
   return null;
+}
+
+function clearStoredKeyEverywhere(key: string) {
+  for (const relatedKey of getRelatedKeys(key)) {
+    safeRemove(getStorage("session"), relatedKey);
+    safeRemove(getStorage("local"), relatedKey);
+  }
+}
+
+function moveStoredKeyToMode(key: string, mode: BrowserSessionPersistence) {
+  const targetStorage = getStorage(mode);
+  const inactiveStorage = getStorage(mode === "local" ? "session" : "local");
+  const value = readValueForMode(mode, key) ?? readValueForMode(mode === "local" ? "session" : "local", key);
+
+  for (const relatedKey of getRelatedKeys(key)) {
+    safeRemove(inactiveStorage, relatedKey);
+  }
+
+  for (const legacyKey of getLegacyKeysForKey(key)) {
+    safeRemove(targetStorage, legacyKey);
+  }
+
+  if (value !== null) {
+    safeSet(targetStorage, key, value);
+    return;
+  }
+
+  safeRemove(targetStorage, key);
 }
 
 const browserStorage: BrowserStorageAdapter = {
@@ -193,15 +237,37 @@ export function setSupabaseBrowserSessionPersistence(mode: BrowserSessionPersist
   setStoredPersistenceMode(mode);
 }
 
+export function prepareSupabaseBrowserOAuthRedirectPersistence(mode: BrowserSessionPersistence) {
+  setStoredOAuthReturnPersistence(mode);
+  setStoredPersistenceMode("local");
+}
+
+export function finalizeSupabaseBrowserOAuthRedirectPersistence() {
+  const intendedMode = getStoredOAuthReturnPersistence();
+  if (!intendedMode) return;
+
+  moveStoredKeyToMode(AUTH_STORAGE_KEY, intendedMode);
+  clearStoredKeyEverywhere(AUTH_CODE_VERIFIER_STORAGE_KEY);
+  setStoredPersistenceMode(intendedMode);
+  clearStoredOAuthReturnPersistence();
+}
+
+export function cancelSupabaseBrowserOAuthRedirectPersistence() {
+  const intendedMode = getStoredOAuthReturnPersistence();
+  if (!intendedMode) return;
+
+  clearStoredKeyEverywhere(AUTH_CODE_VERIFIER_STORAGE_KEY);
+  setStoredPersistenceMode(intendedMode);
+  clearStoredOAuthReturnPersistence();
+}
+
 export function clearSupabaseBrowserAuthStorage() {
   for (const key of [AUTH_STORAGE_KEY, AUTH_CODE_VERIFIER_STORAGE_KEY]) {
-    for (const relatedKey of getRelatedKeys(key)) {
-      safeRemove(getStorage("session"), relatedKey);
-      safeRemove(getStorage("local"), relatedKey);
-    }
+    clearStoredKeyEverywhere(key);
   }
 
   clearStoredPersistenceMode();
+  clearStoredOAuthReturnPersistence();
 }
 
 export function getSupabaseBrowserClient() {

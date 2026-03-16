@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
+import { Check } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,10 +14,12 @@ import { PageContainer } from "@/components/layout/page-container";
 import { PageTitle } from "@/components/common/page-title";
 import { isSupabaseEnvConfigured, publicEnv } from "@/lib/env";
 import { safeZodResolver } from "@/lib/forms/safe-zod-resolver";
-import { mapSupabaseAuthError } from "@/lib/supabase/auth-errors";
+import { mapGoogleOAuthInitError, mapSupabaseAuthError } from "@/lib/supabase/auth-errors";
 import {
+  cancelSupabaseBrowserOAuthRedirectPersistence,
   getMissingSupabaseEnvMessage,
   getSupabaseBrowserClient,
+  prepareSupabaseBrowserOAuthRedirectPersistence,
   setSupabaseBrowserSessionPersistence
 } from "@/lib/supabase/browser";
 import { useUiStore } from "@/stores/ui-store";
@@ -57,11 +60,6 @@ function buildAuthCallbackUrl(nextPath: string) {
   const redirectUrl = new URL(callbackBase);
   redirectUrl.searchParams.set("next", nextPath);
   return redirectUrl.toString();
-}
-
-function mapGoogleOAuthInitError(error: { code?: string; message?: string } | null) {
-  console.error(error);
-  return UI_COPY.auth.error.googleFailed;
 }
 
 export default function LoginPage() {
@@ -161,7 +159,7 @@ export default function LoginPage() {
         return;
       }
 
-      setSupabaseBrowserSessionPersistence(keepSignedIn ? "local" : "session");
+      prepareSupabaseBrowserOAuthRedirectPersistence(keepSignedIn ? "local" : "session");
       const supabase = getSupabaseBrowserClient();
       const redirectTo = buildAuthCallbackUrl(nextPath);
       const { error } = await supabase.auth.signInWithOAuth({
@@ -170,11 +168,14 @@ export default function LoginPage() {
       });
 
       if (error) {
+        cancelSupabaseBrowserOAuthRedirectPersistence();
+        console.error(error);
         const message = mapGoogleOAuthInitError(error);
         form.setError("root", { type: "server", message });
         pushToast({ kind: "error", message });
       }
     } catch (error) {
+      cancelSupabaseBrowserOAuthRedirectPersistence();
       console.error(error);
       const message = UI_COPY.auth.error.googleFailed;
       form.setError("root", { type: "server", message });
@@ -185,7 +186,7 @@ export default function LoginPage() {
   };
 
   return (
-    <PageContainer className="flex min-h-[calc(100vh-120px)] items-center justify-center">
+    <PageContainer className="grid min-h-dvh place-items-center pt-0 pb-0 md:pb-0">
       <section className="w-full max-w-[440px] space-y-6 rounded-2xl border border-border bg-card p-8 shadow-soft">
         <PageTitle title={UI_COPY.auth.login.title} />
 
@@ -220,7 +221,7 @@ export default function LoginPage() {
 
           <label
             htmlFor="keepSignedIn"
-            className="flex items-start gap-3 rounded-2xl border border-border/75 bg-muted/25 px-3 py-3"
+            className="inline-flex w-fit cursor-pointer select-none items-center gap-2 text-sm font-semibold text-foreground touch-manipulation [-webkit-tap-highlight-color:transparent]"
           >
             <input
               id="keepSignedIn"
@@ -228,12 +229,15 @@ export default function LoginPage() {
               checked={keepSignedIn}
               disabled={isAuthBusy}
               onChange={(event) => setKeepSignedIn(event.target.checked)}
-              className="mt-0.5 h-4 w-4 rounded border-border text-primary focus:ring-primary"
+              className="peer sr-only"
             />
-            <span className="min-w-0">
-              <span className="block text-sm font-semibold text-foreground">{UI_COPY.auth.login.rememberLabel}</span>
-              <span className="mt-1 block text-xs leading-5 text-foreground/60">{UI_COPY.auth.login.rememberDescription}</span>
+            <span
+              aria-hidden="true"
+              className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] border border-border bg-card/92 text-transparent shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] transition-[border-color,box-shadow,background-color,color] duration-200 peer-focus-visible:border-primary-light peer-focus-visible:ring-4 peer-focus-visible:ring-primary/15 peer-checked:border-transparent peer-checked:bg-primary peer-checked:text-white peer-checked:shadow-none peer-disabled:opacity-50"
+            >
+              <Check className="h-3 w-3" strokeWidth={3.5} />
             </span>
+            {UI_COPY.auth.login.rememberLabel}
           </label>
 
           <Button type="submit" fullWidth size="lg" disabled={isAuthBusy}>

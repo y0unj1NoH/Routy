@@ -14,6 +14,63 @@ function normalize(value: string | null | undefined) {
   return (value || "").toLowerCase();
 }
 
+function resolveOAuthMessage(source: string) {
+  if (
+    source.includes("provider is not enabled") ||
+    source.includes("unsupported provider") ||
+    source.includes("provider is disabled")
+  ) {
+    return UI_COPY.auth.error.googleProviderDisabled;
+  }
+
+  if (
+    source.includes("redirect") ||
+    source.includes("redirect_to") ||
+    source.includes("redirect uri") ||
+    source.includes("redirect_url") ||
+    source.includes("not allowed")
+  ) {
+    return UI_COPY.auth.error.oauthRedirectMismatch;
+  }
+
+  if (
+    source.includes("access_denied") ||
+    source.includes("cancelled") ||
+    source.includes("canceled") ||
+    source.includes("denied the request")
+  ) {
+    return UI_COPY.auth.error.oauthCancelled;
+  }
+
+  if (source.includes("code verifier") || source.includes("auth code") || source.includes("exchange")) {
+    return UI_COPY.auth.error.callbackFailed;
+  }
+
+  return null;
+}
+
+export function mapGoogleOAuthInitError(error: { code?: string | null; message?: string | null } | null) {
+  const source = `${normalize(error?.code)} ${normalize(error?.message)}`.trim();
+  return resolveOAuthMessage(source) || UI_COPY.auth.error.googleFailed;
+}
+
+export function mapOAuthCallbackError(input: {
+  oauthError?: string | null;
+  oauthErrorDescription?: string | null;
+  exchangeError?: { code?: string | null; message?: string | null } | null;
+}) {
+  const source = [
+    normalize(input.oauthError),
+    normalize(input.oauthErrorDescription),
+    normalize(input.exchangeError?.code),
+    normalize(input.exchangeError?.message)
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  return resolveOAuthMessage(source) || UI_COPY.auth.error.callbackFailed;
+}
+
 export function mapSupabaseAuthError(flow: AuthFlow, error: AuthError | null): AuthErrorMapping {
   if (!error) {
     return {

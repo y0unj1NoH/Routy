@@ -6,7 +6,12 @@ import { useRouter } from "next/navigation";
 import { LoadingPanel } from "@/components/common/loading-panel";
 import { UI_COPY } from "@/constants/ui-copy";
 import { PageContainer } from "@/components/layout/page-container";
-import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
+import { mapOAuthCallbackError } from "@/lib/supabase/auth-errors";
+import {
+  cancelSupabaseBrowserOAuthRedirectPersistence,
+  finalizeSupabaseBrowserOAuthRedirectPersistence,
+  getSupabaseBrowserClient
+} from "@/lib/supabase/browser";
 import { useUiStore } from "@/stores/ui-store";
 
 export default function AuthCallbackPage() {
@@ -22,10 +27,11 @@ export default function AuthCallbackPage() {
       const code = params.get("code");
 
       if (oauthError) {
+        cancelSupabaseBrowserOAuthRedirectPersistence();
         console.error({ oauthError, oauthErrorDescription });
         pushToast({
           kind: "error",
-          message: UI_COPY.auth.error.callbackFailed
+          message: mapOAuthCallbackError({ oauthError, oauthErrorDescription })
         });
         router.replace("/login");
         return;
@@ -37,10 +43,11 @@ export default function AuthCallbackPage() {
         if (code) {
           const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
           if (exchangeError) {
+            cancelSupabaseBrowserOAuthRedirectPersistence();
             console.error(exchangeError);
             pushToast({
               kind: "error",
-              message: UI_COPY.auth.error.callbackFailed
+              message: mapOAuthCallbackError({ exchangeError })
             });
             router.replace("/login");
             return;
@@ -49,21 +56,26 @@ export default function AuthCallbackPage() {
 
         const { data, error } = await supabase.auth.getSession();
         if (error || !data.session) {
+          cancelSupabaseBrowserOAuthRedirectPersistence();
           console.error(error);
           pushToast({
             kind: "error",
-            message: UI_COPY.auth.error.callbackFailed
+            message: mapOAuthCallbackError({ exchangeError: error })
           });
           router.replace("/login");
           return;
         }
 
+        finalizeSupabaseBrowserOAuthRedirectPersistence();
         router.replace(next);
       } catch (error) {
+        cancelSupabaseBrowserOAuthRedirectPersistence();
         console.error(error);
         pushToast({
           kind: "error",
-          message: UI_COPY.auth.error.callbackFailed
+          message: mapOAuthCallbackError({
+            exchangeError: error instanceof Error ? { message: error.message } : null
+          })
         });
         router.replace("/login");
       }

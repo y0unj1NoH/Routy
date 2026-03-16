@@ -75,7 +75,7 @@ export default function SignupPage() {
   });
 
   return (
-    <PageContainer className="flex min-h-[calc(100vh-120px)] items-center justify-center">
+    <PageContainer className="grid min-h-dvh place-items-center pt-0 pb-0 md:pb-0">
       <section className="w-full max-w-[440px] space-y-6 rounded-2xl border border-border bg-card p-8 shadow-soft">
         <PageTitle title={UI_COPY.auth.signup.title} />
 
