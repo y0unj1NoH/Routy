@@ -88,6 +88,9 @@ export const UI_COPY = {
       signInFailed: "로그인에 실패했어요",
       signUpFailed: "회원가입에 실패했어요",
       googleFailed: "Google 로그인에 실패했어요",
+      googleProviderDisabled: "Google 로그인이 아직 설정되지 않았어요. 인증 설정을 확인해 주세요",
+      oauthRedirectMismatch: "Google 로그인 설정이 맞지 않아요. callback URL을 확인해 주세요",
+      oauthCancelled: "Google 로그인을 취소했어요",
       callbackFailed: "로그인에 실패했어요. 다시 시도해 주세요",
       alreadyRegistered: "이미 가입된 이메일이에요",
       signInGeneric: "로그인 중 오류가 발생했어요",
@@ -99,7 +102,6 @@ export const UI_COPY = {
       emailLabel: "이메일",
       passwordLabel: "비밀번호",
       rememberLabel: "로그인 유지",
-      rememberDescription: "기본은 브라우저를 닫으면 로그아웃돼요. 이 기기에서 계속 쓰려면 체크해 주세요",
       submit: "로그인",
       submitting: "로그인하는 중",
       google: "Google 계정으로 로그인",
@@ -227,7 +229,7 @@ export const UI_COPY = {
         placeFallback: "이름 없는 장소",
         addressFallback: "주소 없음",
         notePlaceholder: "메모를 입력해 주세요",
-        mustVisitBadge: "Must Visit",
+        mustVisitBadge: "MUSTVISIT",
         detailAction: "장소 상세"
       },
       addPlaceModal: {
@@ -312,6 +314,7 @@ export const UI_COPY = {
         missingSelection: "리스트와 여행 날짜를 먼저 선택해 주세요",
         importedListSelected: (listName: string) => `${listName} 리스트를 불러왔어요`,
         addedStaySuccess: (placeName: string) => `${placeName}를 숙소로 추가했어요`,
+        addedStayTypeError: "숙소로 분류된 Google 장소를 확인해 주세요",
         addedStayError: "숙소를 추가하지 못했어요"
       },
       titleFallback: "새 여행 일정",
@@ -399,6 +402,8 @@ export const UI_COPY = {
         preparing: "AI 추천 일정 준비 중"
       },
       toast: {
+        deleteSuccess: "추천 일정을 삭제했어요",
+        deleteError: "추천 일정을 삭제하지 못했어요",
         regenerateSuccess: "새 AI 추천 일정으로 업데이트했어요",
         regenerateError: "일정 재추천에 실패했어요"
       },
@@ -422,11 +427,19 @@ export const UI_COPY = {
       heroDescription: "이렇게 떠나보는 건 어떠신가요?",
       heroDescriptionWithStay: "숙소 기준으로 이동하기 좋게 정리했어요",
       heroDescriptionWithRecommendation: "일정 기준으로 숙소 잡기 좋은 위치를 함께 표시했어요",
-      actionDescription: "추천 결과가 마음에 들면 상세 일정으로 이어서 볼 수 있어요",
+      actionDescription: "추천 결과가 마음에 들면 내 일정으로 담아둘 수 있어요",
       previewTitle: "추천 결과 미리보기",
       previewSummary: (count: number) => `${count}일 일정 요약`,
       previewDays: (count: number) => `${count}일 일정`,
       confirmAction: "내 일정으로 담기",
+      deleteAction: "추천 일정 삭제",
+      deleteDialog: {
+        title: "이 추천을 삭제할까요?",
+        description: "추천 결과를 지우면 이 일정은 저장되지 않아요",
+        confirm: "삭제",
+        confirming: "삭제 중",
+        cancel: "취소"
+      },
       regenerateAction: "새 추천받기",
       stayOverlay: {
         stayLabel: "숙소 표시",
@@ -487,9 +500,16 @@ export const UI_COPY = {
     detail: {
       title: "장소 정보",
       categoryLabels: {
+        MEAL: "식사",
+        BRUNCH: "브런치",
+        CAFE: "카페",
+        SNACK: "간식",
+        NIGHT: "밤 코스",
+        ACTIVITY: "액티비티",
         LANDMARK: "명소",
-        FOODIE: "맛집",
-        SHOPPING: "쇼핑"
+        SHOP: "쇼핑",
+        NATURE: "자연",
+        STAY: "숙소"
       },
       typeLabels: {
         tourist_attraction: "관광 명소",

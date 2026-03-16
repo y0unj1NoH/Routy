@@ -91,14 +91,14 @@ export default function RecommendationPage() {
   const deleteMutation = useMutation({
     mutationFn: () => deleteSchedule(accessToken || "", scheduleId || ""),
     onSuccess: () => {
-      pushToast({ kind: "success", message: UI_COPY.routes.detail.toast.deleteSuccess });
+      pushToast({ kind: "success", message: UI_COPY.routes.recommendation.toast.deleteSuccess });
       queryClient.invalidateQueries({ queryKey: queryKeys.scheduleDetail(scheduleId || "") });
       queryClient.invalidateQueries({ queryKey: queryKeys.mySchedules });
       router.replace("/");
     },
     onError: (error: Error) => {
       console.error(error);
-      pushToast({ kind: "error", message: UI_COPY.routes.detail.toast.deleteError });
+      pushToast({ kind: "error", message: UI_COPY.routes.recommendation.toast.deleteError });
     }
   });
 
@@ -374,7 +374,7 @@ export default function RecommendationPage() {
         onViewModeChange={setViewMode}
         splitLabel={UI_COPY.routes.detail.splitView}
         listLabel={UI_COPY.routes.detail.listView}
-        deleteButtonLabel={UI_COPY.routes.detail.deleteAction}
+        deleteButtonLabel={UI_COPY.routes.recommendation.deleteAction}
         deleteBusy={deleteMutation.isPending}
         onDelete={() => setIsDeleteDialogOpen(true)}
         baseClassName="pt-4 lg:pt-5"
@@ -476,10 +476,14 @@ export default function RecommendationPage() {
         deleteDialog={
           <ConfirmDialog
             open={isDeleteDialogOpen}
-            title={UI_COPY.common.deleteConfirm.title}
-            description={UI_COPY.common.deleteConfirm.description}
-            confirmLabel={deleteMutation.isPending ? UI_COPY.common.deleteConfirm.confirming : UI_COPY.common.deleteConfirm.confirm}
-            cancelLabel={UI_COPY.common.deleteConfirm.cancel}
+            title={UI_COPY.routes.recommendation.deleteDialog.title}
+            description={UI_COPY.routes.recommendation.deleteDialog.description}
+            confirmLabel={
+              deleteMutation.isPending
+                ? UI_COPY.routes.recommendation.deleteDialog.confirming
+                : UI_COPY.routes.recommendation.deleteDialog.confirm
+            }
+            cancelLabel={UI_COPY.routes.recommendation.deleteDialog.cancel}
             busy={deleteMutation.isPending}
             intent="danger"
             onClose={() => setIsDeleteDialogOpen(false)}

@@ -5,7 +5,17 @@ export type CanonicalRouteStopLabel = "MORNING" | "LUNCH" | "VISIT" | "DESSERT" 
 export type ReservedRouteStopLabel = never;
 export type LegacyRouteStopLabel = "START" | "FINISH";
 export type RouteStopLabelValue = CanonicalRouteStopLabel | LegacyRouteStopLabel;
-export type PlaceCategoryValue = "LANDMARK" | "FOODIE" | "SHOPPING" | "NATURE" | "VIEW";
+export type PlaceCategoryValue =
+  | "STAY"
+  | "MEAL"
+  | "BRUNCH"
+  | "CAFE"
+  | "SNACK"
+  | "NIGHT"
+  | "ACTIVITY"
+  | "LANDMARK"
+  | "NATURE"
+  | "SHOP";
 export type ThemeValue = "FOODIE" | "LANDMARK" | "SHOPPING" | "NATURE";
 
 export const MUST_VISIT_BADGE = routeTaxonomy.mustVisitBadge as MustVisitBadgeValue;

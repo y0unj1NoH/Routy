@@ -140,7 +140,7 @@ export function RoutePlacePickerDialog({
                   />
                   <div className="min-w-0 flex-1 space-y-2">
                     <div className="flex flex-wrap items-center gap-2">
-                      {item.priority ? <Badge tone="primary">MUSTVISIT</Badge> : null}
+                      {item.isMustVisit ? <Badge tone="primary">MUSTVISIT</Badge> : null}
                       {item.place.category ? <CategoryBadge value={item.place.category} /> : null}
                     </div>
                     <div className="space-y-1">

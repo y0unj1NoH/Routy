@@ -32,13 +32,10 @@ export type Place = {
   updatedAt: string;
 };
 
-export type PlaceListItemLabel = "STAY";
-
 export type PlaceListItem = {
   id: string;
   note: string | null;
-  priority: boolean;
-  itemLabel: PlaceListItemLabel | null;
+  isMustVisit: boolean;
   createdAt: string;
   place: Place;
 };
@@ -61,9 +58,8 @@ export type ScheduleStop = {
   stopOrder: number;
   time: string | null;
   label: string | null;
-  badges: string[];
+  isMustVisit: boolean;
   note: string | null;
-  reason: string | null;
   visitTip: string | null;
   transportToNext: {
     mode?: string;

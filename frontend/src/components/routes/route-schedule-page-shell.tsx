@@ -87,7 +87,7 @@ export function RouteSchedulePageShell({
         viewMode === "split" ? splitModeClassName : listModeClassName
       )}
     >
-      <div className="flex shrink-0 flex-wrap items-start justify-between gap-3">
+      <div className="flex shrink-0 flex-wrap items-start justify-between gap-3 lg:flex-nowrap lg:items-center">
         {headerLeading}
         {headerActions ? (
           headerActions
@@ -140,7 +140,7 @@ export function RouteSchedulePageShell({
           </div>
         </>
       ) : (
-        <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-4 lg:min-h-0">
+        <div className="mx-auto flex w-full flex-1 flex-col gap-4 lg:min-h-0">
           {listModeTop}
           {daySelector}
           {listModeStopList}

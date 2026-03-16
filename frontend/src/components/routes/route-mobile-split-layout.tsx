@@ -54,6 +54,7 @@ export function RouteMobileSplitLayout({
   stayRecommendation
 }: RouteMobileSplitLayoutProps) {
   const sheetTop = (mobileSheetMode === "peek" ? ROUTE_MOBILE_SHEET_PEEK_TOP : 0) + sheetDragOffset;
+  const shouldShowMapOverlay = sheetTop >= 96;
 
   return (
     <div className="relative left-1/2 right-1/2 flex-1 min-h-144 w-screen -ml-[50vw] -mr-[50vw] overflow-hidden bg-card lg:hidden lg:mb-0">
@@ -70,7 +71,7 @@ export function RouteMobileSplitLayout({
           stayRecommendation={stayRecommendation}
           className="route-map-mobile h-full w-full"
         />
-        {mapOverlay}
+        {shouldShowMapOverlay ? mapOverlay : null}
       </div>
       <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-linear-to-b from-background/55 to-transparent" />
 

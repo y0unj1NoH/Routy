@@ -43,8 +43,7 @@ export const PLACE_LIST_DETAIL_FIELDS = /* GraphQL */ `
   items {
     id
     note
-    priority
-    itemLabel
+    isMustVisit
     createdAt
     place {
       ${PLACE_FIELDS}
@@ -135,9 +134,8 @@ export const SCHEDULE_DETAIL_QUERY = /* GraphQL */ `
           stopOrder
           time
           label
-          badges
+          isMustVisit
           note
-          reason
           visitTip
           transportToNext
           isUserModified
@@ -163,8 +161,7 @@ export const UPDATE_PLACE_LIST_ITEM_MUTATION = /* GraphQL */ `
     updatePlaceListItem(id: $id, input: $input) {
       id
       note
-      priority
-      itemLabel
+      isMustVisit
       createdAt
     }
   }

@@ -63,7 +63,10 @@ export default function SavedListDetailPage() {
   });
   const [listFieldErrors, setListFieldErrors] = useState<{ name?: string; city?: string }>({});
   const [pendingRemovalItemIds, setPendingRemovalItemIds] = useState<string[]>([]);
+  const [prioritySavingItemIds, setPrioritySavingItemIds] = useState<string[]>([]);
   const pendingRemovalTimersRef = useRef<Record<string, number>>({});
+  const priorityRequestInFlightRef = useRef<Record<string, boolean>>({});
+  const priorityQueuedValueRef = useRef<Record<string, boolean | undefined>>({});
   const addPlaceForm = useForm<GoogleLinkFormValues>({
     resolver: safeZodResolver(googleMapsImportFormSchema),
     mode: "onBlur",
@@ -179,42 +182,68 @@ export default function SavedListDetailPage() {
     }
   });
 
-  const togglePriorityMutation = useMutation({
-    mutationFn: (input: { itemId: string; priority: boolean }) =>
-      updatePlaceListItem(accessToken ?? "", input.itemId, { priority: input.priority }),
-    onMutate: async (input) => {
-      await queryClient.cancelQueries({ queryKey: detailQueryKey });
-      const previous = queryClient.getQueryData<PlaceList | null>(detailQueryKey);
+  const updatePriorityInCache = (itemId: string, isMustVisit: boolean) => {
+    queryClient.setQueryData<PlaceList | null>(detailQueryKey, (current) => {
+      if (!current) return current;
+      return {
+        ...current,
+        items: current.items.map((item) =>
+          item.id === itemId
+            ? {
+                ...item,
+                isMustVisit
+              }
+            : item
+        )
+      };
+    });
+  };
 
-      queryClient.setQueryData<PlaceList | null>(detailQueryKey, (current) => {
-        if (!current) return current;
-        return {
-          ...current,
-          items: current.items.map((item) =>
-            item.id === input.itemId
-              ? {
-                  ...item,
-                  priority: input.priority
-                }
-              : item
-          )
-        };
-      });
-
-      return { previous };
-    },
-    onError: (error: Error, _input, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(detailQueryKey, context.previous);
+  const setPrioritySaving = (itemId: string, isSaving: boolean) => {
+    setPrioritySavingItemIds((current) => {
+      if (isSaving) {
+        return current.includes(itemId) ? current : [...current, itemId];
       }
+      return current.filter((currentItemId) => currentItemId !== itemId);
+    });
+  };
+
+  const flushPriorityUpdate = async (itemId: string, initialConfirmedPriority: boolean) => {
+    if (priorityRequestInFlightRef.current[itemId]) return;
+
+    priorityRequestInFlightRef.current[itemId] = true;
+    setPrioritySaving(itemId, true);
+    let lastConfirmedPriority = initialConfirmedPriority;
+
+    try {
+      while (Object.prototype.hasOwnProperty.call(priorityQueuedValueRef.current, itemId)) {
+        const nextPriority = Boolean(priorityQueuedValueRef.current[itemId]);
+        delete priorityQueuedValueRef.current[itemId];
+        await updatePlaceListItem(accessToken ?? "", itemId, { isMustVisit: nextPriority });
+        lastConfirmedPriority = nextPriority;
+      }
+    } catch (error) {
+      delete priorityQueuedValueRef.current[itemId];
+      updatePriorityInCache(itemId, lastConfirmedPriority);
       console.error(error);
       pushToast({ kind: "error", message: UI_COPY.saved.detail.mustVisitError });
-    },
-    onSettled: () => {
+    } finally {
+      delete priorityRequestInFlightRef.current[itemId];
+      setPrioritySaving(itemId, false);
       queryClient.invalidateQueries({ queryKey: detailQueryKey });
       queryClient.invalidateQueries({ queryKey: queryKeys.myPlaceLists });
     }
-  });
+  };
+
+  const handleTogglePriority = (currentItem: PlaceListItem) => {
+    const latestPriority =
+      queryClient.getQueryData<PlaceList | null>(detailQueryKey)?.items.find((item) => item.id === currentItem.id)?.isMustVisit ??
+      currentItem.isMustVisit;
+    const nextPriority = !latestPriority;
+    updatePriorityInCache(currentItem.id, nextPriority);
+    priorityQueuedValueRef.current[currentItem.id] = nextPriority;
+    void flushPriorityUpdate(currentItem.id, latestPriority);
+  };
 
   const deleteListMutation = useMutation({
     mutationFn: () => deletePlaceList(accessToken ?? "", listId),
@@ -242,7 +271,7 @@ export default function SavedListDetailPage() {
             listId,
             placeId: place.id,
             note: null,
-            priority: false
+            isMustVisit: false
           })
         )
       );
@@ -533,13 +562,8 @@ export default function SavedListDetailPage() {
                 item={item}
                 detailHref={`/saved/${listId}/${item.place.id}`}
                 isNoteSaving={noteMutation.isPending && noteMutation.variables?.itemId === item.id}
-                isPrioritySaving={togglePriorityMutation.isPending && togglePriorityMutation.variables?.itemId === item.id}
-                onTogglePriority={(currentItem) =>
-                  togglePriorityMutation.mutate({
-                    itemId: currentItem.id,
-                    priority: !currentItem.priority
-                  })
-                }
+                isPrioritySaving={prioritySavingItemIds.includes(item.id)}
+                onTogglePriority={handleTogglePriority}
                 onRemove={queueItemRemoval}
                 onSaveNote={(itemId, note) => {
                   noteMutation.mutate({

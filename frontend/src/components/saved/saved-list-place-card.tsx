@@ -328,7 +328,7 @@ export function SavedListPlaceCard({
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 space-y-3">
               <div className="flex flex-wrap items-center gap-2">
-                {item.itemLabel === "STAY" ? <Badge tone="primary">STAY</Badge> : null}
+                {item.isMustVisit ? <Badge>{UI_COPY.saved.detail.placesSection.mustVisitBadge}</Badge> : null}
                 <CategoryBadge value={item.place.category} />
                 <StatusInline label={statusLabel} detail={openingHint.warningText} tone={statusTone} />
               </div>
@@ -341,17 +341,18 @@ export function SavedListPlaceCard({
             <div className="relative z-20 flex shrink-0 items-center gap-2">
               <button
                 type="button"
-                disabled={isPrioritySaving}
-                aria-label={item.priority ? "Must Visit 해제" : "Must Visit 설정"}
+                aria-busy={isPrioritySaving}
+                aria-label={item.isMustVisit ? "Must Visit 해제" : "Must Visit 설정"}
                 onClick={() => onTogglePriority(item)}
                 className={cn(
-                  "grid h-9 w-9 place-items-center rounded-full border border-border/80 bg-white shadow-[0_10px_20px_rgba(15,23,42,0.06)] transition disabled:pointer-events-none disabled:opacity-50",
-                  item.priority
+                  "grid h-9 w-9 place-items-center rounded-full border border-border/80 bg-white shadow-[0_10px_20px_rgba(15,23,42,0.06)] transition",
+                  item.isMustVisit
                     ? "text-star hover:border-[#FFD36A]"
-                    : "text-slate-400 hover:border-[#FFD36A]/80 hover:text-star"
+                    : "text-slate-400 hover:border-[#FFD36A]/80 hover:text-star",
+                  isPrioritySaving ? "ring-2 ring-primary/12" : null
                 )}
               >
-                <Star fill={item.priority ? "currentColor" : "none"} className="h-4 w-4" />
+                <Star fill={item.isMustVisit ? "currentColor" : "none"} className="h-4 w-4" />
               </button>
               <button
                 type="button"

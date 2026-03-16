@@ -24,11 +24,15 @@ export const BADGE_TEXT_COLOR = "#FFFFFF";
 export const BADGE_COLORS = {
   primary: "#3C9DFF",
 
+  meal: "#F08A4B",
+  brunch: "#F3A35F",
+  cafe: "#5B8CBE",
+  snack: "#D56BA5",
+  night: "#3E4A78",
+  activity: "#4A8E85",
   landmark: "#4C7FEF",
-  foodie: "#F08A4B",
   shopping: "#8B78F2",
   nature: "#4EAF7A",
-  view: "#56ABD8",
 
   solo: "#4C8BF5",
   friends: "#3CB6E9",
@@ -50,20 +54,56 @@ export const BADGE_COLOR_MAP = {
 } as const;
 
 export const CATEGORY_BADGE_MAP = {
+  STAY: {
+    label: "STAY",
+    border: "#BFE8E2",
+    bg: "#F1FCF9",
+    text: "#1C8174"
+  },
+  MEAL: {
+    label: "MEAL",
+    border: "#FFDCC3",
+    bg: "#FFF4EA",
+    text: "#B85E23"
+  },
+  BRUNCH: {
+    label: "BRUNCH",
+    border: "#FFE3C7",
+    bg: "#FFF5EB",
+    text: "#B9721F"
+  },
+  CAFE: {
+    label: "CAFE",
+    border: "#D6E7F7",
+    bg: "#F1F7FC",
+    text: "#3E6F95"
+  },
+  SNACK: {
+    label: "SNACK",
+    border: "#F3D3E6",
+    bg: "#FDF1F8",
+    text: "#B04B82"
+  },
+  NIGHT: {
+    label: "NIGHT",
+    border: "#D7DCF5",
+    bg: "#F2F4FD",
+    text: "#4B568B"
+  },
+  ACTIVITY: {
+    label: "ACTIVITY",
+    border: "#CDE8E2",
+    bg: "#EFFAF7",
+    text: "#2F7A71"
+  },
   LANDMARK: {
     label: "LANDMARK",
     border: "#CFD9FF",
     bg: "#F3F6FF",
     text: "#4D74D6"
   },
-  FOODIE: {
-    label: "FOODIE",
-    border: "#FFDCC3",
-    bg: "#FFF4EA",
-    text: "#B85E23"
-  },
-  SHOPPING: {
-    label: "SHOPPING",
+  SHOP: {
+    label: "SHOP",
     border: "#E0D6FF",
     bg: "#F6F2FF",
     text: "#6F57D5"
@@ -73,12 +113,6 @@ export const CATEGORY_BADGE_MAP = {
     border: "#CFE7D9",
     bg: "#F0FAF4",
     text: "#3E8C64"
-  },
-  VIEW: {
-    label: "VIEW",
-    border: "#CDE6F3",
-    bg: "#EFF8FD",
-    text: "#3F86A7"
   }
 } as const satisfies Record<PlaceCategoryValue, { label: string; border: string; bg: string; text: string }>;
 
@@ -140,7 +174,7 @@ export const THEME_BADGE_MAP = {
   FOODIE: {
     label: "식도락이 1순위",
     shortLabel: "식도락",
-    bg: BADGE_COLORS.foodie,
+    bg: BADGE_COLORS.meal,
     text: BADGE_TEXT_COLOR,
     icon: "UtensilsCrossed"
   },
@@ -173,21 +207,36 @@ export const DDAY_BADGE_STYLE = {
 } as const;
 
 const CATEGORY_BADGE_ALIASES: Record<string, PlaceCategoryValue> = {
+  STAY: "STAY",
+  숙소: "STAY",
+  MEAL: "MEAL",
+  식사: "MEAL",
+  BRUNCH: "BRUNCH",
+  브런치: "BRUNCH",
+  아침: "BRUNCH",
+  CAFE: "CAFE",
+  카페: "CAFE",
+  SNACK: "SNACK",
+  간식: "SNACK",
+  디저트: "SNACK",
+  NIGHT: "NIGHT",
+  밤: "NIGHT",
+  바: "NIGHT",
+  ACTIVITY: "ACTIVITY",
+  액티비티: "ACTIVITY",
+  체험: "ACTIVITY",
+  오락: "ACTIVITY",
   LANDMARK: "LANDMARK",
   명소: "LANDMARK",
-  FOODIE: "FOODIE",
-  맛집: "FOODIE",
-  SHOPPING: "SHOPPING",
-  쇼핑: "SHOPPING",
+  SHOP: "SHOP",
+  쇼핑: "SHOP",
   NATURE: "NATURE",
-  자연: "NATURE",
-  VIEW: "VIEW",
-  전망: "VIEW"
+  자연: "NATURE"
 };
 
 export function resolveBadgeColor(value: string | null | undefined) {
   if (!value) return null;
-  const key = value.trim().toUpperCase() as keyof typeof BADGE_COLOR_MAP;
+  const key = value.trim().replace(/[\s_-]+/g, "").toUpperCase() as keyof typeof BADGE_COLOR_MAP;
   return BADGE_COLOR_MAP[key] || null;
 }
 

@@ -34,7 +34,7 @@ import { ImportListModal } from "@/components/import/import-list-modal";
 import { LinkInput } from "@/components/common/link-input";
 import { PlacePhoto } from "@/components/common/place-photo";
 import { UI_COPY } from "@/constants/ui-copy";
-import { type ThemeValue } from "@/constants/route-taxonomy";
+import { MUST_VISIT_BADGE, type ThemeValue } from "@/constants/route-taxonomy";
 import { Mascot, MASCOT_SIZE_CLASS, type MascotVariant } from "@/components/layout/mascot";
 import { PageContainer } from "@/components/layout/page-container";
 import { ProgressHeader } from "@/components/layout/progress-header";
@@ -378,7 +378,7 @@ function StayOptionCard({
 
         <div className="min-w-0 flex-1 space-y-2">
           <div className="flex flex-wrap items-center gap-2">
-            {item.priority ? <Badge tone="primary">Must Visit</Badge> : null}
+            {item.isMustVisit ? <Badge tone="primary">{MUST_VISIT_BADGE}</Badge> : null}
             {isNewlyAdded ? <Badge className="bg-white/90">Google 추가</Badge> : null}
           </div>
 
@@ -450,7 +450,7 @@ function AddStayDialog({
         </>
       }
     >
-      <div className="space-y-5">
+      <div className="space-y-2">
         <div className="space-y-2">
           <DialogFieldLabel htmlFor="stay-google-url" required>
             Google Maps 링크
@@ -464,13 +464,6 @@ function AddStayDialog({
           <DialogFieldHint error={Boolean(errorMessage)}>
             {errorMessage || "호텔, 레지던스, 료칸처럼 실제로 묵을 숙소 링크를 넣어 주세요"}
           </DialogFieldHint>
-        </div>
-
-        <div className="rounded-[24px] border border-border/75 bg-slate-50/80 p-4">
-          <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">Preview</p>
-          <div className="mt-3 rounded-[24px] border border-border/75 bg-white p-4 shadow-[0_18px_34px_rgba(15,23,42,0.04)]">
-            <p className="text-sm font-black text-slate-950">추가되면 이 리스트에 저장되고, 지금 여행 숙소로 바로 선택돼요</p>
-          </div>
         </div>
       </div>
     </DialogShell>
@@ -583,6 +576,7 @@ export default function NewRoutePage() {
   const [googleStayUrl, setGoogleStayUrl] = useState("");
   const [googleStayUrlError, setGoogleStayUrlError] = useState<string | null>(null);
   const [newlyAddedStayPlaceIds, setNewlyAddedStayPlaceIds] = useState<string[]>([]);
+  const [isTransitioningToRecommendation, setIsTransitioningToRecommendation] = useState(false);
 
   const { session, isLoading: isAuthLoading, isAuthed } = useRequireAuth();
   const accessToken = session?.access_token;
@@ -611,6 +605,9 @@ export default function NewRoutePage() {
       themes: string[];
     }) =>
       createSchedule(accessToken ?? "", input),
+    onMutate: () => {
+      setIsTransitioningToRecommendation(true);
+    },
     onSuccess: (data) => {
       pushToast({ kind: "success", message: UI_COPY.routes.new.toast.success });
       resetStoreValues();
@@ -634,19 +631,23 @@ export default function NewRoutePage() {
         throw new Error(UI_COPY.saved.detail.addPlaceNotFound);
       }
 
+      const stayPlaces = places.filter((place) => place.category === "STAY");
+      if (stayPlaces.length === 0) {
+        throw new Error(UI_COPY.routes.new.toast.addedStayTypeError);
+      }
+
       await Promise.all(
-        places.map((place) =>
+        stayPlaces.map((place) =>
           addPlaceListItem(accessToken ?? "", {
             listId: context.placeListId as string,
             placeId: place.id,
             note: null,
-            priority: false,
-            itemLabel: "STAY"
+            isMustVisit: false
           })
         )
       );
 
-      return places;
+      return stayPlaces;
     },
     onSuccess: (places) => {
       const primaryPlace = places[0];
@@ -674,7 +675,11 @@ export default function NewRoutePage() {
     },
     onError: (error: Error) => {
       console.error(error);
-      const message = error.message === UI_COPY.saved.detail.addPlaceNotFound ? error.message : UI_COPY.routes.new.toast.addedStayError;
+      const message =
+        error.message === UI_COPY.saved.detail.addPlaceNotFound ||
+        error.message === UI_COPY.routes.new.toast.addedStayTypeError
+          ? error.message
+          : UI_COPY.routes.new.toast.addedStayError;
       setGoogleStayUrlError(message);
       pushToast({ kind: "error", message });
     }
@@ -717,7 +722,7 @@ export default function NewRoutePage() {
   }, [minViewMonth, viewMonthStart]);
 
   const stayItems = useMemo(
-    () => (selectedListDetailQuery.data?.items || []).filter((item) => item.itemLabel === "STAY"),
+    () => (selectedListDetailQuery.data?.items || []).filter((item) => item.place.category === "STAY"),
     [selectedListDetailQuery.data?.items]
   );
 
@@ -817,6 +822,7 @@ export default function NewRoutePage() {
   };
 
   const selectedDayCount = getInclusiveDayCount(context.startDate, context.endDate);
+  const isCreateFlowBusy = createMutation.isPending || isTransitioningToRecommendation;
   const hasInvalidDateRange = Boolean(
     context.startDate && context.endDate && context.endDate < context.startDate
   );
@@ -1191,7 +1197,7 @@ export default function NewRoutePage() {
             mascotVariant="map"
           />
 
-          {createMutation.isPending ? (
+          {isCreateFlowBusy ? (
             <LoadingPanel withMascot mascotVariant="map" message={UI_COPY.routes.new.loading.buildingSchedule} />
           ) : (
             <>
@@ -1268,7 +1274,7 @@ export default function NewRoutePage() {
                 <Button
                   size="lg"
                   disabled={
-                    createMutation.isPending ||
+                    isCreateFlowBusy ||
                     !context.pace ||
                     !context.placeListId ||
                     !context.startDate ||

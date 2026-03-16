@@ -26,7 +26,6 @@ import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { MUST_VISIT_BADGE } from "@/constants/route-taxonomy";
 import { UI_COPY } from "@/constants/ui-copy";
-import { resolveCategoryBadgeTheme } from "@/lib/badge-theme";
 import { cn } from "@/lib/cn";
 import { buildPlaceOpeningHint } from "@/lib/place-opening";
 
@@ -48,8 +47,7 @@ export type RouteStopCardData = {
   stopOrder: number;
   time: string | null;
   label: string | null;
-  badges: string[];
-  reason?: string | null;
+  isMustVisit: boolean;
   visitTip?: string | null;
   note?: string | null;
   place: RouteStopPlace;
@@ -186,32 +184,12 @@ export function RouteStopCard({
   hideGeneratedMeta = false
 }: RouteStopCardProps) {
   const openingHint = buildPlaceOpeningHint(stop.place.openingHours);
-  const summaryText = hideGeneratedMeta ? "" : normalizeCopy(stop.visitTip || stop.reason);
+  const summaryText = hideGeneratedMeta ? "" : normalizeCopy(stop.visitTip);
   const savedNote = showNoteSection ? normalizeCopy(stop.note) : "";
   const canEditNote = showNoteSection && Boolean(onToggleNote && onSaveNote);
-  const normalizedCategory = String(stop.place.category || "")
-    .trim()
-    .toUpperCase();
   const [draftNote, setDraftNote] = useState(savedNote);
   const isNoteDirty = draftNote.trim() !== savedNote;
   const hasEditActions = Boolean(editActions);
-
-  const supplementalBadges = stop.badges.filter((badge, index, list) => {
-    const normalizedBadge = String(badge || "")
-      .trim()
-      .toUpperCase();
-    if (!normalizedBadge) return false;
-    if (normalizedBadge === normalizedCategory) return false;
-
-    return (
-      list.findIndex(
-        (candidate) =>
-          String(candidate || "")
-            .trim()
-            .toUpperCase() === normalizedBadge
-      ) === index
-    );
-  });
 
   useEffect(() => {
     setDraftNote(savedNote);
@@ -458,29 +436,10 @@ export function RouteStopCard({
               {UI_COPY.routes.stopCard.addNote}
             </button>
           ) : null}
-
-          {supplementalBadges.map((badge) => {
-            const normalizedBadge = String(badge || "")
-              .trim()
-              .toUpperCase();
-
-            if (normalizedBadge === MUST_VISIT_BADGE) {
-              return (
-                <Badge key={badge} tone="primary">
-                  {MUST_VISIT_BADGE}
-                </Badge>
-              );
-            }
-
-            return resolveCategoryBadgeTheme(badge) ? (
-              <CategoryBadge key={badge} value={badge} />
-            ) : (
-              <Badge key={badge}>{badge}</Badge>
-            );
-          })}
+          {stop.isMustVisit ? <Badge tone="primary">{MUST_VISIT_BADGE}</Badge> : null}
         </div>
 
-        <div className={cn("flex items-center justify-end gap-2", !showAddNoteAction && supplementalBadges.length === 0 ? "sm:ml-auto" : "sm:shrink-0")}>
+        <div className={cn("flex items-center justify-end gap-2", !showAddNoteAction && !stop.isMustVisit ? "sm:ml-auto" : "sm:shrink-0")}>
           {showMapAction && stop.place.googleMapsUrl ? (
             <a
               href={stop.place.googleMapsUrl}
