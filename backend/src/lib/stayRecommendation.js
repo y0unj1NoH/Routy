@@ -1,7 +1,7 @@
 const EARTH_RADIUS_KM = 6371;
-const MIN_RADIUS_KM = 1.2;
-const MAX_RADIUS_KM = 2.5;
-const RADIUS_BUFFER_KM = 0.3;
+const MIN_RADIUS_KM = 0.8;
+const MAX_RADIUS_KM = 1.8;
+const RADIUS_BUFFER_KM = 0.2;
 const DISTANCE_PERCENTILE = 0.7;
 
 function toRadians(value) {

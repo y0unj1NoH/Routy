@@ -1,8 +1,8 @@
 import type { Place, ScheduleStayRecommendation } from "@/types/domain";
 
 export type RouteStayOverlayMode = "stay" | "recommendation";
-const MIN_STAY_RECOMMENDATION_RADIUS_KM = 1.2;
-const MAX_STAY_RECOMMENDATION_RADIUS_KM = 2.5;
+const MIN_STAY_RECOMMENDATION_RADIUS_KM = 0.8;
+const MAX_STAY_RECOMMENDATION_RADIUS_KM = 1.8;
 
 export type RouteStayMarker = {
   lat: number;
