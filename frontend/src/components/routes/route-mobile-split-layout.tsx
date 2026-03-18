@@ -6,9 +6,19 @@ import { PAGE_CONTENT_X_PADDING_CLASS } from "@/components/layout/page-container
 import { GoogleRouteMap } from "@/components/routes/google-route-map";
 import { cn } from "@/lib/cn";
 
-export const ROUTE_MOBILE_MAP_PEEK_HEIGHT = 320;
+export const ROUTE_MOBILE_MAP_PEEK_HEIGHT = 292;
 export const ROUTE_MOBILE_SHEET_MAP_OVERLAP = 6;
 export const ROUTE_MOBILE_SHEET_PEEK_TOP = ROUTE_MOBILE_MAP_PEEK_HEIGHT - ROUTE_MOBILE_SHEET_MAP_OVERLAP;
+
+function resolveRouteMobileMapPeekHeight() {
+  if (typeof window === "undefined") return ROUTE_MOBILE_MAP_PEEK_HEIGHT;
+
+  if (window.innerWidth <= 375) return 276;
+  if (window.innerWidth >= 1024) return 332;
+  if (window.innerWidth >= 640) return 308;
+
+  return ROUTE_MOBILE_MAP_PEEK_HEIGHT;
+}
 
 type RouteMobileSplitLayoutProps = {
   activePointId: string | null;
@@ -53,12 +63,21 @@ export function RouteMobileSplitLayout({
   stayMarker,
   stayRecommendation
 }: RouteMobileSplitLayoutProps) {
-  const sheetTop = (mobileSheetMode === "peek" ? ROUTE_MOBILE_SHEET_PEEK_TOP : 0) + sheetDragOffset;
+  const mobileMapPeekHeight = resolveRouteMobileMapPeekHeight();
+  const sheetPeekTop = mobileMapPeekHeight - ROUTE_MOBILE_SHEET_MAP_OVERLAP;
+  const sheetTop = (mobileSheetMode === "peek" ? sheetPeekTop : 0) + sheetDragOffset;
   const shouldShowMapOverlay = sheetTop >= 96;
 
   return (
-    <div className="relative left-1/2 right-1/2 flex-1 min-h-144 w-screen -ml-[50vw] -mr-[50vw] overflow-hidden bg-card lg:hidden lg:mb-0">
-      <div className="absolute inset-x-0 top-0" style={{ bottom: `calc(100% - ${ROUTE_MOBILE_MAP_PEEK_HEIGHT}px)` }}>
+    <div
+      className="relative flex-1 min-h-144 overflow-hidden bg-card lg:hidden lg:mb-0"
+      style={{
+        marginInline: "calc(var(--page-x-padding) * -1)",
+        marginBottom: "calc(var(--bottom-nav-gap) * -1)",
+        width: "calc(100% + (var(--page-x-padding) * 2))"
+      }}
+    >
+      <div className="absolute inset-x-0 top-0" style={{ bottom: `calc(100% - ${mobileMapPeekHeight}px)` }}>
         <GoogleRouteMap
           points={points}
           activePointId={activePointId}
@@ -77,8 +96,8 @@ export function RouteMobileSplitLayout({
 
       <div
         className={cn(
-          "absolute inset-x-0 bottom-0 z-10 flex flex-col overflow-x-hidden border-t border-border bg-white shadow-[0_-12px_28px_rgba(24,72,136,0.1)]",
-          mobileSheetMode === "full" && sheetDragOffset <= 16 ? "rounded-none" : "rounded-t-[28px]",
+          "absolute inset-x-0 bottom-0 z-10 flex flex-col overflow-x-hidden border-t border-border bg-white shadow-floating",
+          mobileSheetMode === "full" && sheetDragOffset <= 16 ? "rounded-none" : "rounded-t-2xl md:rounded-t-3xl",
           !isSheetDragging && "transition-[top,border-radius] duration-300 ease-out"
         )}
         style={{ top: `${sheetTop}px` }}

@@ -325,8 +325,8 @@ export const UI_COPY = {
         title: "어떤 여행 리스트를 불러올까요?",
         description: "리스트를 기반으로 여행 코스를 추천해 드려요",
         addAction: "새 리스트 가져오기",
-        emptyTitle: "불러올 리스트가 없어요",
-        emptyDescription: "리스트가 없어요. 새 리스트를 먼저 가져와 주세요",
+        emptyTitle: "어디로 떠나볼까요?",
+        emptyDescription: "여행 장소를 모은 리스트를 가져와 주세요",
         listCount: (count: number) => `${count}개의 장소`,
         helperAction: "원하는 리스트가 없나요? 새 리스트 가져오기",
         next: "다음"
@@ -501,7 +501,6 @@ export const UI_COPY = {
   // Place detail copy used by `/places/[placeId]` and `/saved/[listId]/[placeId]`.
   places: {
     detail: {
-      title: "장소 정보",
       categoryLabels: {
         MEAL: "식사",
         BRUNCH: "브런치",
@@ -550,7 +549,6 @@ export const UI_COPY = {
         directions: "길찾기",
         directionsSub: "Google Maps",
         moreReviews: "리뷰 더 보기",
-        moreReviewsSub: "리뷰 원문 확인",
         phone: "전화",
         website: "웹사이트",
         websiteSub: "공식 링크"
@@ -575,14 +573,12 @@ export const UI_COPY = {
       },
       reviews: {
         title: "리뷰 요약",
-        description: "최근 리뷰를 통해 분위기를 확인해 보세요",
         anonymous: "익명 사용자",
         missingDate: "작성일 정보 없음",
         missingText: "리뷰 내용이 없어요",
         empty: "리뷰가 아직 없어요"
       },
       map: {
-        eyebrow: "지도",
         title: "위치 확인",
         openInGoogleMaps: "Google Maps에서 열기",
         description: "지도에서 위치를 바로 확인할 수 있어요"

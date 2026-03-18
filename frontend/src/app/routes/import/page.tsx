@@ -201,7 +201,7 @@ export default function ImportRoutePage() {
           </div>
           <Button
             type="submit"
-            size="lg"
+            size="large"
             disabled={isImporting || !crawlerUrl.trim() || !city.trim()}
           >
             {crawlerMutation.isPending ? UI_COPY.routes.import.crawlerSection.submitting : UI_COPY.routes.import.crawlerSection.submit}
@@ -210,7 +210,7 @@ export default function ImportRoutePage() {
         {importedListId ? (
           <Link
             href={`/saved/${importedListId}`}
-            className={buttonStyles({ variant: "secondary", size: "sm", className: "font-semibold" })}
+            className={buttonStyles({ variant: "secondary", size: "small", className: "font-semibold" })}
           >
             {UI_COPY.routes.import.crawlerSection.openDetail}
           </Link>
@@ -240,7 +240,7 @@ export default function ImportRoutePage() {
             <p className="text-xs text-danger">{googleForm.formState.errors.googleUrl?.message}</p>
           </div>
 
-          <Button type="submit" size="lg" disabled={isImporting || !googleUrl.trim()}>
+          <Button type="submit" size="large" disabled={isImporting || !googleUrl.trim()}>
             {googleMutation.isPending ? UI_COPY.routes.import.googleSection.submitting : UI_COPY.routes.import.googleSection.submit}
           </Button>
         </form>
@@ -257,21 +257,21 @@ export default function ImportRoutePage() {
             {importedPlaces.map((place) => (
               <div
                 key={place.id}
-                className="flex flex-col gap-4 rounded-2xl border border-border/80 bg-card/92 p-4 transition-colors hover:bg-muted/35 sm:flex-row"
+                className="flex flex-col gap-4 rounded-xl border border-border/80 bg-card/92 p-4 transition-colors hover:bg-muted/35 md:flex-row md:rounded-2xl"
               >
                 <PlacePhoto
                   name={place.name}
                   photos={place.photos}
-                  className="h-28 w-full shrink-0 rounded-2xl sm:h-24 sm:w-28"
-                  sizes="(max-width: 640px) 100vw, 112px"
+                  className="h-28 w-full shrink-0 rounded-xl md:h-24 md:w-28 md:rounded-2xl"
+                  sizes="(max-width: 767px) 100vw, 112px"
                 />
                 <div className="min-w-0 flex-1 space-y-3">
                   <div className="space-y-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <CategoryBadge value={place.category} fallbackTone="primary" />
                       {typeof place.rating === "number" ? (
-                        <Badge>
-                          <Star fill="currentColor" className="mr-1 h-3.5 w-3.5 text-star" />
+                        <Badge className="gap-1">
+                          <Star fill="currentColor" className="h-3.5 w-3.5 text-star" />
                           {place.rating.toFixed(1)}
                         </Badge>
                       ) : null}
@@ -281,15 +281,15 @@ export default function ImportRoutePage() {
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <Link href={`/places/${place.id}`}>
-                      <Button variant="secondary" size="sm">
+                      <Button variant="secondary" size="small">
                         {UI_COPY.routes.import.recentPlaces.detailAction}
                       </Button>
                     </Link>
                     {place.googleMapsUrl ? (
                       <a href={place.googleMapsUrl} target="_blank" rel="noreferrer">
-                        <Button variant="ghost" size="sm">
+                        <Button variant="ghost" size="small">
                           Google Maps
-                          <ExternalLink className="ml-1.5 h-3.5 w-3.5" />
+                          <ExternalLink className="h-3.5 w-3.5" />
                         </Button>
                       </a>
                     ) : null}

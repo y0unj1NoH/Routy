@@ -59,34 +59,40 @@ const MAP_MARKER_LEAD = "#7CC7FF";
 const MAP_MARKER_DEFAULT = "#A9DBFF";
 const MAP_ROUTE_LINE = "#4AA5FF";
 const STAY_MARKER_FILL = "#14B8A6";
+const MOBILE_VIEWPORT_QUERY = "(max-width: 767px)";
 
 function toRadians(value: number) {
   return (value * Math.PI) / 180;
 }
 
-function getMarkerIcon(google: any, isActive: boolean, isLead: boolean) {
+function isMobileViewport() {
+  return typeof window !== "undefined" && window.matchMedia(MOBILE_VIEWPORT_QUERY).matches;
+}
+
+function getMarkerIcon(google: any, isActive: boolean, isLead: boolean, compact: boolean) {
   return {
     path: google.maps.SymbolPath.CIRCLE,
     fillColor: isActive ? MAP_MARKER_ACTIVE : isLead ? MAP_MARKER_LEAD : MAP_MARKER_DEFAULT,
     fillOpacity: 1,
     strokeColor: "#ffffff",
     strokeWeight: 2,
-    scale: isActive ? 19 : 16
+    scale: compact ? (isActive ? 17 : 15) : isActive ? 19 : 16
   };
 }
 
-function getMarkerLabel(labelText: string) {
+function getMarkerLabel(labelText: string, compact: boolean) {
   return {
     text: labelText,
     color: "#ffffff",
-    fontSize: "13px",
+    fontSize: compact ? "12px" : "13px",
     fontWeight: "700"
   };
 }
 
-function getStayMarkerIcon(google: any) {
+function getStayMarkerIcon(google: any, compact: boolean) {
+  const markerSize = compact ? 40 : 44;
   const svg = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 44 44">
+    <svg xmlns="http://www.w3.org/2000/svg" width="${markerSize}" height="${markerSize}" viewBox="0 0 44 44">
       <circle cx="22" cy="22" r="20" fill="${STAY_MARKER_FILL}" stroke="white" stroke-width="2.5" />
       <path d="M22 12.5 12.5 20v11a2 2 0 0 0 2 2h5.8v-8h3.4v8h5.8a2 2 0 0 0 2-2V20L22 12.5Z" fill="white"/>
     </svg>
@@ -94,8 +100,8 @@ function getStayMarkerIcon(google: any) {
 
   return {
     url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`,
-    scaledSize: new google.maps.Size(44, 44),
-    anchor: new google.maps.Point(22, 22)
+    scaledSize: new google.maps.Size(markerSize, markerSize),
+    anchor: new google.maps.Point(markerSize / 2, markerSize / 2)
   };
 }
 
@@ -163,6 +169,7 @@ export function GoogleRouteMap({
   const onPointClickRef = useRef(onPointClick);
   const lastNonEmptyFallbackUrlRef = useRef(fallbackUrl);
   const [scriptLoadFailed, setScriptLoadFailed] = useState(false);
+  const [isCompactViewport, setIsCompactViewport] = useState(isMobileViewport);
 
   const apiKey = publicEnv.googleMapsApiKey;
   const pointsSignature = useMemo(() => points.map((point) => `${point.lat},${point.lng}`).join("|"), [points]);
@@ -192,6 +199,24 @@ export function GoogleRouteMap({
   useEffect(() => {
     onPointClickRef.current = onPointClick;
   }, [onPointClick]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const mediaQuery = window.matchMedia(MOBILE_VIEWPORT_QUERY);
+    const syncViewport = () => setIsCompactViewport(mediaQuery.matches);
+    syncViewport();
+
+    if (typeof mediaQuery.addEventListener === "function") {
+      mediaQuery.addEventListener("change", syncViewport);
+      return () => mediaQuery.removeEventListener("change", syncViewport);
+    }
+
+    mediaQuery.addListener(syncViewport);
+    return () => mediaQuery.removeListener(syncViewport);
+  }, []);
 
   useEffect(() => {
     if (!apiKey || scriptLoadFailed || !mapElementRef.current) {
@@ -294,8 +319,8 @@ export function GoogleRouteMap({
             const marker = new google.maps.Marker({
               map,
               position: point,
-              label: getMarkerLabel(labelText),
-              icon: getMarkerIcon(google, point.id === activePointIdRef.current, index === 0),
+              label: getMarkerLabel(labelText, isCompactViewport),
+              icon: getMarkerIcon(google, point.id === activePointIdRef.current, index === 0, isCompactViewport),
               zIndex: point.id === activePointIdRef.current ? 2 : 1
             });
 
@@ -322,7 +347,7 @@ export function GoogleRouteMap({
           const marker = new google.maps.Marker({
             map,
             position: { lat: stayMarker.lat, lng: stayMarker.lng },
-            icon: getStayMarkerIcon(google),
+            icon: getStayMarkerIcon(google, isCompactViewport),
             zIndex: 4
           });
           overlaysRef.current.push(marker);
@@ -368,18 +393,18 @@ export function GoogleRouteMap({
         window.cancelAnimationFrame(frameId);
       }
     };
-  }, [apiKey, pointsSignature, points, scriptLoadFailed, showStayOverlay, stayMarker, stayRecommendation, stayOverlaySignature]);
+  }, [apiKey, isCompactViewport, pointsSignature, points, scriptLoadFailed, showStayOverlay, stayMarker, stayRecommendation, stayOverlaySignature]);
 
   useEffect(() => {
     const google = googleMapsRef.current;
     if (!google?.maps) return;
 
     markerEntriesRef.current.forEach(({ id, index, marker, labelText }) => {
-      marker.setLabel(getMarkerLabel(labelText));
-      marker.setIcon(getMarkerIcon(google, id === activePointId, index === 0));
+      marker.setLabel(getMarkerLabel(labelText, isCompactViewport));
+      marker.setIcon(getMarkerIcon(google, id === activePointId, index === 0, isCompactViewport));
       marker.setZIndex(id === activePointId ? 2 : 1);
     });
-  }, [activePointId]);
+  }, [activePointId, isCompactViewport]);
 
   useEffect(() => {
     if (!focusPointId || focusPointRequestKey === 0) return;

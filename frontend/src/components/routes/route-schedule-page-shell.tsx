@@ -27,14 +27,14 @@ type RouteScheduleMapProps = Pick<
 type RouteSchedulePageShellProps = {
   baseClassName?: string;
   daySelector: ReactNode;
-  deleteButtonLabel: string;
+  deleteButtonLabel?: string;
   deleteBusy?: boolean;
   deleteDialog?: ReactNode;
   desktopAsideTop?: ReactNode;
   desktopStopList: ReactNode;
   desktopMapOverlay?: ReactNode;
   headerActions?: ReactNode;
-  headerLeading: ReactNode;
+  headerLeading?: ReactNode;
   listLabel: string;
   listModeClassName?: string;
   listModeStopList: ReactNode;
@@ -43,7 +43,7 @@ type RouteSchedulePageShellProps = {
   mobileMapOverlay?: ReactNode;
   mobileSplit: Omit<ComponentProps<typeof RouteMobileSplitLayout>, "sheetContent">;
   mobileStopList: ReactNode;
-  onDelete: () => void;
+  onDelete?: () => void;
   onViewModeChange: (value: RouteViewMode) => void;
   preBody?: ReactNode;
   splitLabel: string;
@@ -82,32 +82,34 @@ export function RouteSchedulePageShell({
   return (
     <PageContainer
       className={cn(
-        "flex flex-1 flex-col gap-4 lg:h-[calc(100dvh-var(--bottom-nav-offset))] lg:max-h-[calc(100dvh-var(--bottom-nav-offset))] lg:min-h-0 lg:overflow-hidden lg:pb-0",
+        "flex flex-1 flex-col gap-[var(--page-block-gap)] lg:h-[calc(100dvh-var(--bottom-nav-offset))] lg:max-h-[calc(100dvh-var(--bottom-nav-offset))] lg:min-h-0 lg:overflow-hidden lg:pb-0",
         baseClassName,
         viewMode === "split" ? splitModeClassName : listModeClassName
       )}
     >
       <div className="flex shrink-0 flex-wrap items-start justify-between gap-3 lg:flex-nowrap lg:items-center">
-        {headerLeading}
+        {headerLeading ? <div className="min-w-0 flex-1">{headerLeading}</div> : null}
         {headerActions ? (
-          headerActions
+          <div className={cn("max-w-full self-start", headerLeading ? "shrink-0" : "w-full")}>{headerActions}</div>
         ) : (
-          <div className="flex flex-wrap items-center gap-2 self-start">
+          <div className="flex flex-wrap items-center gap-2 self-start md:w-auto">
             <RouteViewModeSliderToggle
               value={viewMode}
               onChange={onViewModeChange}
               splitLabel={splitLabel}
               listLabel={listLabel}
             />
-            <Button
-              size="sm"
-              variant="danger"
-              className="shrink-0 shadow-[0_6px_14px_rgba(228,110,124,0.12)]"
-              onClick={onDelete}
-              disabled={deleteBusy}
-            >
-              <Trash2 className="mr-2 h-4 w-4" /> {deleteButtonLabel}
-            </Button>
+            {deleteButtonLabel && onDelete ? (
+              <Button
+                size="small"
+                variant="danger"
+                className="shrink-0"
+                onClick={onDelete}
+                disabled={deleteBusy}
+              >
+                <Trash2 className="h-4 w-4" /> {deleteButtonLabel}
+              </Button>
+            ) : null}
           </div>
         )}
       </div>
@@ -127,20 +129,20 @@ export function RouteSchedulePageShell({
             }
           />
 
-          <div className="hidden flex-1 gap-4 lg:grid lg:min-h-0 lg:grid-cols-[minmax(360px,440px)_minmax(0,1fr)]">
-            <aside className="flex min-h-0 flex-col gap-4">
+          <div className="hidden flex-1 gap-[var(--layout-column-gap)] lg:grid lg:min-h-0 lg:grid-cols-[minmax(360px,440px)_minmax(0,1fr)]">
+            <aside className="flex min-h-0 flex-col gap-[var(--page-block-gap)]">
               {desktopAsideTop}
               {daySelector}
               {desktopStopList}
             </aside>
-            <section className="relative min-h-0 overflow-hidden rounded-2xl border border-border shadow-[0_16px_34px_rgba(56,123,194,0.1)]">
+            <section className="relative min-h-0 overflow-hidden rounded-xl border border-border shadow-surface md:rounded-2xl">
               <GoogleRouteMap {...desktopMap} className="absolute inset-0 h-full w-full" />
               {desktopMapOverlay}
             </section>
           </div>
         </>
       ) : (
-        <div className="mx-auto flex w-full flex-1 flex-col gap-4 lg:min-h-0">
+        <div className="mx-auto flex w-full flex-1 flex-col gap-[var(--page-block-gap)] lg:min-h-0">
           {listModeTop}
           {daySelector}
           {listModeStopList}
@@ -152,3 +154,4 @@ export function RouteSchedulePageShell({
     </PageContainer>
   );
 }
+

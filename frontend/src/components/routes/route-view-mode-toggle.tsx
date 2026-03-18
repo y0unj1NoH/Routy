@@ -22,7 +22,7 @@ export function RouteViewModeToggle({
   return (
     <div
       className={cn(
-        "inline-flex h-9 shrink-0 items-center overflow-hidden rounded-md bg-card/92 shadow-[inset_0_0_0_1px_rgba(184,200,222,0.9),0_6px_14px_rgba(56,123,194,0.07)] backdrop-blur-[6px]",
+        "inline-flex min-h-9 shrink-0 items-center overflow-hidden rounded-md border border-border/80 bg-card/92 shadow-subtle backdrop-blur-[6px] md:min-h-10 md:rounded-lg",
         className
       )}
     >
@@ -36,9 +36,9 @@ export function RouteViewModeToggle({
             type="button"
             onClick={() => onChange(option.value)}
             className={cn(
-              "inline-flex h-full min-w-[5.75rem] items-center justify-center whitespace-nowrap px-3.5 text-sm font-bold leading-none transition-[background-color,color,box-shadow]",
+              "inline-flex h-full min-w-24 items-center justify-center whitespace-nowrap px-3 text-xs font-bold leading-none transition-[background-color,color,box-shadow] md:px-4 md:text-sm",
               active
-                ? `${buttonVariantToneClasses.primary} shadow-[0_4px_12px_rgba(56,123,194,0.14)]`
+                ? `${buttonVariantToneClasses.primary} shadow-subtle`
                 : "bg-transparent text-foreground/68 hover:bg-primary-soft/78"
             )}
           >

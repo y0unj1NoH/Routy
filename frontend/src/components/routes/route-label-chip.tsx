@@ -4,6 +4,7 @@ import {
   ROUTE_STOP_LABEL_FALLBACK,
   type RouteStopLabelValue
 } from "@/constants/route-taxonomy";
+import { BADGE_BASE_CLASS, BADGE_SIZE_CLASS_MAP, type BadgeSize } from "@/lib/badge-size";
 import { cn } from "@/lib/cn";
 
 export const ROUTE_LABEL_STYLE_MAP = {
@@ -30,16 +31,18 @@ export function normalizeRouteLabel(value: string | null | undefined): RouteLabe
 }
 
 type RouteLabelChipProps = HTMLAttributes<HTMLSpanElement> & {
+  size?: BadgeSize;
   value: string | null | undefined;
 };
 
-export function RouteLabelChip({ className, value, ...props }: RouteLabelChipProps) {
+export function RouteLabelChip({ className, size = "default", value, ...props }: RouteLabelChipProps) {
   const normalizedValue = normalizeRouteLabel(value);
 
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-bold tracking-[0.04em]",
+        BADGE_BASE_CLASS,
+        BADGE_SIZE_CLASS_MAP[size],
         ROUTE_LABEL_STYLE_MAP[normalizedValue],
         className
       )}

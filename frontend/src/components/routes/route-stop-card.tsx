@@ -4,10 +4,7 @@ import {
   ArrowDown,
   ArrowUp,
   Clock3,
-  ExternalLink,
   MapPin,
-  NotebookPen,
-  PencilLine,
   Plus,
   Sparkles,
   Star,
@@ -17,13 +14,14 @@ import Link from "next/link";
 import { useEffect, useState, type MouseEvent as ReactMouseEvent } from "react";
 
 import { CategoryBadge } from "@/components/common/category-badge";
+import { GoogleMapsMark } from "@/components/common/google-maps-mark";
+import { NoteDisplayPanel, NoteEditorPanel } from "@/components/common/note-panels";
 import { PlacePhoto } from "@/components/common/place-photo";
 import { RouteLabelChip } from "@/components/routes/route-label-chip";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { buttonStyles } from "@/components/ui/button-styles";
 import { Card } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
 import { MUST_VISIT_BADGE } from "@/constants/route-taxonomy";
 import { UI_COPY } from "@/constants/ui-copy";
 import { cn } from "@/lib/cn";
@@ -104,8 +102,8 @@ function DotDivider() {
 
 function RatingInline({ value }: { value: number }) {
   return (
-    <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500">
-      <Star className="h-3.5 w-3.5 fill-[#FFB938] text-[#FFB938]" />
+    <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500">
+      <Star className="h-3 w-3 fill-[#FFB938] text-[#FFB938]" />
       {value.toFixed(1)}
     </span>
   );
@@ -114,11 +112,13 @@ function RatingInline({ value }: { value: number }) {
 function StatusInline({
   label,
   detail,
-  tone
+  tone,
+  className
 }: {
   label: string;
   detail?: string | null;
   tone: "open" | "closing" | "closed" | "unknown";
+  className?: string;
 }) {
   const toneClassName =
     {
@@ -145,7 +145,7 @@ function StatusInline({
     }[tone];
 
   return (
-    <div className="inline-flex items-center gap-1.5 text-[11px] font-semibold">
+    <div className={cn("inline-flex items-center gap-1 text-2xs font-semibold md:text-xs", className)}>
       <span className={cn("h-2 w-2 rounded-full", toneClassName.dot)} />
       <span className={toneClassName.label}>{label}</span>
       {detail ? (
@@ -160,10 +160,10 @@ function StatusInline({
 
 function VisitTipPanel({ children }: { children: string }) {
   return (
-    <div className="rounded-[22px] border border-[#CFE4FF] bg-[linear-gradient(135deg,rgba(60,157,255,0.14),rgba(255,255,255,0.95)_52%,rgba(232,244,255,0.9)_100%)] px-4 py-3 shadow-[0_14px_30px_rgba(60,157,255,0.12)]">
+    <div className="rounded-lg border border-[#CFE4FF] bg-[linear-gradient(135deg,rgba(60,157,255,0.14),rgba(255,255,255,0.95)_52%,rgba(232,244,255,0.9)_100%)] px-4 py-3 shadow-surface md:rounded-xl">
       <div className="flex items-start gap-2.5">
         <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-        <p className="text-sm font-medium leading-6 text-slate-700">{children}</p>
+        <p className="text-xs font-medium leading-5 text-slate-700 md:text-sm">{children}</p>
       </div>
     </div>
   );
@@ -188,7 +188,6 @@ export function RouteStopCard({
   const savedNote = showNoteSection ? normalizeCopy(stop.note) : "";
   const canEditNote = showNoteSection && Boolean(onToggleNote && onSaveNote);
   const [draftNote, setDraftNote] = useState(savedNote);
-  const isNoteDirty = draftNote.trim() !== savedNote;
   const hasEditActions = Boolean(editActions);
 
   useEffect(() => {
@@ -200,20 +199,17 @@ export function RouteStopCard({
     onToggleNote?.(stop.id);
   };
 
-  const handleSaveNote = (event: ReactMouseEvent<HTMLButtonElement>) => {
-    event.stopPropagation();
+  const handleSaveNote = () => {
     if (!onSaveNote || isNoteSaving) return;
     onSaveNote(stop.id, draftNote.trim() || null);
   };
 
-  const handleCancelNote = (event: ReactMouseEvent<HTMLButtonElement>) => {
-    event.stopPropagation();
+  const handleCancelNote = () => {
     setDraftNote(savedNote);
     onToggleNote?.(stop.id);
   };
 
-  const handleDeleteNote = (event: ReactMouseEvent<HTMLButtonElement | HTMLElement>) => {
-    event.stopPropagation();
+  const handleDeleteNote = () => {
     if (!onSaveNote || isNoteSaving) return;
     onSaveNote(stop.id, null);
   };
@@ -231,119 +227,261 @@ export function RouteStopCard({
   const showNoteEditor = showNoteSection && isNoteOpen;
   const showAddNoteAction = canEditNote && !savedNote && !isNoteOpen && !hasEditActions;
   const resolvedEditActions = editActions;
+  const hasMapAction = showMapAction && Boolean(stop.place.googleMapsUrl);
+  const hasRating = typeof stop.place.rating === "number";
+  const cardUtilityActionButtonClassName =
+    "border border-border text-foreground/78 hover:!border-border-strong hover:!bg-slate-50 hover:!text-foreground";
+  const cardMapIconButtonClassName = `w-8 px-0 justify-center md:w-10 ${cardUtilityActionButtonClassName}`;
 
   return (
     <Card
       className={cn(
-        "space-y-4 rounded-[30px] bg-white/96 p-5 transition",
+        "flex flex-col gap-3.5 rounded-xl bg-white/96 p-4 transition md:rounded-2xl md:p-5",
         isActive
-          ? "border-[#B9DAFF] ring-4 ring-primary/15 shadow-[0_20px_44px_rgba(60,157,255,0.12)]"
-          : "border-border/75 shadow-[0_18px_38px_rgba(15,23,42,0.08)] hover:border-primary-light/55"
+          ? "border-[#B9DAFF] ring-4 ring-primary/15 shadow-raised"
+          : "border-border/75 shadow-surface hover:border-primary-light/55"
       )}
       onClick={() => onFocus(stop.id)}
     >
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0 flex-1 space-y-3">
-          <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-500">
-            {!hideGeneratedMeta ? (
-              <>
-                <span className="inline-flex items-center gap-1.5">
-                  <Clock3 className="h-3.5 w-3.5 text-primary" />
-                  {stop.time || "--:--"}
-                </span>
-                <DotDivider />
-                <RouteLabelChip value={stop.label || "VISIT"} />
-                <StatusInline label={statusLabel} detail={openingHint.warningText} tone={statusTone} />
-              </>
-            ) : (
-              <StatusInline label={statusLabel} detail={openingHint.warningText} tone={statusTone} />
-            )}
+      <div className="flex flex-col gap-3 md:hidden">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1 flex flex-col gap-1.5 pt-0.5">
+            <div className="flex flex-wrap items-center gap-1.5">
+              {!hideGeneratedMeta && stop.label ? <RouteLabelChip value={stop.label} size="card" /> : null}
+              {stop.isMustVisit ? <Badge size="card" tone="primary">{MUST_VISIT_BADGE}</Badge> : null}
+              <CategoryBadge value={stop.place.category} size="card" />
+            </div>
+            <h3
+              title={stop.place.name || UI_COPY.routes.stopCard.placeFallback}
+              className="line-clamp-2 break-words text-lg font-black leading-[1.2] tracking-[-0.03em] text-slate-950"
+            >
+              {stop.place.name || UI_COPY.routes.stopCard.placeFallback}
+            </h3>
+            <StatusInline
+              label={statusLabel}
+              detail={openingHint.warningText}
+              tone={statusTone}
+              className="max-w-full flex-wrap gap-x-1.5 gap-y-0.5 text-2xs leading-none"
+            />
           </div>
 
-          <h3
-            title={stop.place.name || UI_COPY.routes.stopCard.placeFallback}
-            className="line-clamp-2 break-words text-[1.55rem] font-black leading-tight tracking-tight text-slate-950"
-          >
-            {stop.place.name || UI_COPY.routes.stopCard.placeFallback}
-          </h3>
-
-          <div className="flex flex-wrap items-center gap-2 text-sm font-medium text-slate-500">
-            <CategoryBadge value={stop.place.category} />
-            {typeof stop.place.rating === "number" ? (
-              <>
-                <DotDivider />
-                <RatingInline value={stop.place.rating} />
-              </>
-            ) : null}
-            {stop.place.formattedAddress ? (
-              <>
-                <DotDivider />
-                <span className="inline-flex items-center gap-1.5">
-                  <MapPin className="h-3.5 w-3.5 text-primary" />
-                  {compactLocation(stop.place.formattedAddress)}
-                </span>
-              </>
+          <div className="relative shrink-0">
+            <PlacePhoto
+              name={stop.place.name}
+              photos={stop.place.photos}
+              className="h-[76px] w-[76px] rounded-lg"
+              sizes="76px"
+            />
+            {hasRating ? (
+              <span className="absolute bottom-1.5 left-1.5 inline-flex items-center gap-1 rounded-full border border-white/14 bg-overlay/34 px-2 py-1 text-3xs font-semibold text-white shadow-[0_18px_36px_-22px_rgba(15,23,42,0.8)] backdrop-blur-xs">
+                <Star className="h-3 w-3 fill-[#FFB938] text-[#FFB938]" />
+                {stop.place.rating?.toFixed(1)}
+              </span>
             ) : null}
           </div>
         </div>
 
-        <PlacePhoto
-          name={stop.place.name}
-          photos={stop.place.photos}
-          className="h-[104px] w-[104px] shrink-0 rounded-[22px]"
-          sizes="104px"
-        />
+        {stop.place.formattedAddress ? (
+          <div className="text-xs font-medium text-slate-500">
+            <span className="inline-flex items-start gap-1.5">
+              <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+              <span className="line-clamp-2">{compactLocation(stop.place.formattedAddress)}</span>
+            </span>
+          </div>
+        ) : null}
+
+        {summaryText ? (
+          <div className="rounded-[20px] border border-[#CFE4FF] bg-[linear-gradient(135deg,rgba(60,157,255,0.14),rgba(255,255,255,0.96)_56%,rgba(235,244,255,0.94)_100%)] px-3 py-2.5 shadow-surface">
+            <div className="flex items-start gap-2">
+              <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+              <p className="text-2xs font-medium leading-5 text-slate-700">{summaryText}</p>
+            </div>
+          </div>
+        ) : null}
+
+        {showNoteEditor ? (
+          <NoteEditorPanel
+            savedNote={savedNote}
+            draftNote={draftNote}
+            isSaving={isNoteSaving}
+            onDraftChange={setDraftNote}
+            onCancelEdit={handleCancelNote}
+            onSave={handleSaveNote}
+            onDelete={savedNote ? handleDeleteNote : undefined}
+            className="md:hidden"
+          />
+        ) : null}
+
+        {showSavedNote ? (
+          <NoteDisplayPanel
+            note={savedNote}
+            isBusy={isNoteSaving}
+            onEdit={canEditNote ? () => onToggleNote?.(stop.id) : undefined}
+            onDelete={canEditNote ? handleDeleteNote : undefined}
+            className="md:hidden"
+          />
+        ) : null}
+
+        <div
+          className={cn(
+            "flex items-center gap-3",
+            showAddNoteAction ? "justify-between" : "justify-end"
+          )}
+          onClick={(event) => event.stopPropagation()}
+        >
+          {showAddNoteAction ? (
+            <div className="shrink-0">
+              <button
+                type="button"
+                onClick={handleToggleNote}
+                className={buttonStyles({
+                  variant: "ghost",
+                  size: "xsmall",
+                  shape: "pill",
+                  className: `${cardUtilityActionButtonClassName} [&_svg]:shrink-0`
+                })}
+              >
+                <Plus />
+                {UI_COPY.routes.stopCard.addNote}
+              </button>
+            </div>
+          ) : null}
+
+          <div className={cn("flex items-center justify-end gap-2", hasMapAction ? "shrink-0" : undefined)}>
+            {hasMapAction ? (
+              <a
+                href={stop.place.googleMapsUrl || undefined}
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Google Maps"
+                title="Google Maps"
+                className={buttonStyles({
+                  variant: "ghost",
+                  size: "xsmall",
+                  shape: "pill",
+                  className: cardMapIconButtonClassName
+                })}
+              >
+                <GoogleMapsMark />
+              </a>
+            ) : null}
+            <Link
+              href={detailHref}
+              onClick={(event) => event.stopPropagation()}
+              className={buttonStyles({
+                size: "xsmall",
+                shape: "pill",
+                className: "text-white"
+              })}
+            >
+              {UI_COPY.routes.stopCard.placeInfoAction}
+            </Link>
+          </div>
+        </div>
       </div>
 
-      {summaryText ? <VisitTipPanel>{summaryText}</VisitTipPanel> : null}
+      <div className="hidden md:block">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0 flex-1 space-y-3">
+            <div className="flex flex-wrap items-center gap-1.5 text-xs font-semibold text-slate-500">
+              {!hideGeneratedMeta ? (
+                <>
+                  <span className="inline-flex items-center gap-1.5">
+                    <Clock3 className="h-3.5 w-3.5 text-primary" />
+                    {stop.time || "--:--"}
+                  </span>
+                  <DotDivider />
+                  <RouteLabelChip value={stop.label || "VISIT"} size="card" />
+                  <StatusInline label={statusLabel} detail={openingHint.warningText} tone={statusTone} />
+                </>
+              ) : (
+                <StatusInline label={statusLabel} detail={openingHint.warningText} tone={statusTone} />
+              )}
+            </div>
+
+            <h3
+              title={stop.place.name || UI_COPY.routes.stopCard.placeFallback}
+              className="line-clamp-2 break-words text-lg font-black leading-[1.2] tracking-tight text-slate-950 md:text-xl"
+            >
+              {stop.place.name || UI_COPY.routes.stopCard.placeFallback}
+            </h3>
+
+            <div className="flex flex-wrap items-center gap-1.5 text-xs font-medium text-slate-500">
+              <CategoryBadge value={stop.place.category} size="card" />
+              {hasRating ? (
+                <>
+                  <DotDivider />
+                  <RatingInline value={stop.place.rating as number} />
+                </>
+              ) : null}
+              {stop.place.formattedAddress ? (
+                <>
+                  <DotDivider />
+                  <span className="inline-flex items-center gap-1">
+                    <MapPin className="h-3 w-3 text-primary" />
+                    {compactLocation(stop.place.formattedAddress)}
+                  </span>
+                </>
+              ) : null}
+            </div>
+          </div>
+
+          <PlacePhoto
+            name={stop.place.name}
+            photos={stop.place.photos}
+            className="h-20 w-20 shrink-0 rounded-lg md:h-[92px] md:w-[92px] md:rounded-xl"
+            sizes="(min-width: 640px) 92px, 84px"
+          />
+        </div>
+      </div>
+
+      {summaryText ? <div className="hidden md:block"><VisitTipPanel>{summaryText}</VisitTipPanel></div> : null}
 
       {resolvedEditActions ? (
         <div
-          className="rounded-[22px] border border-primary-light/45 bg-primary-soft/55 px-4 py-3"
+          className="rounded-lg border border-primary-light/45 bg-primary-soft/55 px-4 py-3 md:rounded-xl"
           onClick={(event) => event.stopPropagation()}
         >
           <div className="flex flex-wrap items-center gap-2">
             <Button
-              size="sm"
+              size="xsmall"
               variant="secondary"
               shape="pill"
-              className="h-9 px-3 text-xs font-semibold"
               onClick={resolvedEditActions.onMoveUp}
               disabled={!resolvedEditActions.onMoveUp || resolvedEditActions.moveUpDisabled}
             >
-              <ArrowUp className="mr-1.5 h-3.5 w-3.5" />
+              <ArrowUp className="h-3.5 w-3.5" />
               위로
             </Button>
             <Button
-              size="sm"
+              size="xsmall"
               variant="secondary"
               shape="pill"
-              className="h-9 px-3 text-xs font-semibold"
               onClick={resolvedEditActions.onMoveDown}
               disabled={!resolvedEditActions.onMoveDown || resolvedEditActions.moveDownDisabled}
             >
-              <ArrowDown className="mr-1.5 h-3.5 w-3.5" />
+              <ArrowDown className="h-3.5 w-3.5" />
               아래로
             </Button>
             <Button
-              size="sm"
+              size="xsmall"
               variant="ghost"
               shape="pill"
-              className="h-9 border border-border px-3 text-xs font-semibold text-foreground/78"
+              className="border border-border text-foreground/78"
               onClick={resolvedEditActions.onMoveDay}
               disabled={!resolvedEditActions.onMoveDay || resolvedEditActions.moveDayDisabled}
             >
               다른 날로 이동
             </Button>
             <Button
-              size="sm"
+              size="xsmall"
               variant="ghost"
               shape="pill"
-              className="h-9 border border-danger/18 px-3 text-xs font-semibold text-danger hover:bg-danger/8"
+              className="border border-danger/18 text-danger hover:bg-danger/8"
               onClick={resolvedEditActions.onDelete}
               disabled={!resolvedEditActions.onDelete || resolvedEditActions.deleteDisabled}
             >
-              <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+              <Trash2 className="h-3.5 w-3.5" />
               삭제
             </Button>
           </div>
@@ -351,117 +489,73 @@ export function RouteStopCard({
       ) : null}
 
       {showSavedNote ? (
-        <div className="rounded-[22px] border border-slate-200 bg-white px-4 py-4 shadow-[0_12px_26px_rgba(15,23,42,0.05)]">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <NotebookPen className="h-4 w-4 text-slate-400" />
-              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">memo</p>
-            </div>
-            {canEditNote ? (
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={handleToggleNote}
-                  className="inline-flex items-center gap-1 leading-none text-xs font-semibold text-primary transition hover:text-primary-hover"
-                >
-                  <PencilLine className="h-3.5 w-3.5 shrink-0" />
-                  {UI_COPY.routes.stopCard.edit}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleDeleteNote}
-                  className="inline-flex items-center gap-1 leading-none text-xs font-semibold text-danger transition hover:opacity-80"
-                >
-                  <Trash2 className="h-3.5 w-3.5 shrink-0" />
-                  {UI_COPY.routes.stopCard.delete}
-                </button>
-              </div>
-            ) : null}
-          </div>
-          <p className="mt-2 text-sm font-medium leading-6 text-slate-700">{savedNote}</p>
-        </div>
+        <NoteDisplayPanel
+          note={savedNote}
+          isBusy={isNoteSaving}
+          onEdit={canEditNote ? () => onToggleNote?.(stop.id) : undefined}
+          onDelete={canEditNote ? handleDeleteNote : undefined}
+          className="hidden md:block"
+        />
       ) : null}
 
       {showNoteEditor ? (
-        <div
-          className="rounded-[22px] border border-slate-200 bg-white px-4 py-4 shadow-[0_12px_26px_rgba(15,23,42,0.05)]"
-          onClick={(event) => event.stopPropagation()}
-        >
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <NotebookPen className="h-4 w-4 text-slate-400" />
-              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">memo edit</p>
-            </div>
-            <p className="text-xs text-slate-400">{UI_COPY.routes.stopCard.noteDescription}</p>
-          </div>
-          <Textarea
-            rows={3}
-            value={draftNote}
-            onChange={(event) => setDraftNote(event.target.value)}
-            onClick={(event) => event.stopPropagation()}
-            placeholder={UI_COPY.routes.stopCard.notePlaceholder}
-            className="mt-3 min-h-[96px] resize-none border-slate-200 bg-slate-50 shadow-none"
-          />
-          <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
-            {savedNote ? (
-              <Button size="sm" variant="ghost" onClick={handleDeleteNote} disabled={isNoteSaving} className="h-9 px-3 text-xs font-semibold text-danger">
-                {UI_COPY.routes.stopCard.delete}
-              </Button>
-            ) : null}
-            <Button size="sm" variant="ghost" onClick={handleCancelNote} disabled={isNoteSaving} className="h-9 px-3 text-xs font-semibold text-slate-500">
-              {UI_COPY.routes.stopCard.cancel}
-            </Button>
-            <Button size="sm" shape="pill" onClick={handleSaveNote} disabled={isNoteSaving || !isNoteDirty} className="h-9 px-4 text-xs font-bold text-white">
-              {isNoteSaving ? UI_COPY.routes.stopCard.saving : UI_COPY.routes.stopCard.save}
-            </Button>
-          </div>
-        </div>
+        <NoteEditorPanel
+          savedNote={savedNote}
+          draftNote={draftNote}
+          isSaving={isNoteSaving}
+          onDraftChange={setDraftNote}
+          onCancelEdit={handleCancelNote}
+          onSave={handleSaveNote}
+          onDelete={savedNote ? handleDeleteNote : undefined}
+          className="hidden md:block"
+        />
       ) : null}
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-2.5">
-          {showAddNoteAction ? (
-            <button
-              type="button"
-              onClick={handleToggleNote}
-              className={buttonStyles({
-                variant: "ghost",
-                size: "sm",
-                shape: "pill",
-                className:
-                  "border border-border text-xs font-semibold leading-none text-foreground/78 hover:bg-muted/70 hover:text-foreground [&_svg]:shrink-0"
-              })}
-            >
-              <Plus className="mr-1.5 h-3.5 w-3.5" />
-              {UI_COPY.routes.stopCard.addNote}
-            </button>
-          ) : null}
-          {stop.isMustVisit ? <Badge tone="primary">{MUST_VISIT_BADGE}</Badge> : null}
-        </div>
+      <div className={cn("hidden md:flex flex-wrap items-center gap-3", showAddNoteAction || stop.isMustVisit ? "justify-between" : "justify-end")}>
+        {showAddNoteAction || stop.isMustVisit ? (
+          <div className="flex flex-wrap items-center gap-2.5">
+            {showAddNoteAction ? (
+              <button
+                type="button"
+                onClick={handleToggleNote}
+                className={buttonStyles({
+                  variant: "ghost",
+                  size: "xsmall",
+                  shape: "pill",
+                  className: `${cardUtilityActionButtonClassName} [&_svg]:shrink-0`
+                })}
+              >
+                <Plus />
+                {UI_COPY.routes.stopCard.addNote}
+              </button>
+            ) : null}
+            {stop.isMustVisit ? <Badge size="card" tone="primary">{MUST_VISIT_BADGE}</Badge> : null}
+          </div>
+        ) : null}
 
-        <div className={cn("flex items-center justify-end gap-2", !showAddNoteAction && !stop.isMustVisit ? "sm:ml-auto" : "sm:shrink-0")}>
+        <div className="flex items-center justify-end gap-2 md:shrink-0">
           {showMapAction && stop.place.googleMapsUrl ? (
             <a
               href={stop.place.googleMapsUrl}
               target="_blank"
               rel="noreferrer"
               onClick={(event) => event.stopPropagation()}
+              aria-label="Google Maps"
+              title="Google Maps"
               className={buttonStyles({
                 variant: "ghost",
-                size: "sm",
+                size: "xsmall",
                 shape: "pill",
-                className:
-                  "border border-border text-xs font-semibold leading-none text-foreground/78 hover:bg-muted/70 hover:text-foreground [&_svg]:shrink-0"
+                className: `w-10 px-0 justify-center ${cardUtilityActionButtonClassName}`
               })}
             >
-              {UI_COPY.routes.stopCard.mapAction}
-              <ExternalLink className="ml-1.5 h-3.5 w-3.5" />
+              <GoogleMapsMark />
             </a>
           ) : null}
           <Link
             href={detailHref}
             onClick={(event) => event.stopPropagation()}
-            className={buttonStyles({ size: "sm", shape: "pill", className: "px-4 text-xs font-bold text-white" })}
+            className={buttonStyles({ size: "xsmall", shape: "pill", className: "text-white" })}
           >
             {UI_COPY.routes.stopCard.placeInfoAction}
           </Link>
@@ -470,3 +564,4 @@ export function RouteStopCard({
     </Card>
   );
 }
+

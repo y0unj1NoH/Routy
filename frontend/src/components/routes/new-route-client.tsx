@@ -1,7 +1,5 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   AlertTriangle,
@@ -20,38 +18,41 @@ import {
   Plus,
   ShoppingBag,
   TreePine,
-  type LucideIcon,
   UserRound,
   UtensilsCrossed,
-  Zap
+  Zap,
+  type LucideIcon
 } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 
-import { LoadingPanel } from "@/components/common/loading-panel";
-import { PageEmptyState } from "@/components/common/page-empty-state";
 import { DialogFieldHint, DialogFieldLabel } from "@/components/common/dialog-field";
 import { DialogShell } from "@/components/common/dialog-shell";
-import { ImportListModal } from "@/components/import/import-list-modal";
 import { LinkInput } from "@/components/common/link-input";
+import { LoadingPanel } from "@/components/common/loading-panel";
+import { PageEmptyState } from "@/components/common/page-empty-state";
 import { PlacePhoto } from "@/components/common/place-photo";
-import { UI_COPY } from "@/constants/ui-copy";
-import { MUST_VISIT_BADGE, type ThemeValue } from "@/constants/route-taxonomy";
-import { Mascot, MASCOT_SIZE_CLASS, type MascotVariant } from "@/components/layout/mascot";
+import { ImportListModal } from "@/components/import/import-list-modal";
+import { Mascot, type MascotVariant } from "@/components/layout/mascot";
 import { PageContainer } from "@/components/layout/page-container";
 import { ProgressHeader } from "@/components/layout/progress-header";
+import { SelectableOptionCard } from "@/components/routes/selectable-option-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { buttonVariantToneClasses } from "@/components/ui/button-styles";
 import { Card } from "@/components/ui/card";
-import { cn } from "@/lib/cn";
-import { addPlaceListItem, createSchedule, fetchMyPlaceLists, fetchPlaceListDetail, importPlaceFromGoogleLink } from "@/lib/graphql/api";
-import { queryKeys } from "@/lib/query-keys";
 import {
   mapFunnelQueryToRenderStep,
   mapRenderToQueryStep,
   normalizeFunnelStep,
   type FunnelQueryStep
 } from "@/constants/funnel";
+import { MUST_VISIT_BADGE, type ThemeValue } from "@/constants/route-taxonomy";
+import { UI_COPY } from "@/constants/ui-copy";
 import { useRequireAuth } from "@/hooks/use-require-auth";
+import { cn } from "@/lib/cn";
+import { addPlaceListItem, createSchedule, fetchMyPlaceLists, fetchPlaceListDetail, importPlaceFromGoogleLink } from "@/lib/graphql/api";
+import { queryKeys } from "@/lib/query-keys";
 import { useCreateScheduleStore } from "@/stores/create-schedule-store";
 import { useUiStore } from "@/stores/ui-store";
 import type { PlaceListItem } from "@/types/domain";
@@ -98,6 +99,13 @@ const THEME_ICONS: Record<ThemeValue, LucideIcon> = {
   LANDMARK: Landmark,
   SHOPPING: ShoppingBag,
   NATURE: TreePine
+};
+
+const FUNNEL_MASCOT_CLASS_MAP: Partial<Record<MascotVariant, string>> = {
+  calendar: "h-20 w-20",
+  hotel: "h-20 w-24",
+  friend: "h-20 w-28",
+  map: "h-20 w-24"
 };
 
 function parseIsoDate(value?: string) {
@@ -214,96 +222,45 @@ function buildMonthCells(monthDate: Date) {
   return cells;
 }
 
-function StepTitle({
+function FunnelHeader({
   title,
   description,
   emoji,
   mascotVariant,
-  mascotClassName,
-  action
+  mascotClassName
 }: {
   title: string;
   description?: string;
   emoji?: string;
   mascotVariant?: MascotVariant;
   mascotClassName?: string;
-  action?: ReactNode;
 }) {
   return (
-    <div className="space-y-3 text-center">
+    <div className="space-y-2.5 text-center">
       {mascotVariant ? (
-        <Mascot variant={mascotVariant} className={cn("mx-auto", MASCOT_SIZE_CLASS.compact, mascotClassName)} />
+        <Mascot
+          variant={mascotVariant}
+          className={cn("mx-auto h-[var(--mascot-funnel-size)]", FUNNEL_MASCOT_CLASS_MAP[mascotVariant] ?? "w-[var(--mascot-funnel-size)]", mascotClassName)}
+        />
       ) : (
-        <div className="mx-auto grid h-28 w-28 place-items-center rounded-full border border-border-strong bg-card/92 text-4xl text-primary shadow-soft">
+        <div className="mx-auto grid h-24 w-24 place-items-center rounded-full border border-border-strong bg-card/92 text-3xl text-primary shadow-surface">
           {emoji}
         </div>
       )}
-      <h1 className="text-2xl font-black md:text-4xl">{title}</h1>
-      {description ? <p className="text-sm text-foreground/65">{description}</p> : null}
-      {action ? <div className="flex justify-center pt-2">{action}</div> : null}
+      <h1 className="break-keep text-xl font-black leading-[1.2] tracking-[-0.02em] md:text-2xl xl:text-3xl">{title}</h1>
+      {description ? <p className="break-keep text-xs leading-[1.5] text-foreground/65">{description}</p> : null}
     </div>
   );
 }
 
-function ChoiceButton({
-  icon: Icon,
-  label,
-  caption,
-  contentAlignment = "start",
-  active,
-  onClick,
-  className,
-  iconClassName,
-  labelClassName,
-  captionClassName
+function FunnelContent({
+  children,
+  className
 }: {
-  icon?: LucideIcon;
-  label: string;
-  caption?: string;
-  contentAlignment?: "start" | "center";
-  active: boolean;
-  onClick: () => void;
+  children: ReactNode;
   className?: string;
-  iconClassName?: string;
-  labelClassName?: string;
-  captionClassName?: string;
 }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
-      className={cn(
-        "group rounded-xl border px-4 py-3.5 text-left transition-[background-color,border-color,box-shadow] focus-visible:outline-hidden focus-visible:ring-4 focus-visible:ring-primary/12",
-        active
-          ? "border-primary bg-primary/15 text-primary shadow-[0_14px_32px_rgba(60,157,255,0.12)]"
-          : "border-border bg-card text-foreground hover:border-primary/30 hover:bg-muted/60",
-        className
-      )}
-    >
-      <div className={cn("flex gap-3", contentAlignment === "center" ? "items-center" : "items-start")}>
-        {Icon ? (
-          <span
-            className={cn(
-              "inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border transition-colors",
-              active
-                ? "border-primary/18 bg-primary/12 text-primary"
-                : "border-border/70 bg-muted/35 text-foreground/62 group-hover:bg-muted/55",
-              iconClassName
-            )}
-          >
-            <Icon className="h-5 w-5" aria-hidden="true" />
-          </span>
-        ) : null}
-        <div className={cn("min-w-0", contentAlignment === "center" && !caption ? "flex min-h-10 items-center" : "")}>
-          <p className={cn("text-sm font-semibold leading-snug", labelClassName)}>{label}</p>
-          {caption ? (
-            <p className={cn("mt-1.5 break-keep text-xs leading-relaxed text-foreground/60", captionClassName)}>{caption}</p>
-          ) : null}
-        </div>
-      </div>
-    </button>
-  );
+  return <div className={cn("flex w-full flex-col gap-[var(--page-block-gap)]", className)}>{children}</div>;
 }
 
 function compactLocation(address: string | null) {
@@ -319,30 +276,6 @@ function compactLocation(address: string | null) {
   }
 
   return cleaned[0] || address;
-}
-
-function StayModeChoice({
-  active,
-  title,
-  description
-}: {
-  active: boolean;
-  title: string;
-  description: string;
-}) {
-  return (
-    <div
-      className={cn(
-        "rounded-[24px] border px-4 py-4 transition-[background-color,border-color,box-shadow]",
-        active
-          ? "border-primary bg-primary/12 shadow-[0_18px_34px_rgba(60,157,255,0.14)]"
-          : "border-border/75 bg-white"
-      )}
-    >
-      <p className={cn("text-sm font-black", active ? "text-primary" : "text-slate-900")}>{title}</p>
-      <p className={cn("mt-1.5 text-xs leading-5", active ? "text-primary/82" : "text-slate-500")}>{description}</p>
-    </div>
-  );
 }
 
 function StayOptionCard({
@@ -362,50 +295,54 @@ function StayOptionCard({
       onClick={onSelect}
       aria-pressed={selected}
       className={cn(
-        "w-full rounded-[24px] border px-4 py-4 text-left transition-[background-color,border-color,box-shadow]",
+        "w-full rounded-xl border px-4 py-3 text-left shadow-surface transition-[background-color,border-color,box-shadow] md:rounded-2xl md:px-5 md:py-4",
         selected
-          ? "border-primary bg-primary/10 shadow-[0_18px_34px_rgba(60,157,255,0.12)]"
+          ? "border-primary bg-primary/10 shadow-raised"
           : "border-border/75 bg-white hover:border-primary/25 hover:bg-primary/5"
       )}
     >
-      <div className="flex items-start gap-4">
+      <div className="flex items-start gap-2.5">
         <PlacePhoto
           name={item.place.name}
           photos={item.place.photos}
-          className="h-24 w-28 shrink-0 rounded-[20px]"
-          sizes="112px"
+          className="h-16 w-16 shrink-0 rounded-lg md:h-20 md:w-20 md:rounded-xl"
+          sizes="(min-width: 640px) 80px, 64px"
         />
 
-        <div className="min-w-0 flex-1 space-y-2">
-          <div className="flex flex-wrap items-center gap-2">
-            {item.isMustVisit ? <Badge tone="primary">{MUST_VISIT_BADGE}</Badge> : null}
-            {isNewlyAdded ? <Badge className="bg-white/90">Google 추가</Badge> : null}
+        <div className="min-w-0 flex-1 space-y-1">
+          <div className="flex items-start gap-2">
+            <div className="min-w-0 flex-1 space-y-1">
+              <p className="line-clamp-2 break-keep text-xs font-black leading-[1.35] text-foreground">
+                {item.place.name || UI_COPY.saved.detail.placesSection.placeFallback}
+              </p>
+              <div className="flex flex-wrap items-center gap-1.5">
+                {item.isMustVisit ? <Badge size="card" tone="primary">{MUST_VISIT_BADGE}</Badge> : null}
+                {isNewlyAdded ? <Badge size="card" className="bg-white/90">Google 추가</Badge> : null}
+              </div>
+            </div>
+
+            <span
+              className={cn(
+                "mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border",
+                selected ? "border-primary bg-primary text-white" : "border-border bg-white text-transparent"
+              )}
+            >
+              <Check className="h-3 w-3" />
+            </span>
           </div>
 
-          <div className="space-y-1.5">
-            <p className="text-sm font-black text-slate-950">{item.place.name || UI_COPY.saved.detail.placesSection.placeFallback}</p>
-            <div className="flex items-start gap-2 text-xs font-medium text-slate-500">
-              <MapPin className="mt-[2px] h-3.5 w-3.5 shrink-0 text-primary" />
-              <span className="leading-5">{compactLocation(item.place.formattedAddress)}</span>
-            </div>
+          <div className="flex items-start gap-1.5 text-2xs font-medium text-foreground/60 md:text-xs">
+            <MapPin className="mt-[2px] h-3 w-3 shrink-0 text-primary" />
+            <span className="line-clamp-2 break-keep leading-[1.4]">{compactLocation(item.place.formattedAddress)}</span>
           </div>
 
           {item.note ? (
-            <div className="flex items-start gap-2 text-xs text-slate-600">
-              <NotebookPen className="mt-[2px] h-3.5 w-3.5 shrink-0 text-slate-400" />
-              <p className="leading-5">{item.note}</p>
+            <div className="flex items-start gap-1.5 text-2xs text-foreground/62 md:text-xs">
+              <NotebookPen className="mt-[2px] h-3 w-3 shrink-0 text-foreground/38" />
+              <p className="line-clamp-2 break-keep leading-[1.4]">{item.note}</p>
             </div>
           ) : null}
         </div>
-
-        <span
-          className={cn(
-            "mt-1 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border",
-            selected ? "border-primary bg-primary text-white" : "border-border bg-white text-transparent"
-          )}
-        >
-          <Check className="h-3.5 w-3.5" />
-        </span>
       </div>
     </button>
   );
@@ -433,18 +370,23 @@ function AddStayDialog({
       open={open}
       onClose={onClose}
       title="Google 링크로 숙소 추가"
-      description="숙소 링크를 붙여넣으면 이 리스트에 추가하고 바로 선택할 수 있어요"
-      mascotVariant="hotel"
+      mascotVariant={null}
       busy={isSubmitting}
       showCloseButton={false}
       size="lg"
       headerClassName="bg-[linear-gradient(135deg,rgba(232,244,255,0.96),rgba(255,255,255,1)_72%)]"
+      contentClassName="break-keep"
       footer={
         <>
-          <Button variant="secondary" size="sm" className="min-w-[88px]" onClick={onClose} disabled={isSubmitting}>
+          <Button variant="secondary" size="medium" className="break-keep" onClick={onClose} disabled={isSubmitting}>
             취소
           </Button>
-          <Button size="sm" className="min-w-[132px]" onClick={onConfirm} disabled={isSubmitting || !googleUrl.trim()}>
+          <Button
+            size="medium"
+            className="break-keep"
+            onClick={onConfirm}
+            disabled={isSubmitting || !googleUrl.trim()}
+          >
             {isSubmitting ? "추가 중" : "추가하고 선택"}
           </Button>
         </>
@@ -452,7 +394,7 @@ function AddStayDialog({
     >
       <div className="space-y-2">
         <div className="space-y-2">
-          <DialogFieldLabel htmlFor="stay-google-url" required>
+          <DialogFieldLabel htmlFor="stay-google-url" required className="break-keep">
             Google Maps 링크
           </DialogFieldLabel>
           <LinkInput
@@ -461,7 +403,7 @@ function AddStayDialog({
             onChange={(event) => onChangeUrl(event.target.value)}
             placeholder="https://maps.app.goo.gl/..."
           />
-          <DialogFieldHint error={Boolean(errorMessage)}>
+          <DialogFieldHint error={Boolean(errorMessage)} className="break-keep">
             {errorMessage || "호텔, 레지던스, 료칸처럼 실제로 묵을 숙소 링크를 넣어 주세요"}
           </DialogFieldHint>
         </div>
@@ -487,7 +429,7 @@ function MonthCalendar({
 
   return (
     <div className="space-y-3">
-      <p className="text-center text-lg font-black">{formatMonthTitle(month)}</p>
+      <p className="text-center text-base font-black md:text-lg">{formatMonthTitle(month)}</p>
       <div className="grid grid-cols-7 text-center text-xs text-foreground/55">
         {UI_COPY.routes.new.dateStep.dayNames.map((name) => (
           <span key={name}>{name}</span>
@@ -523,12 +465,12 @@ function MonthCalendar({
                 className={cn(
                   "relative z-10 grid place-items-center rounded-full transition",
                   isStart || isEnd
-                    ? cn("h-11 w-11 text-base font-black shadow-soft", buttonVariantToneClasses.primary)
+                    ? cn("h-10 w-10 text-sm font-black shadow-surface md:h-11 md:w-11 md:text-base", buttonVariantToneClasses.primary)
                     : isDisabled
-                      ? "h-9 w-9 cursor-not-allowed text-sm text-foreground/25"
+                      ? "h-9 w-9 cursor-not-allowed text-xs text-foreground/25 md:text-sm"
                       : isInRange
-                        ? "h-9 w-9 text-sm font-semibold text-foreground"
-                        : "h-9 w-9 text-sm text-foreground hover:bg-primary-soft"
+                        ? "h-9 w-9 text-xs font-semibold text-foreground md:text-sm"
+                        : "h-9 w-9 text-xs text-foreground hover:bg-primary-soft md:text-sm"
                 )}
               >
                 {cell.date.getDate()}
@@ -860,450 +802,452 @@ export default function NewRoutePage() {
   const selectedList = lists.find((list) => list.id === context.placeListId);
   const selectedListDetail = selectedListDetailQuery.data;
 
+  if (currentStep === "List" && !hasLists) {
+    return (
+      <PageContainer className="flex min-h-full flex-1 flex-col gap-[var(--page-section-gap)]">
+        <div className="min-h-[var(--page-title-block-height)]">
+          <ProgressHeader currentStep={STEP_INDEX[queryStep]} totalSteps={5} />
+        </div>
+        <div className="flex flex-1 items-center justify-center">
+          <div className="-translate-y-[calc(var(--bottom-nav-offset)/2)]">
+            <PageEmptyState
+              mascotVariant="detective"
+              mascotSize="featured"
+              title={UI_COPY.routes.new.listStep.emptyTitle}
+              description={UI_COPY.routes.new.listStep.emptyDescription}
+              className="mx-auto"
+              action={
+                <Button
+                  size="large"
+                  shape="pill"
+                  fullWidth
+                  className="font-semibold md:w-auto md:min-w-48"
+                  onClick={() => setIsImportModalOpen(true)}
+                >
+                  {UI_COPY.routes.new.listStep.addAction}
+                </Button>
+              }
+            />
+          </div>
+        </div>
+        <ImportListModal
+          isOpen={isImportModalOpen}
+          accessToken={accessToken ?? ""}
+          onClose={() => setIsImportModalOpen(false)}
+          onImported={(list) => {
+            applySelectedList(list.id, list.name);
+          }}
+        />
+      </PageContainer>
+    );
+  }
+
   return (
-    <PageContainer className="space-y-8">
+    <PageContainer className="flex min-h-full flex-1 flex-col gap-[var(--page-section-gap)]">
       <ProgressHeader currentStep={STEP_INDEX[queryStep]} totalSteps={5} />
 
       {currentStep === "List" ? (
-        <section
-          className={cn(
-            "mx-auto w-full max-w-[1194px]",
-            hasLists ? "space-y-8" : "flex min-h-[calc(100dvh-var(--bottom-nav-offset)-12rem)] flex-col gap-8"
-          )}
-        >
-          <StepTitle
+        <>
+          <FunnelHeader
             title={UI_COPY.routes.new.listStep.title}
             description={UI_COPY.routes.new.listStep.description}
             mascotVariant="detective"
           />
 
-          {!hasLists ? (
-            <div className="flex flex-1 items-center justify-center">
-              <PageEmptyState
-                title={UI_COPY.routes.new.listStep.emptyTitle}
-                description={UI_COPY.routes.new.listStep.emptyDescription}
-                showMascot={false}
-                className="mx-auto -translate-y-[calc(var(--bottom-nav-offset)/4)]"
-                action={
-                  <Button
-                    shape="pill"
-                    className="h-12 min-w-56 px-6 font-semibold"
-                    onClick={() => setIsImportModalOpen(true)}
-                  >
-                    {UI_COPY.routes.new.listStep.addAction}
-                  </Button>
-                }
-              />
+          <FunnelContent>
+            <div className="grid gap-2.5">
+              {lists.map((list) => {
+                const active = context.placeListId === list.id;
+                return (
+                  <SelectableOptionCard
+                    key={list.id}
+                    title={`${list.name} | ${list.city}`}
+                    description={UI_COPY.routes.new.listStep.listCount(list.itemCount)}
+                    active={active}
+                    onClick={() => {
+                      if (active) {
+                        clearSelectedList();
+                        return;
+                      }
+
+                      applySelectedList(list.id, list.name);
+                    }}
+                    className="w-full"
+                  />
+                );
+              })}
             </div>
-          ) : (
-            <>
-              <div className="grid gap-3">
-                {lists.map((list) => {
-                  const active = context.placeListId === list.id;
-                  return (
-                    <button
-                      key={list.id}
-                      type="button"
-                      onClick={() => {
-                        if (active) {
-                          clearSelectedList();
-                          return;
-                        }
 
-                        applySelectedList(list.id, list.name);
-                      }}
-                      className={`rounded-xl border p-4 text-left ${
-                        active ? "border-primary bg-primary/10" : "border-border bg-card"
-                      }`}
-                    >
-                      <p className="font-bold">
-                        {list.name} | {list.city}
-                      </p>
-                      <p className="mt-1 text-sm text-foreground/70">{UI_COPY.routes.new.listStep.listCount(list.itemCount)}</p>
-                    </button>
-                  );
-                })}
-              </div>
-
+            <div className="flex flex-col gap-4">
               <button
                 type="button"
                 onClick={() => setIsImportModalOpen(true)}
-                className="mx-auto flex w-fit text-center text-sm font-semibold text-primary underline underline-offset-4 decoration-primary/45 transition-colors hover:text-primary-hover hover:decoration-primary focus-visible:outline-hidden focus-visible:text-primary-hover"
+                className="mx-auto flex w-fit break-keep text-center text-xs font-semibold text-primary underline underline-offset-4 decoration-primary/45 transition-colors hover:text-primary-hover hover:decoration-primary focus-visible:outline-hidden focus-visible:text-primary-hover md:text-sm"
               >
                 {UI_COPY.routes.new.listStep.helperAction}
               </button>
 
-              <Button size="lg" fullWidth disabled={!context.placeListId} onClick={() => moveStep("Date")}>
+              <Button size="large" fullWidth disabled={!context.placeListId} onClick={() => moveStep("Date")}>
                 {UI_COPY.routes.new.listStep.next}
               </Button>
-            </>
-          )}
-        </section>
+            </div>
+          </FunnelContent>
+        </>
       ) : null}
 
       {currentStep === "Date" ? (
-        <section className="mx-auto w-full max-w-[1194px] space-y-8">
-          <StepTitle
+        <>
+          <FunnelHeader
             title={UI_COPY.routes.new.dateStep.title}
             description={UI_COPY.routes.new.dateStep.description}
             mascotVariant="calendar"
           />
-          <Card className="space-y-5 p-5">
-            <div className="flex items-center justify-between">
-              <Button
-                size="sm"
-                variant="ghost"
-                disabled={!canViewPreviousMonth}
-                onClick={() => {
-                  if (!canViewPreviousMonth) return;
-                  setViewMonthStart((prev) => addMonths(prev, -1));
-                }}
+
+          <FunnelContent>
+            <Card className="space-y-4 p-4 md:p-5">
+              <div className="flex items-center justify-between">
+                <Button
+                  size="small"
+                  variant="ghost"
+                  disabled={!canViewPreviousMonth}
+                  onClick={() => {
+                    if (!canViewPreviousMonth) return;
+                    setViewMonthStart((prev) => addMonths(prev, -1));
+                  }}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <p className="text-center text-sm md:text-base lg:text-lg">
+                  <span className={cn(context.startDate ? "font-black text-foreground" : "font-semibold text-foreground/24")}>
+                    {formatSelectedDateLabel(context.startDate)}
+                  </span>
+                  <span className="px-1.5 font-semibold text-foreground/42">~</span>
+                  <span className={cn(context.endDate ? "font-black text-foreground" : "font-semibold text-foreground/24")}>
+                    {formatSelectedDateLabel(context.endDate)}
+                  </span>
+                </p>
+                <Button size="small" variant="ghost" onClick={() => setViewMonthStart((prev) => addMonths(prev, 1))}>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <div className="grid gap-4 md:gap-5 lg:grid-cols-2 lg:gap-6">
+                <MonthCalendar
+                  month={viewMonthStart}
+                  minSelectableDate={minSelectableDate}
+                  startDate={context.startDate}
+                  endDate={context.endDate}
+                  onSelectDate={handleCalendarDateSelect}
+                />
+                <MonthCalendar
+                  month={addMonths(viewMonthStart, 1)}
+                  minSelectableDate={minSelectableDate}
+                  startDate={context.startDate}
+                  endDate={context.endDate}
+                  onSelectDate={handleCalendarDateSelect}
+                />
+              </div>
+
+              <div
+                className={cn(
+                  "flex items-center gap-2 rounded-lg border px-3 py-2",
+                  hasBlockedDateSelection && dateSelectionErrorMessage
+                    ? "border-danger/25 bg-danger/8 text-danger"
+                    : "border-danger/18 bg-danger/6 text-foreground/72"
+                )}
               >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <p className="text-center text-base md:text-xl">
-                <span className={cn(context.startDate ? "font-black text-foreground" : "font-semibold text-foreground/24")}>
-                  {formatSelectedDateLabel(context.startDate)}
-                </span>
-                <span className="px-1.5 font-semibold text-foreground/42">~</span>
-                <span className={cn(context.endDate ? "font-black text-foreground" : "font-semibold text-foreground/24")}>
-                  {formatSelectedDateLabel(context.endDate)}
-                </span>
-              </p>
-              <Button size="sm" variant="ghost" onClick={() => setViewMonthStart((prev) => addMonths(prev, 1))}>
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
+                <AlertTriangle className="h-4 w-4 shrink-0 text-danger" aria-hidden="true" />
+                <p className="text-xs font-semibold leading-5">
+                  {hasBlockedDateSelection && dateSelectionErrorMessage
+                    ? dateSelectionErrorMessage
+                    : UI_COPY.routes.new.dateStep.maxDurationHint(MAX_SCHEDULE_DAYS)}
+                </p>
+              </div>
+            </Card>
 
-            <div className="grid gap-6 lg:grid-cols-2">
-              <MonthCalendar
-                month={viewMonthStart}
-                minSelectableDate={minSelectableDate}
-                startDate={context.startDate}
-                endDate={context.endDate}
-                onSelectDate={handleCalendarDateSelect}
-              />
-              <MonthCalendar
-                month={addMonths(viewMonthStart, 1)}
-                minSelectableDate={minSelectableDate}
-                startDate={context.startDate}
-                endDate={context.endDate}
-                onSelectDate={handleCalendarDateSelect}
-              />
+            <div className="grid gap-2.5 md:grid-cols-2">
+              <Button variant="secondary" size="large" onClick={() => moveStep("List")}>
+                {UI_COPY.routes.new.dateStep.previous}
+              </Button>
+              <Button
+                size="large"
+                disabled={!context.startDate || !context.endDate || hasBlockedDateSelection}
+                onClick={() => moveStep("Stay")}
+              >
+                {UI_COPY.routes.new.dateStep.next}
+              </Button>
             </div>
-
-            <div
-              className={cn(
-                "flex items-center gap-2 rounded-lg border px-3 py-2",
-                hasBlockedDateSelection && dateSelectionErrorMessage
-                  ? "border-danger/25 bg-danger/8 text-danger"
-                  : "border-danger/18 bg-danger/6 text-foreground/72"
-              )}
-            >
-              <AlertTriangle className="h-4 w-4 shrink-0 text-danger" aria-hidden="true" />
-              <p className="text-xs font-semibold leading-5">
-                {hasBlockedDateSelection && dateSelectionErrorMessage
-                  ? dateSelectionErrorMessage
-                  : UI_COPY.routes.new.dateStep.maxDurationHint(MAX_SCHEDULE_DAYS)}
-              </p>
-            </div>
-          </Card>
-          <div className="grid gap-3 md:grid-cols-2">
-            <Button variant="secondary" size="lg" onClick={() => moveStep("List")}>
-              {UI_COPY.routes.new.dateStep.previous}
-            </Button>
-            <Button
-              size="lg"
-              disabled={!context.startDate || !context.endDate || hasBlockedDateSelection}
-              onClick={() => moveStep("Stay")}
-            >
-              {UI_COPY.routes.new.dateStep.next}
-            </Button>
-          </div>
-        </section>
+          </FunnelContent>
+        </>
       ) : null}
 
       {currentStep === "Stay" ? (
-        <section className="mx-auto w-full max-w-[1194px] space-y-8">
-          <StepTitle
+        <>
+          <FunnelHeader
             title={UI_COPY.routes.new.stayStep.title}
             description={UI_COPY.routes.new.stayStep.description}
             mascotVariant="hotel"
           />
 
-          <Card className="overflow-hidden rounded-[34px] border-border/70 bg-[radial-gradient(circle_at_top_left,rgba(60,157,255,0.14),rgba(255,255,255,0.98)_38%)] p-4 shadow-[0_28px_64px_rgba(15,23,42,0.08)]">
-            <div className="rounded-[30px] border border-white/80 bg-white/96 p-4 shadow-[0_22px_44px_rgba(15,23,42,0.08)] md:p-5">
-              <div className="space-y-6">
-                <div className="grid gap-3 md:grid-cols-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setStoreValues({ stayMode: "booked" });
-                      setContext((current) => ({ ...current, stayMode: "booked" }));
-                    }}
-                    className="text-left"
-                  >
-                    <StayModeChoice
-                      active={context.stayMode === "booked"}
-                      title={UI_COPY.routes.new.stayStep.bookedOption}
-                      description={UI_COPY.routes.new.stayStep.bookedOptionDescription}
-                    />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setStoreValues({ stayMode: "unbooked", stayPlaceId: null });
-                      setContext((current) => ({ ...current, stayMode: "unbooked", stayPlaceId: null }));
-                    }}
-                    className="text-left"
-                  >
-                    <StayModeChoice
-                      active={context.stayMode === "unbooked"}
-                      title={UI_COPY.routes.new.stayStep.unbookedOption}
-                      description={UI_COPY.routes.new.stayStep.unbookedOptionDescription}
-                    />
-                  </button>
-                </div>
+          <FunnelContent>
+            <Card className="space-y-5 rounded-2xl border-border/75 bg-white/96 p-4 shadow-raised md:rounded-3xl md:p-5">
+              <div className="grid gap-2.5 md:grid-cols-2">
+                <SelectableOptionCard
+                  title={UI_COPY.routes.new.stayStep.bookedOption}
+                  description={UI_COPY.routes.new.stayStep.bookedOptionDescription}
+                  active={context.stayMode === "booked"}
+                  onClick={() => {
+                    setStoreValues({ stayMode: "booked" });
+                    setContext((current) => ({ ...current, stayMode: "booked" }));
+                  }}
+                />
+                <SelectableOptionCard
+                  title={UI_COPY.routes.new.stayStep.unbookedOption}
+                  description={UI_COPY.routes.new.stayStep.unbookedOptionDescription}
+                  active={context.stayMode === "unbooked"}
+                  onClick={() => {
+                    setStoreValues({ stayMode: "unbooked", stayPlaceId: null });
+                    setContext((current) => ({ ...current, stayMode: "unbooked", stayPlaceId: null }));
+                  }}
+                />
+              </div>
 
-                {context.stayMode === "booked" ? (
-                  <div className="space-y-4 rounded-[28px] border border-border/75 bg-white p-5">
-                    <div className="space-y-1">
-                      <h4 className="text-base font-black text-slate-950">{UI_COPY.routes.new.stayStep.bookedTitle}</h4>
-                      <p className="text-sm leading-6 text-slate-600">{UI_COPY.routes.new.stayStep.bookedDescription}</p>
-                    </div>
-
-                    {selectedListDetailQuery.isLoading ? (
-                      <LoadingPanel message="숙소 목록 불러오는 중" />
-                    ) : stayItems.length > 0 ? (
-                      <div className="space-y-3">
-                        {stayItems.map((item) => (
-                          <StayOptionCard
-                            key={item.id}
-                            item={item}
-                            selected={context.stayPlaceId === item.place.id}
-                            isNewlyAdded={newlyAddedStayPlaceIds.includes(item.place.id)}
-                            onSelect={() => {
-                              setStoreValues({ stayMode: "booked", stayPlaceId: item.place.id });
-                              setContext((current) => ({ ...current, stayMode: "booked", stayPlaceId: item.place.id }));
-                            }}
-                          />
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="rounded-[24px] border border-dashed border-border bg-slate-50/80 px-4 py-8 text-center text-sm font-medium text-slate-500">
-                        선택할 숙소가 아직 없어요
-                      </div>
-                    )}
-
-                    <div className="rounded-[24px] border border-dashed border-primary/35 bg-primary/6 p-4">
-                      <div className="flex flex-wrap items-center justify-between gap-3">
-                        <div className="space-y-1">
-                          <p className="text-sm font-black text-slate-950">{UI_COPY.routes.new.stayStep.helperTitle}</p>
-                          <p className="text-xs leading-5 text-slate-500">{UI_COPY.routes.new.stayStep.helperDescription}</p>
-                        </div>
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          onClick={() => {
-                            setGoogleStayUrl("");
-                            setGoogleStayUrlError(null);
-                            setIsAddStayModalOpen(true);
-                          }}
-                        >
-                          <Plus className="mr-1 h-4 w-4" />
-                          {UI_COPY.routes.new.stayStep.addAction}
-                        </Button>
-                      </div>
-                    </div>
+              {context.stayMode === "booked" ? (
+                <div className="space-y-3.5 rounded-xl border border-border/75 bg-white p-4 md:rounded-2xl">
+                  <div className="space-y-1">
+                    <h4 className="break-keep text-sm font-black text-foreground md:text-base">{UI_COPY.routes.new.stayStep.bookedTitle}</h4>
+                    <p className="break-keep text-xs leading-5 text-foreground/60 md:text-sm md:leading-6">{UI_COPY.routes.new.stayStep.bookedDescription}</p>
                   </div>
-                ) : context.stayMode === "unbooked" ? (
-                  <div className="space-y-4 rounded-[28px] border border-border/75 bg-white p-5">
-                    <div className="space-y-1">
-                      <h4 className="text-base font-black text-slate-950">{UI_COPY.routes.new.stayStep.unbookedTitle}</h4>
-                      <p className="text-sm leading-6 text-slate-600">{UI_COPY.routes.new.stayStep.unbookedDescription}</p>
-                    </div>
 
-                    <div className="space-y-3">
-                      {UI_COPY.routes.new.stayStep.unbookedSteps.map((item, index) => (
-                        <div key={item} className="flex items-start gap-3 rounded-[22px] border border-border/70 bg-slate-50/80 px-4 py-3.5">
-                          <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-black text-white">
-                            {index + 1}
-                          </span>
-                          <p className="text-sm leading-6 text-slate-600">{item}</p>
-                        </div>
+                  {selectedListDetailQuery.isLoading ? (
+                    <LoadingPanel message="숙소 목록 불러오는 중" />
+                  ) : stayItems.length > 0 ? (
+                    <div className="space-y-2.5">
+                      {stayItems.map((item) => (
+                        <StayOptionCard
+                          key={item.id}
+                          item={item}
+                          selected={context.stayPlaceId === item.place.id}
+                          isNewlyAdded={newlyAddedStayPlaceIds.includes(item.place.id)}
+                          onSelect={() => {
+                            setStoreValues({ stayMode: "booked", stayPlaceId: item.place.id });
+                            setContext((current) => ({ ...current, stayMode: "booked", stayPlaceId: item.place.id }));
+                          }}
+                        />
                       ))}
                     </div>
-                  </div>
-                ) : null}
-              </div>
-            </div>
-          </Card>
+                  ) : (
+                    <div className="rounded-xl border border-dashed border-border bg-slate-50/80 px-4 py-6 text-center text-xs font-medium text-foreground/60 md:rounded-2xl md:text-sm">
+                      선택할 숙소가 아직 없어요
+                    </div>
+                  )}
 
-          <div className="grid gap-3 md:grid-cols-2">
-            <Button variant="secondary" size="lg" onClick={() => moveStep("Date")}>
-              {UI_COPY.routes.new.stayStep.previous}
-            </Button>
-            <Button
-              size="lg"
-              disabled={!context.stayMode || (context.stayMode === "booked" && !context.stayPlaceId)}
-              onClick={() => moveStep("Companions")}
-            >
-              {UI_COPY.routes.new.stayStep.next}
-            </Button>
-          </div>
-        </section>
+                  <div className="rounded-xl border border-dashed border-primary/35 bg-primary/6 p-4 md:rounded-2xl">
+                    <div className="flex flex-wrap items-center justify-between gap-2.5">
+                      <div className="space-y-1">
+                        <p className="break-keep text-sm font-black leading-tight text-foreground">
+                          {UI_COPY.routes.new.stayStep.helperTitle}
+                        </p>
+                        <p className="break-keep text-xs leading-5 text-foreground/60">
+                          {UI_COPY.routes.new.stayStep.helperDescription}
+                        </p>
+                      </div>
+                      <Button
+                        size="small"
+                        variant="secondary"
+                        onClick={() => {
+                          setGoogleStayUrl("");
+                          setGoogleStayUrlError(null);
+                          setIsAddStayModalOpen(true);
+                        }}
+                      >
+                        <Plus className="h-4 w-4" />
+                        {UI_COPY.routes.new.stayStep.addAction}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ) : context.stayMode === "unbooked" ? (
+                <div className="space-y-3.5 rounded-xl border border-border/75 bg-white p-4 md:rounded-2xl">
+                  <div className="space-y-1">
+                    <h4 className="break-keep text-sm font-black text-foreground md:text-base">{UI_COPY.routes.new.stayStep.unbookedTitle}</h4>
+                    <p className="break-keep text-xs leading-5 text-foreground/60 md:text-sm md:leading-6">{UI_COPY.routes.new.stayStep.unbookedDescription}</p>
+                  </div>
+
+                  <div className="space-y-2.5">
+                    {UI_COPY.routes.new.stayStep.unbookedSteps.map((item, index) => (
+                      <div key={item} className="flex items-start gap-3 rounded-xl border border-border/70 bg-slate-50/80 px-4 py-3 md:rounded-2xl">
+                        <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-black text-white">
+                          {index + 1}
+                        </span>
+                        <p className="break-keep text-xs leading-5 text-foreground/80 md:text-sm md:leading-6">{item}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+            </Card>
+
+            <div className="grid gap-2.5 md:grid-cols-2">
+              <Button variant="secondary" size="large" onClick={() => moveStep("Date")}>
+                {UI_COPY.routes.new.stayStep.previous}
+              </Button>
+              <Button
+                size="large"
+                disabled={!context.stayMode || (context.stayMode === "booked" && !context.stayPlaceId)}
+                onClick={() => moveStep("Companions")}
+              >
+                {UI_COPY.routes.new.stayStep.next}
+              </Button>
+            </div>
+          </FunnelContent>
+        </>
       ) : null}
 
       {currentStep === "Companions" ? (
-        <section className="mx-auto w-full max-w-[1194px] space-y-8">
-          <StepTitle
+        <>
+          <FunnelHeader
             title={UI_COPY.routes.new.companionsStep.title}
             description={UI_COPY.routes.new.companionsStep.description}
             mascotVariant="friend"
-            mascotClassName="h-28 w-40 sm:h-32 sm:w-44"
           />
-          <Card className="mx-auto grid max-w-md gap-3 p-5">
-            {UI_COPY.routes.new.companionsStep.options.map((item) => (
-              <ChoiceButton
-                key={item.value}
-                icon={COMPANION_ICONS[item.value]}
-                label={item.label}
-                contentAlignment="center"
-                active={context.companions === item.value}
-                onClick={() => {
-                  const next = { ...context, companions: item.value };
-                  setStoreValues({ companions: item.value });
-                  setContext(next);
-                }}
-              />
-            ))}
-          </Card>
-          <div className="grid gap-3 md:grid-cols-2">
-            <Button variant="secondary" size="lg" onClick={() => moveStep("Stay")}>
-              {UI_COPY.routes.new.companionsStep.previous}
-            </Button>
-            <Button size="lg" disabled={!context.companions} onClick={() => moveStep("Style")}>
-              {UI_COPY.routes.new.companionsStep.next}
-            </Button>
-          </div>
-        </section>
+
+          <FunnelContent>
+            <Card className="mx-auto grid max-w-md gap-2 p-4 md:p-5">
+              {UI_COPY.routes.new.companionsStep.options.map((item) => (
+                <SelectableOptionCard
+                  key={item.value}
+                  icon={COMPANION_ICONS[item.value]}
+                  title={item.label}
+                  active={context.companions === item.value}
+                  onClick={() => {
+                    const next = { ...context, companions: item.value };
+                    setStoreValues({ companions: item.value });
+                    setContext(next);
+                  }}
+                />
+              ))}
+            </Card>
+            <div className="grid gap-2.5 md:grid-cols-2">
+              <Button variant="secondary" size="large" onClick={() => moveStep("Stay")}>
+                {UI_COPY.routes.new.companionsStep.previous}
+              </Button>
+              <Button size="large" disabled={!context.companions} onClick={() => moveStep("Style")}>
+                {UI_COPY.routes.new.companionsStep.next}
+              </Button>
+            </div>
+          </FunnelContent>
+        </>
       ) : null}
 
       {currentStep === "Style" ? (
-        <section className="mx-auto w-full max-w-[1194px] space-y-8">
-          <StepTitle
+        <>
+          <FunnelHeader
             title={UI_COPY.routes.new.styleStep.title}
             description={UI_COPY.routes.new.styleStep.description}
             mascotVariant="map"
           />
 
-          {isCreateFlowBusy ? (
-            <LoadingPanel withMascot mascotVariant="map" message={UI_COPY.routes.new.loading.buildingSchedule} />
-          ) : (
-            <>
-              <Card className="mx-auto max-w-4xl space-y-5 p-4 md:p-5">
-                <section className="space-y-3">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="text-base font-black">{UI_COPY.routes.new.styleStep.paceLabel}</p>
-                    <span className="inline-flex rounded-full bg-danger/10 px-2.5 py-1 text-[11px] font-semibold tracking-[0.02em] text-danger">
-                      {UI_COPY.routes.new.styleStep.required}
-                    </span>
-                  </div>
-                  <div className="grid gap-2.5 sm:grid-cols-3">
-                    {UI_COPY.routes.new.styleStep.paceOptions.map((item) => (
-                      <ChoiceButton
-                        key={item.value}
-                        icon={PACE_ICONS[item.value]}
-                        label={item.label}
-                        caption={item.caption}
-                        contentAlignment="center"
-                        className="min-h-[98px] px-3 py-2.5 md:px-3.5"
-                        iconClassName="h-10 w-10 rounded-2xl"
-                        labelClassName="text-[15px] font-bold"
-                        captionClassName="text-[12px] leading-5"
-                        active={context.pace === item.value}
-                        onClick={() => {
-                          const next = { ...context, pace: item.value };
-                          setStoreValues({ pace: item.value });
-                          setContext(next);
-                        }}
-                      />
-                    ))}
-                  </div>
-                </section>
-                <section className="space-y-3 border-t border-border/70 pt-5">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="text-base font-black">{UI_COPY.routes.new.styleStep.themeLabel}</p>
-                    <span className="inline-flex rounded-full bg-foreground/6 px-2.5 py-1 text-[11px] font-semibold tracking-[0.02em] text-foreground/55">
-                      {UI_COPY.routes.new.styleStep.optional}
-                    </span>
-                  </div>
-                  <div className="grid gap-2.5 md:grid-cols-2">
-                    {UI_COPY.routes.new.styleStep.themeOptions.map((theme) => {
-                      const themes = context.themes || [];
-                      const active = themes.includes(theme.value);
-                      return (
-                        <ChoiceButton
-                          key={theme.value}
-                          icon={THEME_ICONS[theme.value]}
-                          label={theme.title}
-                          caption={theme.subtitle}
-                          className="min-h-[98px] px-3 py-2.5 md:px-3.5"
-                          iconClassName="h-10 w-10 rounded-2xl"
-                          labelClassName="text-[15px] font-bold"
-                          captionClassName="text-[12px] leading-5"
-                          active={active}
+          <FunnelContent>
+            {isCreateFlowBusy ? (
+              <LoadingPanel withMascot mascotVariant="map" message={UI_COPY.routes.new.loading.buildingSchedule} />
+            ) : (
+              <>
+                <Card className="mx-auto max-w-4xl space-y-4 p-4 md:p-5">
+                  <section className="space-y-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-sm font-black">{UI_COPY.routes.new.styleStep.paceLabel}</p>
+                      <Badge size="compact" className="border-danger/12 bg-danger/10 text-danger">
+                        {UI_COPY.routes.new.styleStep.required}
+                      </Badge>
+                    </div>
+                    <div className="grid gap-2 md:grid-cols-3 md:gap-2.5">
+                      {UI_COPY.routes.new.styleStep.paceOptions.map((item) => (
+                        <SelectableOptionCard
+                          key={item.value}
+                          icon={PACE_ICONS[item.value]}
+                          title={item.label}
+                          description={item.caption}
+                          active={context.pace === item.value}
                           onClick={() => {
-                            const nextThemes = active
-                              ? themes.filter((value) => value !== theme.value)
-                              : [...themes, theme.value];
-                            const next = { ...context, themes: nextThemes };
-                            setStoreValues({ themes: nextThemes });
+                            const next = { ...context, pace: item.value };
+                            setStoreValues({ pace: item.value });
                             setContext(next);
                           }}
                         />
-                      );
-                    })}
-                  </div>
-                </section>
-              </Card>
-              <div className="grid gap-3 md:grid-cols-2">
-                <Button variant="secondary" size="lg" onClick={() => moveStep("Companions")}>
-                  {UI_COPY.routes.new.styleStep.previous}
-                </Button>
-                <Button
-                  size="lg"
-                  disabled={
-                    isCreateFlowBusy ||
-                    !context.pace ||
-                    !context.placeListId ||
-                    !context.startDate ||
-                    !context.endDate ||
-                    hasBlockedDateSelection
-                  }
-                  onClick={() => {
-                    if (!context.placeListId || !context.startDate || !context.endDate || hasBlockedDateSelection) {
-                      pushToast({ kind: "error", message: UI_COPY.routes.new.toast.missingSelection });
-                      return;
+                      ))}
+                    </div>
+                  </section>
+                  <section className="space-y-2 border-t border-border/70 pt-4">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-sm font-black">{UI_COPY.routes.new.styleStep.themeLabel}</p>
+                      <Badge size="compact" className="border-border/60 bg-foreground/6 text-foreground/55">
+                        {UI_COPY.routes.new.styleStep.optional}
+                      </Badge>
+                    </div>
+                    <div className="grid gap-2 md:grid-cols-2 md:gap-2.5">
+                      {UI_COPY.routes.new.styleStep.themeOptions.map((theme) => {
+                        const themes = context.themes || [];
+                        const active = themes.includes(theme.value);
+                        return (
+                          <SelectableOptionCard
+                            key={theme.value}
+                            icon={THEME_ICONS[theme.value]}
+                            title={theme.title}
+                            description={theme.subtitle}
+                            active={active}
+                            onClick={() => {
+                              const nextThemes = active
+                                ? themes.filter((value) => value !== theme.value)
+                                : [...themes, theme.value];
+                              const next = { ...context, themes: nextThemes };
+                              setStoreValues({ themes: nextThemes });
+                              setContext(next);
+                            }}
+                          />
+                        );
+                      })}
+                    </div>
+                  </section>
+                </Card>
+                <div className="grid gap-2.5 md:grid-cols-2">
+                  <Button variant="secondary" size="large" onClick={() => moveStep("Companions")}>
+                    {UI_COPY.routes.new.styleStep.previous}
+                  </Button>
+                  <Button
+                    size="large"
+                    disabled={
+                      isCreateFlowBusy ||
+                      !context.pace ||
+                      !context.placeListId ||
+                      !context.startDate ||
+                      !context.endDate ||
+                      hasBlockedDateSelection
                     }
-                    createMutation.mutate({
-                      title: context.title || selectedList?.name || UI_COPY.routes.new.titleFallback,
-                      placeListId: context.placeListId,
-                      startDate: context.startDate,
-                      endDate: context.endDate,
-                      stayPlaceId: context.stayMode === "booked" ? context.stayPlaceId ?? null : null,
-                      companions: context.companions ?? null,
-                      pace: context.pace ?? null,
-                      themes: context.themes || []
-                    });
-                  }}
-                >
-                  {UI_COPY.routes.new.styleStep.submit}
-                </Button>
-              </div>
-            </>
-          )}
-        </section>
+                    onClick={() => {
+                      if (!context.placeListId || !context.startDate || !context.endDate || hasBlockedDateSelection) {
+                        pushToast({ kind: "error", message: UI_COPY.routes.new.toast.missingSelection });
+                        return;
+                      }
+                      createMutation.mutate({
+                        title: context.title || selectedList?.name || UI_COPY.routes.new.titleFallback,
+                        placeListId: context.placeListId,
+                        startDate: context.startDate,
+                        endDate: context.endDate,
+                        stayPlaceId: context.stayMode === "booked" ? context.stayPlaceId ?? null : null,
+                        companions: context.companions ?? null,
+                        pace: context.pace ?? null,
+                        themes: context.themes || []
+                      });
+                    }}
+                  >
+                    {UI_COPY.routes.new.styleStep.submit}
+                  </Button>
+                </div>
+              </>
+            )}
+          </FunnelContent>
+        </>
       ) : null}
 
       <ImportListModal

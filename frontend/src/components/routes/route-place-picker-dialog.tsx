@@ -9,6 +9,7 @@ import { PlacePhoto } from "@/components/common/place-photo";
 import { Badge } from "@/components/ui/badge";
 import { buttonStyles } from "@/components/ui/button-styles";
 import { Input } from "@/components/ui/input";
+import { MUST_VISIT_BADGE } from "@/constants/route-taxonomy";
 import { cn } from "@/lib/cn";
 import type { PlaceListItem } from "@/types/domain";
 
@@ -69,8 +70,7 @@ export function RoutePlacePickerDialog({
         onClose();
       }}
       title={selectedDayNumber ? `${selectedDayNumber}일차에 장소 추가` : "장소 추가"}
-      description="저장한 장소를 고르거나 Google 장소를 추가할 수 있어요"
-      mascotVariant="map"
+      mascotVariant={null}
       headerClassName="bg-[linear-gradient(135deg,rgba(232,244,255,0.94),rgba(255,255,255,1)_72%)]"
       showCloseButton={false}
       size="lg"
@@ -78,7 +78,7 @@ export function RoutePlacePickerDialog({
         <>
           <button
             type="button"
-            className={buttonStyles({ variant: "secondary", size: "sm", className: "min-w-[88px]" })}
+            className={buttonStyles({ variant: "secondary", size: "medium" })}
             onClick={() => {
               setQuery("");
               onClose();
@@ -89,7 +89,7 @@ export function RoutePlacePickerDialog({
           {onStartGooglePlaceAdd ? (
             <button
               type="button"
-              className={buttonStyles({ size: "sm", className: "min-w-[132px]" })}
+              className={buttonStyles({ size: "medium" })}
               onClick={() => {
                 onStartGooglePlaceAdd();
                 setQuery("");
@@ -115,7 +115,7 @@ export function RoutePlacePickerDialog({
 
         <div className="space-y-3">
           {filteredPlaces.length === 0 ? (
-            <div className="rounded-[24px] border border-dashed border-border bg-card/80 px-4 py-8 text-center text-sm font-medium text-foreground/58">
+            <div className="rounded-xl border border-dashed border-border bg-card/80 px-4 py-8 text-center text-xs font-medium text-foreground/58 md:rounded-2xl md:text-sm">
               추가할 장소가 없어요
             </div>
           ) : (
@@ -128,20 +128,20 @@ export function RoutePlacePickerDialog({
                   setQuery("");
                 }}
                 className={cn(
-                  "w-full rounded-[26px] border border-border/75 bg-white/96 px-4 py-4 text-left shadow-[0_18px_38px_rgba(15,23,42,0.06)] transition hover:border-primary-light/65 hover:bg-primary-soft/30"
+                  "w-full rounded-xl border border-border/75 bg-white/96 px-4 py-4 text-left shadow-surface transition hover:border-primary-light/65 hover:bg-primary-soft/30 md:rounded-2xl"
                 )}
               >
                 <div className="flex items-start gap-4">
                   <PlacePhoto
                     name={item.place.name}
                     photos={item.place.photos}
-                    className="h-[92px] w-[92px] shrink-0 rounded-[20px]"
-                    sizes="92px"
+                    className="h-20 w-20 shrink-0 rounded-lg md:h-[92px] md:w-[92px] md:rounded-xl"
+                    sizes="(max-width: 767px) 80px, 92px"
                   />
                   <div className="min-w-0 flex-1 space-y-2">
                     <div className="flex flex-wrap items-center gap-2">
-                      {item.isMustVisit ? <Badge tone="primary">MUSTVISIT</Badge> : null}
-                      {item.place.category ? <CategoryBadge value={item.place.category} /> : null}
+                      {item.isMustVisit ? <Badge size="card" tone="primary">{MUST_VISIT_BADGE}</Badge> : null}
+                      {item.place.category ? <CategoryBadge size="card" value={item.place.category} /> : null}
                     </div>
                     <div className="space-y-1">
                       <p className="line-clamp-2 text-base font-black text-foreground">{item.place.name || "이름 없는 장소"}</p>
@@ -154,7 +154,7 @@ export function RoutePlacePickerDialog({
                       </div>
                     ) : null}
                   </div>
-                  <span className={buttonStyles({ size: "sm", shape: "pill", className: "shrink-0 px-4 text-xs font-semibold text-white" })}>
+                  <span className={buttonStyles({ size: "small", shape: "pill", className: "shrink-0 text-white" })}>
                     추가
                   </span>
                 </div>
@@ -166,3 +166,4 @@ export function RoutePlacePickerDialog({
     </DialogShell>
   );
 }
+

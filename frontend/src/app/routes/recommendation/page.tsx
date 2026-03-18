@@ -1,5 +1,6 @@
 "use client";
 
+import { ChevronDown, ChevronUp, X } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -8,10 +9,8 @@ import {
   CelebrationConfetti,
   type CelebrationConfettiVariant
 } from "@/components/common/celebration-confetti";
-import { ConfirmDialog } from "@/components/common/confirm-dialog";
 import { EmptyState } from "@/components/common/empty-state";
 import { LoadingPanel } from "@/components/common/loading-panel";
-import { PageBackButton } from "@/components/common/page-back-button";
 import { CelebrationMascot } from "@/components/layout/celebration-mascot";
 import { PAGE_CONTENT_X_PADDING_CLASS, PageContainer } from "@/components/layout/page-container";
 import { RouteDaySelector } from "@/components/routes/route-day-selector";
@@ -19,6 +18,7 @@ import { RouteSchedulePageShell } from "@/components/routes/route-schedule-page-
 import { RouteStayMapControl, RouteStayRecommendationCallout } from "@/components/routes/route-stay-map-ui";
 import { RouteStopCard } from "@/components/routes/route-stop-card";
 import { RouteStopList } from "@/components/routes/route-stop-list";
+import { RouteViewModeSliderToggle } from "@/components/routes/route-view-mode-slider-toggle";
 import type { RouteViewMode } from "@/components/routes/route-view-mode";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,7 +26,7 @@ import { UI_COPY } from "@/constants/ui-copy";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import { useRouteStopInteractions } from "@/hooks/use-route-stop-interactions";
 import { cn } from "@/lib/cn";
-import { deleteSchedule, fetchScheduleDetail, regenerateSchedule } from "@/lib/graphql/api";
+import { fetchScheduleDetail, regenerateSchedule } from "@/lib/graphql/api";
 import { buildGoogleDirectionsEmbedUrl } from "@/lib/maps";
 import { queryKeys } from "@/lib/query-keys";
 import { getRouteStayMarker, getRouteStayOverlayMode, getRouteStayRecommendation } from "@/lib/route-stay";
@@ -71,8 +71,8 @@ export default function RecommendationPage() {
   const [status, setStatus] = useState("pending");
   const [scheduleId, setScheduleId] = useState<string | null>(null);
   const [selectedDay, setSelectedDay] = useState(1);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [viewMode, setViewMode] = useState<RouteViewMode>("split");
+  const [isMobileHeroCollapsed, setIsMobileHeroCollapsed] = useState(false);
   const [isStayOverlayVisible, setIsStayOverlayVisible] = useState(true);
 
   useEffect(() => {
@@ -86,20 +86,6 @@ export default function RecommendationPage() {
     queryKey: queryKeys.scheduleDetail(scheduleId || "missing"),
     queryFn: () => fetchScheduleDetail(scheduleId || "", accessToken || ""),
     enabled: Boolean(paramsReady && accessToken && scheduleId && status !== "error")
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: () => deleteSchedule(accessToken || "", scheduleId || ""),
-    onSuccess: () => {
-      pushToast({ kind: "success", message: UI_COPY.routes.recommendation.toast.deleteSuccess });
-      queryClient.invalidateQueries({ queryKey: queryKeys.scheduleDetail(scheduleId || "") });
-      queryClient.invalidateQueries({ queryKey: queryKeys.mySchedules });
-      router.replace("/");
-    },
-    onError: (error: Error) => {
-      console.error(error);
-      pushToast({ kind: "error", message: UI_COPY.routes.recommendation.toast.deleteError });
-    }
   });
 
   const regenerateMutation = useMutation({
@@ -167,12 +153,8 @@ export default function RecommendationPage() {
     viewMode
   });
 
-  const handleBack = () => {
-    if (typeof window !== "undefined" && window.history.length > 1) {
-      router.back();
-      return;
-    }
-    router.replace("/routes/new?step=list");
+  const handleClose = () => {
+    router.replace("/");
   };
 
   const handleConfirmRoute = () => {
@@ -184,24 +166,44 @@ export default function RecommendationPage() {
     setIsStayOverlayVisible(true);
   }, [scheduleId, stayOverlayMode]);
 
-  const renderPreviewHero = (className?: string) => (
+  useEffect(() => {
+    setIsMobileHeroCollapsed(false);
+  }, [scheduleId]);
+
+  const renderPreviewHero = (className?: string, mobileCollapsible = false) => (
     <section
       className={cn(
-        "relative overflow-hidden rounded-3xl border border-border/70 bg-card/76 px-4 py-3.5 shadow-soft",
+        "relative w-full overflow-hidden rounded-xl border border-border/70 bg-card/76 px-4 pt-3.5 pb-7 shadow-surface md:rounded-2xl md:px-5 md:py-4",
         className
       )}
     >
-      <div className="pr-22">
+      {mobileCollapsible ? (
+        <Button
+          type="button"
+          variant="ghost"
+          size="small"
+          iconOnly
+          onClick={() => setIsMobileHeroCollapsed(true)}
+          aria-label="추천 요약 숨기기"
+          className="absolute bottom-1.5 left-1/2 z-10 -translate-x-1/2 text-foreground/52 hover:text-foreground lg:hidden"
+        >
+          <ChevronUp className="h-3.5 w-3.5" />
+        </Button>
+      ) : null}
+      <div className="pr-20 md:pr-24">
         <div className="flex flex-wrap items-center gap-2">
           <Badge tone="primary">{schedule?.placeList.city}</Badge>
-          <div className="inline-flex items-center rounded-full border border-border/70 bg-background/80 px-3 py-1 text-[11px] font-semibold text-foreground/68 shadow-xs">
+          <Badge size="compact" className="border-border/70 bg-background/80 text-foreground/68 shadow-subtle">
             {headingRange}
-          </div>
+          </Badge>
         </div>
-        <h1 className="mt-3 overflow-hidden text-ellipsis whitespace-nowrap text-[1.28rem] font-black leading-[1.16] tracking-[-0.03em] text-foreground sm:text-[1.42rem]">
+        <h1 className="mt-2.5 overflow-hidden text-ellipsis whitespace-nowrap font-black leading-[1.2] tracking-[-0.03em] text-foreground" style={{ fontSize: "var(--card-title-size)" }}>
           {UI_COPY.routes.recommendation.heroTitle(schedule?.placeList.city)}
         </h1>
-        <p className="mt-1.5 line-clamp-2 text-[12px] font-medium text-foreground/58">
+        <p
+          className="mt-1.5 line-clamp-2 break-keep leading-[1.5] text-foreground/65"
+          style={{ fontSize: "var(--page-subtitle-size)" }}
+        >
           {stayOverlayMode === "stay"
             ? UI_COPY.routes.recommendation.heroDescriptionWithStay
             : stayOverlayMode === "recommendation"
@@ -209,10 +211,53 @@ export default function RecommendationPage() {
               : UI_COPY.routes.recommendation.heroDescription}
         </p>
       </div>
-      <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-primary-soft/70 p-1.5">
-        <CelebrationMascot className="h-20 w-20" />
+      <div className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full bg-primary-soft/70 p-1.5 md:p-2">
+        <CelebrationMascot />
       </div>
     </section>
+  );
+
+  const renderMobilePreviewHero = () => (
+    <div className="lg:hidden">
+      <div
+        className={cn(
+          "grid overflow-hidden transition-[grid-template-rows] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
+          isMobileHeroCollapsed ? "grid-rows-[0fr]" : "grid-rows-[1fr]"
+        )}
+      >
+        <div className="min-h-0 overflow-hidden">
+          <div
+            className={cn(
+              "transition-[opacity,transform,scale] duration-220 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
+              isMobileHeroCollapsed ? "opacity-0 -translate-y-3 scale-[0.985]" : "opacity-100 translate-y-0 scale-100"
+            )}
+          >
+            {renderPreviewHero(undefined, true)}
+          </div>
+        </div>
+      </div>
+      <div
+        aria-hidden={!isMobileHeroCollapsed}
+        className={cn(
+          "flex justify-center overflow-hidden transition-[max-height,opacity,margin,transform] duration-260 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
+          isMobileHeroCollapsed
+            ? "mt-0.5 max-h-10 opacity-100 translate-y-0 delay-75"
+            : "pointer-events-none max-h-0 opacity-0 -translate-y-2"
+        )}
+      >
+        <Button
+          type="button"
+          variant="ghost"
+          size="small"
+          iconOnly
+          onClick={() => setIsMobileHeroCollapsed(false)}
+          aria-label="추천 요약 다시 보기"
+          className="text-foreground/52 hover:text-foreground"
+        >
+          <ChevronDown className="h-3.5 w-3.5" />
+        </Button>
+      </div>
+    </div>
   );
 
   const stayMapOverlay =
@@ -233,39 +278,6 @@ export default function RecommendationPage() {
       </>
     ) : null;
 
-  const renderActionPanel = (className?: string) => (
-    <section
-      className={cn(
-        "rounded-2xl border border-border/70 bg-background/92 p-3 shadow-[0_16px_32px_rgba(24,72,136,0.08)]",
-        className
-      )}
-    >
-      <p className="text-[11px] font-black uppercase tracking-[0.18em] text-foreground/42">{UI_COPY.routes.recommendation.readyTitle}</p>
-      <div className="mt-2 flex flex-col gap-3">
-        <p className="text-sm font-medium leading-6 text-foreground/68">{UI_COPY.routes.recommendation.actionDescription}</p>
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <Button
-            type="button"
-            variant="secondary"
-            className="h-11 flex-1 rounded-2xl px-4 text-sm font-semibold shadow-none"
-            onClick={() => regenerateMutation.mutate()}
-            disabled={regenerateMutation.isPending || deleteMutation.isPending}
-          >
-            {UI_COPY.routes.recommendation.regenerateAction}
-          </Button>
-          <Button
-            type="button"
-            className="h-11 flex-[1.15] rounded-2xl px-5 text-sm font-semibold shadow-[0_12px_28px_rgba(56,123,194,0.22)]"
-            onClick={handleConfirmRoute}
-            disabled={regenerateMutation.isPending || deleteMutation.isPending}
-          >
-            {UI_COPY.routes.recommendation.confirmAction}
-          </Button>
-        </div>
-      </div>
-    </section>
-  );
-
   const renderStopCard = useCallback(
     (stop: ScheduleStop, isActive: boolean) => (
       <RouteStopCard
@@ -273,11 +285,11 @@ export default function RecommendationPage() {
         detailHref={currentDay?.date ? `/places/${stop.place.id}?visitDate=${encodeURIComponent(currentDay.date)}` : `/places/${stop.place.id}`}
         isActive={isActive}
         onFocus={focusStopFromCard}
-        showMapAction={viewMode === "list"}
+        showMapAction
         showNoteSection={false}
       />
     ),
-    [currentDay?.date, focusStopFromCard, viewMode]
+    [currentDay?.date, focusStopFromCard]
   );
 
   if (isLoading) {
@@ -308,7 +320,7 @@ export default function RecommendationPage() {
           title={UI_COPY.routes.recommendation.createError.title}
           description={UI_COPY.routes.recommendation.createError.description}
           action={
-            <Button size="lg" onClick={() => router.replace("/routes/new?step=list")}>
+            <Button size="large" fullWidth onClick={() => router.replace("/routes/new?step=list")}>
               {UI_COPY.routes.recommendation.createError.action}
             </Button>
           }
@@ -325,7 +337,7 @@ export default function RecommendationPage() {
           title={UI_COPY.routes.recommendation.missingSchedule.title}
           description={UI_COPY.routes.recommendation.missingSchedule.description}
           action={
-            <Button size="lg" onClick={() => router.replace("/routes/new?step=list")}>
+            <Button size="large" fullWidth onClick={() => router.replace("/routes/new?step=list")}>
               {UI_COPY.routes.recommendation.missingSchedule.action}
             </Button>
           }
@@ -350,7 +362,7 @@ export default function RecommendationPage() {
           title={UI_COPY.routes.recommendation.fetchError.title}
           description={UI_COPY.routes.recommendation.fetchError.description}
           action={
-            <Button size="lg" onClick={() => scheduleQuery.refetch()}>
+            <Button size="large" fullWidth onClick={() => scheduleQuery.refetch()}>
               {UI_COPY.routes.recommendation.fetchError.action}
             </Button>
           }
@@ -359,12 +371,52 @@ export default function RecommendationPage() {
     );
   }
 
-  const desktopTopContent = (
-    <>
-      {renderPreviewHero("hidden lg:block")}
-      {renderActionPanel("hidden lg:block")}
-    </>
+  const headerActions = (
+    <div className="flex w-full items-center justify-between gap-2">
+      <Button
+        type="button"
+        variant="ghost"
+        size="small"
+        iconOnly
+        className="text-foreground/52 hover:text-foreground"
+        aria-label="홈으로 닫기"
+        onClick={handleClose}
+      >
+        <X className="h-4 w-4" />
+      </Button>
+      <div className="flex flex-wrap items-center justify-end gap-2">
+        <RouteViewModeSliderToggle
+          compactMobile
+          iconOnly
+          value={viewMode}
+          onChange={setViewMode}
+          splitLabel={UI_COPY.routes.detail.splitView}
+          listLabel={UI_COPY.routes.detail.listView}
+        />
+        <div className="hidden lg:flex lg:flex-wrap lg:items-center lg:justify-end lg:gap-2">
+          <Button
+            type="button"
+            size="small"
+            variant="secondary"
+            onClick={() => regenerateMutation.mutate()}
+            disabled={regenerateMutation.isPending}
+          >
+            {UI_COPY.routes.recommendation.regenerateAction}
+          </Button>
+          <Button
+            type="button"
+            size="small"
+            onClick={handleConfirmRoute}
+            disabled={regenerateMutation.isPending}
+          >
+            {UI_COPY.routes.recommendation.confirmAction}
+          </Button>
+        </div>
+      </div>
+    </div>
   );
+
+  const desktopTopContent = renderPreviewHero("hidden lg:block");
 
   return (
     <>
@@ -374,25 +426,31 @@ export default function RecommendationPage() {
         onViewModeChange={setViewMode}
         splitLabel={UI_COPY.routes.detail.splitView}
         listLabel={UI_COPY.routes.detail.listView}
-        deleteButtonLabel={UI_COPY.routes.recommendation.deleteAction}
-        deleteBusy={deleteMutation.isPending}
-        onDelete={() => setIsDeleteDialogOpen(true)}
+        headerActions={headerActions}
         baseClassName="pt-4 lg:pt-5"
         splitModeClassName="min-h-0 overflow-y-hidden pb-0 md:pb-0"
-        listModeClassName="pb-[calc(11rem+env(safe-area-inset-bottom))] lg:pb-4"
-        headerLeading={<PageBackButton onClick={handleBack} />}
-        preBody={renderPreviewHero("lg:hidden")}
+        listModeClassName="pb-[calc(8.5rem+env(safe-area-inset-bottom))] lg:pb-4"
+        preBody={renderMobilePreviewHero()}
         desktopAsideTop={desktopTopContent}
         listModeTop={desktopTopContent}
         daySelector={
           <RouteDaySelector
+            compactMobile
             days={scheduleDays}
             currentDayDate={currentDay?.date}
             currentDayNumber={currentDay?.dayNumber}
             onSelectDay={setSelectedDay}
           />
         }
-        mobileStopList={<RouteStopList day={currentDay} activeStopId={activeStopId} refs={listRefs.mobile} className="shrink-0" renderStopCard={renderStopCard} />}
+        mobileStopList={
+          <RouteStopList
+            day={currentDay}
+            activeStopId={activeStopId}
+            refs={listRefs.mobile}
+            className="min-h-0 shrink-0 [&>div:last-child]:pb-0"
+            renderStopCard={renderStopCard}
+          />
+        }
         desktopStopList={
           <RouteStopList
             day={currentDay}
@@ -444,28 +502,27 @@ export default function RecommendationPage() {
         }}
         desktopMapOverlay={stayMapOverlay}
         mobileFooter={
-          <div
-            className={cn(
-              "fixed inset-x-0 bottom-[calc(5.25rem+env(safe-area-inset-bottom))] z-30 lg:hidden",
-              PAGE_CONTENT_X_PADDING_CLASS
-            )}
-          >
-            <div className="mx-auto w-full max-w-[960px] rounded-[28px] border border-border/70 bg-background/92 p-3 shadow-[0_18px_40px_rgba(24,72,136,0.14)] backdrop-blur-sm">
-              <div className="flex items-center gap-2">
+          <div className={cn("fixed inset-x-0 z-30 lg:hidden", PAGE_CONTENT_X_PADDING_CLASS)} style={{ bottom: "calc(var(--bottom-nav-offset) - 0.25rem)" }}>
+            <div className="mx-auto w-full max-w-[960px] rounded-xl border border-border/70 bg-background/92 p-2.5 shadow-floating backdrop-blur-sm md:rounded-2xl md:p-3">
+              <div className="grid grid-cols-2 gap-2">
                 <Button
                   type="button"
                   variant="secondary"
-                  className="h-12 flex-1 rounded-2xl px-4 text-sm font-semibold shadow-none"
+                  size="medium"
+                  fullWidth
+                  className="min-w-0"
                   onClick={() => regenerateMutation.mutate()}
-                  disabled={regenerateMutation.isPending || deleteMutation.isPending}
+                  disabled={regenerateMutation.isPending}
                 >
                   {UI_COPY.routes.recommendation.regenerateAction}
                 </Button>
                 <Button
                   type="button"
-                  className="h-12 flex-[1.15] rounded-2xl px-5 text-sm font-semibold shadow-[0_12px_28px_rgba(56,123,194,0.22)]"
+                  size="medium"
+                  fullWidth
+                  className="min-w-0"
                   onClick={handleConfirmRoute}
-                  disabled={regenerateMutation.isPending || deleteMutation.isPending}
+                  disabled={regenerateMutation.isPending}
                 >
                   {UI_COPY.routes.recommendation.confirmAction}
                 </Button>
@@ -473,24 +530,8 @@ export default function RecommendationPage() {
             </div>
           </div>
         }
-        deleteDialog={
-          <ConfirmDialog
-            open={isDeleteDialogOpen}
-            title={UI_COPY.routes.recommendation.deleteDialog.title}
-            description={UI_COPY.routes.recommendation.deleteDialog.description}
-            confirmLabel={
-              deleteMutation.isPending
-                ? UI_COPY.routes.recommendation.deleteDialog.confirming
-                : UI_COPY.routes.recommendation.deleteDialog.confirm
-            }
-            cancelLabel={UI_COPY.routes.recommendation.deleteDialog.cancel}
-            busy={deleteMutation.isPending}
-            intent="danger"
-            onClose={() => setIsDeleteDialogOpen(false)}
-            onConfirm={() => deleteMutation.mutate()}
-          />
-        }
       />
     </>
   );
 }
+

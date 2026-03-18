@@ -3,7 +3,6 @@
 import { Check, PencilLine, Plus, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState, type ComponentProps, type ReactNode } from "react";
 
-import { PageBackButton } from "@/components/common/page-back-button";
 import { PageTitle } from "@/components/common/page-title";
 import { RouteDaySelector } from "@/components/routes/route-day-selector";
 import { GoogleRouteMap } from "@/components/routes/google-route-map";
@@ -81,6 +80,8 @@ export function RouteDetailView({
   stayMarker,
   stayRecommendation
 }: RouteDetailViewProps) {
+  const compactActionButtonClassName = "min-h-8 px-3 py-1.5 text-[12px] md:min-h-10 md:px-3.5 md:py-2 md:text-xs";
+  const compactHeaderActionButtonClassName = "w-9 gap-0 px-0 md:w-auto md:gap-1.5 md:px-3.5";
   const [selectedDay, setSelectedDay] = useState(1);
   const [viewMode, setViewMode] = useState<RouteViewMode>("split");
   const editedDaySet = useMemo(() => new Set(editedDayNumbers), [editedDayNumbers]);
@@ -135,14 +136,20 @@ export function RouteDetailView({
     return (
       <div className="space-y-3">
         {isCurrentDayEdited ? (
-          <div className="rounded-[22px] border border-[#D8E8FB] bg-white/86 px-4 py-3 text-sm font-medium leading-6 text-foreground/72 shadow-[0_10px_24px_rgba(56,123,194,0.06)]">
+          <div className="rounded-xl border border-[#D8E8FB] bg-white/86 px-4 py-3 text-xs font-medium leading-6 text-foreground/72 shadow-surface md:rounded-2xl md:text-sm">
             수동 편집 후 추천 시간, 라벨, 이동 정보, AI 팁은 숨겨졌어요
           </div>
         ) : null}
         {isEditMode && currentDay && onAddPlace ? (
           <div className="flex justify-end">
-            <Button size="sm" shape="pill" variant="secondary" className="h-10 px-4 text-xs font-semibold" onClick={() => onAddPlace(currentDay.dayNumber)}>
-              <Plus className="mr-1.5 h-3.5 w-3.5" />
+            <Button
+              size="small"
+              shape="pill"
+              variant="secondary"
+              className={compactActionButtonClassName}
+              onClick={() => onAddPlace(currentDay.dayNumber)}
+            >
+              <Plus className="h-3.5 w-3.5" />
               장소 추가
             </Button>
           </div>
@@ -188,8 +195,10 @@ export function RouteDetailView({
   );
 
   const headerActions = (
-    <div className="flex flex-wrap items-center gap-2 self-start">
+    <div className="flex max-w-full flex-wrap items-center justify-end gap-2 self-start">
       <RouteViewModeSliderToggle
+        compactMobile
+        iconOnly
         value={viewMode}
         onChange={setViewMode}
         splitLabel={UI_COPY.routes.detail.splitView}
@@ -197,33 +206,51 @@ export function RouteDetailView({
       />
       {isEditMode ? (
         <>
-          <Button size="sm" variant="secondary" className="shrink-0" onClick={onCancelEdit} disabled={editCommitBusy}>
-            <X className="mr-2 h-4 w-4" />
-            취소
-          </Button>
-          <Button size="sm" className="shrink-0 shadow-[0_10px_24px_rgba(56,123,194,0.16)]" onClick={onCommitEdit} disabled={editCommitBusy}>
-            <Check className="mr-2 h-4 w-4" />
-            편집 완료
-          </Button>
+            <Button
+              size="small"
+              variant="secondary"
+              className={`shrink-0 ${compactHeaderActionButtonClassName}`}
+              onClick={onCancelEdit}
+              disabled={editCommitBusy}
+            >
+              <X className="h-4 w-4" />
+              취소
+            </Button>
+            <Button
+              size="small"
+              className={`shrink-0 shadow-surface ${compactHeaderActionButtonClassName}`}
+              onClick={onCommitEdit}
+              disabled={editCommitBusy}
+            >
+              <Check className="h-4 w-4" />
+              편집 완료
+            </Button>
         </>
       ) : (
         <>
           {onEnterEdit ? (
-            <Button size="sm" variant="secondary" className="shrink-0" onClick={onEnterEdit}>
-              <PencilLine className="mr-2 h-4 w-4" />
+            <Button
+              size="small"
+              variant="secondary"
+              className={`shrink-0 ${compactHeaderActionButtonClassName}`}
+              onClick={onEnterEdit}
+            >
+              <PencilLine className="h-4 w-4" />
               편집
             </Button>
           ) : null}
           {onDelete ? (
             <Button
-              size="sm"
+              size="small"
               variant="danger"
-              className="shrink-0 shadow-[0_6px_14px_rgba(228,110,124,0.12)]"
+              shape="pill"
+              className={`shrink-0 justify-center shadow-subtle ${compactHeaderActionButtonClassName}`}
               onClick={onDelete}
               disabled={deleteBusy}
+              aria-label={UI_COPY.routes.detail.deleteAction}
             >
-              <Trash2 className="mr-2 h-4 w-4" />
-              {UI_COPY.routes.detail.deleteAction}
+              <Trash2 className="h-4 w-4" />
+              <span className="hidden md:inline">{UI_COPY.routes.detail.deleteAction}</span>
             </Button>
           ) : null}
         </>
@@ -246,16 +273,16 @@ export function RouteDetailView({
       splitModeClassName="min-h-0 overflow-y-hidden pb-0 md:pb-0"
       listModeClassName="pb-4"
       headerLeading={
-        <div className="flex items-start gap-2">
-          <PageBackButton onClick={onBack} />
-          <PageTitle
-            title={schedule.title}
-            subtitle={`${schedule.placeList.city} · ${formatDateRange(schedule.startDate, schedule.endDate)}`}
-          />
-        </div>
+        <PageTitle
+          title={schedule.title}
+          subtitle={`${schedule.placeList.city} · ${formatDateRange(schedule.startDate, schedule.endDate)}`}
+          className="min-w-0 flex-1"
+          titleClassName="truncate"
+        />
       }
       daySelector={
         <RouteDaySelector
+          compactMobile
           days={scheduleDays}
           currentDayDate={currentDay?.date}
           currentDayNumber={currentDay?.dayNumber}
@@ -267,7 +294,7 @@ export function RouteDetailView({
           day={currentDay}
           activeStopId={activeStopId}
           refs={listRefs.mobile}
-          className="shrink-0"
+          className="min-h-0 shrink-0 [&>div:last-child]:pb-0"
           renderStopCard={renderStopCard}
           topContent={dayTopContent}
         />
@@ -326,3 +353,4 @@ export function RouteDetailView({
       />
   );
 }
+

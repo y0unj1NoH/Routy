@@ -19,16 +19,26 @@ type RouteStopListProps = {
   topContent?: ReactNode;
 };
 
-export function RouteStopList({ activeStopId, className, day, refs, renderStopCard, topContent }: RouteStopListProps) {
+export function RouteStopList({
+  activeStopId,
+  className,
+  day,
+  refs,
+  renderStopCard,
+  topContent
+}: RouteStopListProps) {
   const stops = day?.stops || [];
 
   return (
-    <section ref={refs.scrollRef} className={cn("flex min-h-[280px] flex-col rounded-2xl bg-primary-soft/80 p-4", className)}>
-      {topContent ? <div className="shrink-0 pb-3">{topContent}</div> : null}
+    <section
+      ref={refs.scrollRef}
+      className={cn("flex min-h-[280px] flex-col rounded-lg bg-primary-soft/55 p-2.5 md:rounded-2xl md:bg-primary-soft/80 md:p-4", className)}
+    >
+      {topContent ? <div className="shrink-0 pb-2.5 md:pb-3">{topContent}</div> : null}
       {stops.length === 0 ? (
         <RouteDayEmptyState />
       ) : (
-        <div className="space-y-4 pb-4">
+        <div className="flex flex-col gap-4 pb-4">
           {stops.map((stop, index) => {
             const travelInfo = inferRouteTravelInfo(stop, stops[index + 1]);
             const isActive = activeStopId === stop.id;
@@ -39,11 +49,11 @@ export function RouteStopList({ activeStopId, className, day, refs, renderStopCa
                 ref={(node) => {
                   refs.itemRefs.current[stop.id] = node;
                 }}
-                className="grid scroll-mt-3 grid-cols-[56px_1fr] gap-3"
+                className="grid scroll-mt-3 grid-cols-[44px_1fr] gap-2.5 md:grid-cols-[56px_1fr] md:gap-3"
               >
                 <div className="relative flex flex-col items-center">
                   <div
-                    className={`z-10 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-black text-white shadow-[0_8px_18px_rgba(56,123,194,0.12)] ${
+                    className={`z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-black text-white shadow-subtle md:h-11 md:w-11 md:text-sm ${
                       isActive ? "bg-primary" : "bg-primary-light"
                     }`}
                   >
@@ -51,7 +61,7 @@ export function RouteStopList({ activeStopId, className, day, refs, renderStopCa
                   </div>
                   {index < stops.length - 1 ? <div className="mt-1 h-full min-h-10 w-[2px] bg-border-strong" /> : null}
                   {travelInfo ? (
-                    <div className="mt-2 rounded-full border border-border-strong bg-card/92 px-2 py-1 text-[11px] font-bold text-foreground/65">
+                    <div className="mt-1.5 rounded-full border border-border-strong bg-card/92 px-1.5 py-0.5 text-2xs font-bold text-foreground/65 shadow-subtle md:mt-2 md:px-2 md:py-1 md:text-xs">
                       {travelInfo.distanceLabel}
                     </div>
                   ) : null}
