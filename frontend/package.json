@@ -11,7 +11,8 @@
     "lint": "next lint",
     "typegen": "next typegen",
     "typecheck": "tsc --noEmit",
-    "typecheck:stable": "pnpm run clean:build && pnpm run typegen && pnpm run typecheck",
+    "typecheck:stable:tsc": "tsc -p tsconfig.stable.json --noEmit",
+    "typecheck:stable": "pnpm run clean:build && pnpm run typegen && pnpm run typecheck:stable:tsc",
     "verify": "pnpm run typecheck:stable && pnpm run build:verify"
   },
   "dependencies": {
