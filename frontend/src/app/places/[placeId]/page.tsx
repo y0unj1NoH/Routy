@@ -5,7 +5,6 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 
 import { EmptyState } from "@/components/common/empty-state";
 import { LoadingPanel } from "@/components/common/loading-panel";
-import { PageBackButton } from "@/components/common/page-back-button";
 import { UI_COPY } from "@/constants/ui-copy";
 import { PageContainer } from "@/components/layout/page-container";
 import { PlaceDetailContent } from "@/components/places/place-detail-content";
@@ -15,7 +14,6 @@ import { useRequireAuth } from "@/hooks/use-require-auth";
 
 export default function PlaceDetailPage() {
   const params = useParams<{ placeId: string }>();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const placeId = params.placeId;
   const visitDate = searchParams.get("visitDate");
@@ -61,21 +59,7 @@ export default function PlaceDetailPage() {
 
   return (
     <PageContainer className="space-y-5 pt-5">
-      <PlaceDetailContent
-        place={place}
-        visitDate={visitDate}
-        backAction={
-          <PageBackButton
-            onClick={() => {
-              if (typeof window !== "undefined" && window.history.length > 1) {
-                router.back();
-                return;
-              }
-              router.replace("/");
-            }}
-          />
-        }
-      />
+      <PlaceDetailContent place={place} visitDate={visitDate} />
     </PageContainer>
   );
 }

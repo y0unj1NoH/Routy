@@ -5,7 +5,6 @@ import { useQuery } from "@tanstack/react-query";
 
 import { EmptyState } from "@/components/common/empty-state";
 import { LoadingPanel } from "@/components/common/loading-panel";
-import { PageBackButton } from "@/components/common/page-back-button";
 import { UI_COPY } from "@/constants/ui-copy";
 import { PageContainer } from "@/components/layout/page-container";
 import { PlaceDetailContent } from "@/components/places/place-detail-content";
@@ -57,12 +56,7 @@ export default function SavedPlaceDetailPage() {
 
   return (
     <PageContainer className="space-y-5 pt-5">
-      <PlaceDetailContent
-        place={place}
-        backAction={
-          <PageBackButton href={`/saved/${listId}`} ariaLabel="리스트로 돌아가기" />
-        }
-      />
+      <PlaceDetailContent place={place} />
     </PageContainer>
   );
 }
