@@ -20,7 +20,7 @@ export function HomeEmptyState({ previewLabel }: HomeEmptyStateProps) {
       action={
         <Link
           href="/routes/new"
-          className={buttonStyles({ shape: "pill", className: "h-12 min-w-56 px-6 font-semibold" })}
+          className={buttonStyles({ size: "large", shape: "pill", fullWidth: true, className: "md:w-auto md:min-w-48" })}
         >
           {UI_COPY.home.empty.action}
         </Link>
@@ -28,3 +28,4 @@ export function HomeEmptyState({ previewLabel }: HomeEmptyStateProps) {
     />
   );
 }
+

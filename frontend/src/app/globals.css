@@ -28,12 +28,34 @@
   --color-danger-soft: var(--danger-soft);
   --color-overlay: var(--overlay);
 
-  --radius-xl: 20px;
-  --radius-md: 12px;
-  --radius-sm: 8px;
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
 
-  --shadow-soft:
-    0 18px 40px rgba(56, 123, 194, 0.14), 0 4px 14px rgba(24, 72, 136, 0.08);
+  --text-3xs: 0.5rem;
+  --text-3xs--line-height: 1.2;
+  --text-2xs: 0.625rem;
+  --text-2xs--line-height: 1.2;
+
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
+  --radius-3xl: 28px;
+
+  --shadow-subtle:
+    0 6px 14px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-surface: 0 12px 26px rgba(15, 23, 42, 0.05);
+  --shadow-raised: 0 18px 38px rgba(15, 23, 42, 0.1);
+  --shadow-floating: 0 22px 54px rgba(31, 41, 55, 0.16);
+  --shadow-inset-field: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  --shadow-thumb: 0 8px 16px rgba(15, 23, 42, 0.16);
+  --shadow-soft: var(--shadow-surface);
+  --drop-shadow-mascot: 0 14px 24px rgba(15, 23, 42, 0.12);
 
   --animate-fade-up: fade-up 420ms ease-out;
   --animate-mascot-float: mascot-float 5.2s ease-in-out infinite;
@@ -59,6 +81,17 @@
 
   50% {
     transform: translate3d(0, -10px, 0) rotate(1.5deg);
+  }
+}
+
+@keyframes mascot-float-mobile {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(-1.5deg);
+  }
+
+  50% {
+    transform: translate3d(0, -3px, 0) rotate(0.5deg);
   }
 }
 
@@ -288,8 +321,42 @@
 
 :root {
   color-scheme: light;
-  --bottom-nav-height: 5rem;
-  --bottom-nav-gap: 0.75rem;
+  --animate-mascot-float: mascot-float 5.2s ease-in-out infinite;
+  --page-content-max-width: 1200px;
+  --page-x-padding: 20px;
+  --page-top-padding: 24px;
+  --page-bottom-padding: 28px;
+  --page-section-gap: 24px;
+  --page-block-gap: 16px;
+  --card-list-gap: 12px;
+  --modal-section-gap: 12px;
+  --layout-column-gap: 16px;
+  --page-eyebrow-size: 10px;
+  --page-title-size: 26px;
+  --page-empty-title-size: 22px;
+  --page-subtitle-size: 12px;
+  --page-title-block-height: calc(var(--page-title-size) * 1.08 + var(--page-subtitle-size) * 1.5 + 0.375rem);
+  --section-title-size: 14px;
+  --card-title-size: 16px;
+  --modal-title-size: 18px;
+  --body-strong-size: 14px;
+  --field-label-size: 12px;
+  --inline-action-size: 12px;
+  --pill-text-size: 12px;
+  --bottom-nav-height: 60px;
+  --bottom-nav-gap: 8px;
+  --mascot-dialog-size: 44px;
+  --mascot-compact-aside-size: 72px;
+  --mascot-funnel-size: 80px;
+  --mascot-empty-size: 96px;
+  --mascot-loading-size: 96px;
+  --mascot-page-hero-size: 112px;
+  --mascot-celebration-size: 64px;
+  --mascot-compact-size: var(--mascot-compact-aside-size);
+  --mascot-featured-size: var(--mascot-page-hero-size);
+  --route-mobile-map-peek-height: 292px;
+  --route-mobile-sheet-overlap: 6px;
+  --route-mobile-sheet-peek-top: calc(var(--route-mobile-map-peek-height) - var(--route-mobile-sheet-overlap));
   --bottom-nav-offset: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom) + var(--bottom-nav-gap));
   --background: oklch(98.965% 0.00511 247.876); /* #F9FCFF */
   --background-soft: oklch(98.398% 0.00915 232.361); /* #F4FBFF */
@@ -316,6 +383,99 @@
   --danger-hover: oklch(62.753% 0.15044 14.787); /* #D35C6B */
   --danger-soft: oklch(96.558% 0.01772 4.515); /* #FFEFF2 */
   --overlay: oklch(25.403% 0.05634 254.948); /* #0E233D */
+}
+
+@media (max-width: 639px) {
+  :root {
+    --animate-mascot-float: mascot-float-mobile 5.2s ease-in-out infinite;
+  }
+}
+
+@media (max-width: 375px) {
+  :root {
+    --page-x-padding: 16px;
+    --page-top-padding: 20px;
+    --page-bottom-padding: 24px;
+    --page-section-gap: 20px;
+    --page-block-gap: 14px;
+    --card-list-gap: 10px;
+    --page-title-size: 24px;
+    --page-empty-title-size: 20px;
+    --page-subtitle-size: 12px;
+    --bottom-nav-height: 60px;
+    --mascot-dialog-size: 40px;
+    --mascot-compact-aside-size: 64px;
+    --mascot-funnel-size: 72px;
+    --mascot-empty-size: 88px;
+    --mascot-loading-size: 88px;
+    --mascot-page-hero-size: 104px;
+    --mascot-celebration-size: 56px;
+    --mascot-compact-size: var(--mascot-compact-aside-size);
+    --mascot-featured-size: var(--mascot-page-hero-size);
+    --route-mobile-map-peek-height: 276px;
+  }
+}
+
+@media (min-width: 768px) {
+  :root {
+    --page-x-padding: 24px;
+    --page-top-padding: 28px;
+    --page-bottom-padding: 32px;
+    --page-section-gap: 32px;
+    --page-block-gap: 20px;
+    --card-list-gap: 16px;
+    --modal-section-gap: 16px;
+    --layout-column-gap: 20px;
+    --page-eyebrow-size: 12px;
+    --page-title-size: 28px;
+    --page-empty-title-size: 24px;
+    --page-subtitle-size: 14px;
+    --section-title-size: 16px;
+    --card-title-size: 18px;
+    --modal-title-size: 20px;
+    --body-strong-size: 16px;
+    --field-label-size: 14px;
+    --inline-action-size: 14px;
+    --pill-text-size: 14px;
+    --mascot-dialog-size: 48px;
+    --mascot-compact-aside-size: 80px;
+    --mascot-funnel-size: 88px;
+    --mascot-empty-size: 112px;
+    --mascot-loading-size: 112px;
+    --mascot-page-hero-size: 128px;
+    --mascot-celebration-size: 72px;
+    --mascot-compact-size: var(--mascot-compact-aside-size);
+    --mascot-featured-size: var(--mascot-page-hero-size);
+    --route-mobile-map-peek-height: 308px;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --layout-column-gap: 24px;
+    --bottom-nav-height: 60px;
+    --route-mobile-map-peek-height: 332px;
+  }
+}
+
+@media (min-width: 1280px) {
+  :root {
+    --page-x-padding: 28px;
+    --page-section-gap: 40px;
+    --page-block-gap: 24px;
+    --layout-column-gap: 28px;
+    --page-title-size: 30px;
+    --page-empty-title-size: 26px;
+    --section-title-size: 18px;
+    --mascot-compact-aside-size: 96px;
+    --mascot-funnel-size: 96px;
+    --mascot-empty-size: 128px;
+    --mascot-loading-size: 128px;
+    --mascot-page-hero-size: 144px;
+    --mascot-celebration-size: 80px;
+    --mascot-compact-size: var(--mascot-compact-aside-size);
+    --mascot-featured-size: var(--mascot-page-hero-size);
+  }
 }
 
 /*
@@ -423,7 +583,7 @@
   h2,
   h3,
   h4 {
-    font-family: var(--font-heading), "Noto Sans KR", sans-serif;
+    font-family: var(--font-body), "Noto Sans KR", sans-serif;
   }
 
   a {

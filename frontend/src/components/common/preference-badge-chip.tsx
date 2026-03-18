@@ -22,7 +22,7 @@ export function PreferenceBadgeChip({ bg, className, icon, label, text }: Prefer
   return (
     <div
       className={cn(
-        "inline-flex items-center gap-2 rounded-full border border-transparent px-4 font-semibold shadow-[0_10px_22px_rgba(56,123,194,0.12)]",
+        "inline-flex items-center gap-2 rounded-full border border-transparent px-4 font-semibold shadow-subtle",
         BADGE_HEIGHT_CLASS.medium,
         BADGE_TEXT_CLASS.medium,
         className

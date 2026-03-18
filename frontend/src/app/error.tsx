@@ -29,7 +29,7 @@ export default function GlobalErrorPage({
         <h1 className="text-3xl font-black">{UI_COPY.systemPages.globalError.title}</h1>
         <p className="text-sm text-foreground/70">{UI_COPY.systemPages.globalError.description}</p>
         <div className="pt-2">
-          <Button size="lg" onClick={reset}>
+          <Button size="large" onClick={reset}>
             {UI_COPY.systemPages.globalError.action}
           </Button>
         </div>

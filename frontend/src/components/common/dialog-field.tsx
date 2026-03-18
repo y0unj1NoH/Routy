@@ -20,14 +20,18 @@ export function DialogFieldLabel({
   className
 }: DialogFieldLabelProps) {
   return (
-    <label htmlFor={htmlFor} className={cn("flex items-center gap-1.5 text-sm font-semibold text-foreground/72", className)}>
+    <label
+      htmlFor={htmlFor}
+      className={cn("flex items-center gap-1.5 font-semibold leading-5 text-foreground/72", className)}
+      style={{ fontSize: "var(--field-label-size)" }}
+    >
       <span>{children}</span>
       {required ? (
         <span aria-hidden="true" className="text-danger">
           *
         </span>
       ) : null}
-      {optional ? <span className="text-[11px] font-semibold text-foreground/45">선택</span> : null}
+      {optional ? <span className="text-2xs font-semibold text-foreground/45">선택</span> : null}
     </label>
   );
 }
@@ -42,7 +46,7 @@ export function DialogFieldHint({ children, error = false, className }: DialogFi
   if (!children) return null;
 
   return (
-    <p className={cn(error ? "text-xs text-danger" : "pl-1 text-xs text-foreground/48", className)}>
+    <p className={cn(error ? "text-xs leading-5 text-danger" : "pl-1 text-xs leading-5 text-foreground/48", className)}>
       {children}
     </p>
   );

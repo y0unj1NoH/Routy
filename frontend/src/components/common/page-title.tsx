@@ -6,14 +6,28 @@ type PageTitleProps = {
   title: string;
   subtitle?: ReactNode;
   className?: string;
+  titleClassName?: string;
+  subtitleClassName?: string;
 };
 
-export function PageTitle({ title, subtitle, className }: PageTitleProps) {
+export function PageTitle({ title, subtitle, className, titleClassName, subtitleClassName }: PageTitleProps) {
   return (
-    <div className={cn("space-y-2", className)}>
-      <h1 className="text-3xl font-black tracking-tight md:text-4xl">{title}</h1>
-      {subtitle ? <p className="text-sm text-foreground/65 md:text-base">{subtitle}</p> : null}
+    <div className={cn("space-y-1.5", className)}>
+      <h1
+        className={cn(
+          "break-keep font-black leading-[1.2] tracking-[-0.03em] text-[length:var(--page-title-size)] text-foreground",
+          titleClassName
+        )}
+      >
+        {title}
+      </h1>
+      {subtitle ? (
+        <p
+          className={cn("break-keep text-[length:var(--page-subtitle-size)] leading-[1.5] text-foreground/65", subtitleClassName)}
+        >
+          {subtitle}
+        </p>
+      ) : null}
     </div>
   );
 }
-

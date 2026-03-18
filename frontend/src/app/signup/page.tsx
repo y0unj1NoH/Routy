@@ -76,7 +76,7 @@ export default function SignupPage() {
 
   return (
     <PageContainer className="grid min-h-dvh place-items-center pt-0 pb-0 md:pb-0">
-      <section className="w-full max-w-[440px] space-y-6 rounded-2xl border border-border bg-card p-8 shadow-soft">
+      <section className="w-full max-w-sm space-y-5 rounded-xl border border-border bg-card p-5 shadow-surface md:rounded-2xl md:p-6">
         <PageTitle title={UI_COPY.auth.signup.title} />
 
         <form onSubmit={onSubmit} className="space-y-4">
@@ -87,7 +87,7 @@ export default function SignupPage() {
           ) : null}
 
           <div className="space-y-2">
-            <label htmlFor="email" className="text-sm font-semibold">
+            <label htmlFor="email" className="text-xs font-semibold md:text-sm">
               {UI_COPY.auth.signup.emailLabel}
             </label>
             <Input id="email" type="email" autoComplete="email" {...form.register("email")} />
@@ -95,7 +95,7 @@ export default function SignupPage() {
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="password" className="text-sm font-semibold">
+            <label htmlFor="password" className="text-xs font-semibold md:text-sm">
               {UI_COPY.auth.signup.passwordLabel}
             </label>
             <Input id="password" type="password" autoComplete="new-password" {...form.register("password")} />
@@ -103,7 +103,7 @@ export default function SignupPage() {
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="confirmPassword" className="text-sm font-semibold">
+            <label htmlFor="confirmPassword" className="text-xs font-semibold md:text-sm">
               {UI_COPY.auth.signup.confirmPasswordLabel}
             </label>
             <Input
@@ -115,7 +115,7 @@ export default function SignupPage() {
             <p className="text-xs text-danger">{form.formState.errors.confirmPassword?.message}</p>
           </div>
 
-          <Button type="submit" fullWidth size="lg" disabled={form.formState.isSubmitting}>
+          <Button type="submit" fullWidth size="large" disabled={form.formState.isSubmitting}>
             {form.formState.isSubmitting ? UI_COPY.auth.signup.submitting : UI_COPY.auth.signup.submit}
           </Button>
         </form>
@@ -130,3 +130,4 @@ export default function SignupPage() {
     </PageContainer>
   );
 }
+

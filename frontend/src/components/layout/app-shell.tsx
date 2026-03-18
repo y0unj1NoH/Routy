@@ -22,7 +22,7 @@ export function AppShell({ children }: AppShellProps) {
       <div
         className={cn(
           "relative flex min-h-0 flex-1 flex-col",
-          !hideNav && "pb-(--bottom-nav-offset)"
+          !hideNav && "pb-[var(--bottom-nav-offset)]"
         )}
       >
         {children}

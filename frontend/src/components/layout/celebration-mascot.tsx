@@ -6,5 +6,5 @@ type CelebrationMascotProps = {
 };
 
 export function CelebrationMascot({ className }: CelebrationMascotProps) {
-  return <Mascot variant="celebration" className={cn("h-36 w-36", className)} />;
+  return <Mascot variant="celebration" className={cn("h-[var(--mascot-celebration-size)] w-[var(--mascot-celebration-size)]", className)} />;
 }

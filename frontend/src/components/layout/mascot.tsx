@@ -1,8 +1,15 @@
 import { cn } from "@/lib/cn";
 
 export const MASCOT_SIZE_CLASS = {
-  compact: "h-28 w-28",
-  featuredPage: "h-48 w-48 md:h-56 md:w-56"
+  dialog: "h-[var(--mascot-dialog-size)] w-[var(--mascot-dialog-size)]",
+  compactAside: "h-[var(--mascot-compact-aside-size)] w-[var(--mascot-compact-aside-size)]",
+  funnel: "h-[var(--mascot-funnel-size)] w-[var(--mascot-funnel-size)]",
+  emptyState: "h-[var(--mascot-empty-size)] w-[var(--mascot-empty-size)]",
+  loading: "h-[var(--mascot-loading-size)] w-[var(--mascot-loading-size)]",
+  pageHero: "h-[var(--mascot-page-hero-size)] w-[var(--mascot-page-hero-size)]",
+  celebration: "h-[var(--mascot-celebration-size)] w-[var(--mascot-celebration-size)]",
+  compact: "h-[var(--mascot-compact-size)] w-[var(--mascot-compact-size)]",
+  featuredPage: "h-[var(--mascot-featured-size)] w-[var(--mascot-featured-size)]"
 } as const;
 
 const MASCOT_ASSETS = {
@@ -65,16 +72,17 @@ export function Mascot({
   floating = false
 }: MascotProps) {
   const asset = MASCOT_ASSETS[variant];
+  const shouldFloat = floating && variant === "airplane";
 
   return (
-    <div className={cn("relative h-44 w-44", className)}>
+    <div className={cn("relative h-[var(--mascot-page-hero-size)] w-[var(--mascot-page-hero-size)]", className)}>
       <div
         role="img"
         aria-label={asset.alt}
         style={{ backgroundImage: `url("${asset.src}")` }}
         className={cn(
-          "h-full w-full bg-contain bg-center bg-no-repeat drop-shadow-[0_18px_30px_rgba(15,23,42,0.12)]",
-          floating && "motion-safe:animate-mascot-float motion-reduce:animate-none",
+          "h-full w-full bg-contain bg-center bg-no-repeat drop-shadow-mascot",
+          shouldFloat && "motion-safe:animate-mascot-float motion-reduce:animate-none",
           imageClassName
         )}
       />

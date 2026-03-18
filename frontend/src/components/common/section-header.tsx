@@ -20,11 +20,18 @@ export function SectionHeader({
   descriptionClassName
 }: SectionHeaderProps) {
   return (
-    <div className={cn("flex flex-wrap items-start justify-between gap-3", className)}>
-      <div className="min-w-0 flex-1 space-y-1">
-        <h2 className={cn("text-lg font-black leading-tight md:text-xl", titleClassName)}>{title}</h2>
+    <div className={cn("flex items-start justify-between gap-3 md:gap-4", className)}>
+      <div className="min-w-0 flex-1 space-y-0.5">
+        <h2
+          className={cn("break-keep font-black leading-[1.2] text-foreground", titleClassName)}
+          style={{ fontSize: "var(--section-title-size)" }}
+        >
+          {title}
+        </h2>
         {description ? (
-          <p className={cn("text-sm leading-relaxed text-foreground/60", descriptionClassName)}>{description}</p>
+          <p className={cn("break-keep text-xs leading-relaxed text-foreground/60 md:text-sm", descriptionClassName)}>
+            {description}
+          </p>
         ) : null}
       </div>
       {action ? <div className="shrink-0">{action}</div> : null}

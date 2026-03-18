@@ -26,7 +26,7 @@ export const BADGE_COLORS = {
 
   meal: "#F08A4B",
   brunch: "#F3A35F",
-  cafe: "#5B8CBE",
+  cafe: "#8A5C37",
   snack: "#D56BA5",
   night: "#3E4A78",
   activity: "#4A8E85",
@@ -74,9 +74,9 @@ export const CATEGORY_BADGE_MAP = {
   },
   CAFE: {
     label: "CAFE",
-    border: "#D6E7F7",
-    bg: "#F1F7FC",
-    text: "#3E6F95"
+    border: "#E6D2C0",
+    bg: "#FBF3EC",
+    text: "#8A5C37"
   },
   SNACK: {
     label: "SNACK",

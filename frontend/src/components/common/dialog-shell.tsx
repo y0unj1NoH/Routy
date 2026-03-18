@@ -30,8 +30,8 @@ type DialogPanelProps = Omit<DialogShellProps, "open"> & {
 };
 
 const sizeClasses = {
-  md: "max-w-lg",
-  lg: "max-w-2xl"
+  md: "max-w-[34rem]",
+  lg: "max-w-[42rem]"
 } as const;
 
 function DialogPanel({
@@ -46,7 +46,7 @@ function DialogPanel({
   className,
   contentClassName,
   headerClassName,
-  showCloseButton = true,
+  showCloseButton = false,
   withModalA11y = false,
   onClose
 }: DialogPanelProps) {
@@ -66,7 +66,7 @@ function DialogPanel({
     <Card
       {...modalA11yProps}
       className={cn(
-        "w-full overflow-hidden border-border bg-white p-0 shadow-[0_28px_72px_rgba(31,41,55,0.24)] backdrop-blur-none",
+        "w-full overflow-hidden border-border bg-white/98 p-0 shadow-floating backdrop-blur-none rounded-xl md:rounded-2xl",
         sizeClasses[size],
         className
       )}
@@ -74,31 +74,40 @@ function DialogPanel({
     >
       <div
         className={cn(
-          "relative overflow-hidden border-b border-border/80 bg-linear-to-br from-primary-soft via-white to-card px-5 py-5 sm:px-6",
+          "relative overflow-hidden border-b border-border/80 bg-linear-to-br from-primary-soft via-white to-card px-4 py-4 md:px-5 md:py-5",
           headerClassName
         )}
       >
-        <div className="absolute -right-10 -top-10 h-28 w-28 rounded-full bg-primary/10 blur-3xl" />
-        <div className="relative flex items-start justify-between gap-4">
+        <div className="absolute -right-10 -top-10 h-24 w-24 rounded-full bg-primary/10 blur-3xl" />
+        <div className="relative flex items-center justify-between gap-4">
           <div className="min-w-0 flex-1 space-y-1">
-            {eyebrow ? <div className="text-[11px] font-black uppercase tracking-[0.18em] text-primary">{eyebrow}</div> : null}
-            <h2 id={titleId} className="text-xl font-black tracking-tight text-foreground sm:text-[1.7rem] sm:leading-[1.08] sm:tracking-[-0.03em]">
+            {eyebrow ? (
+              <div className="font-black uppercase tracking-[0.16em] leading-none text-primary/82" style={{ fontSize: "var(--page-eyebrow-size)" }}>
+                {eyebrow}
+              </div>
+            ) : null}
+            <h2
+              id={titleId}
+              className="break-keep font-black leading-[1.2] tracking-tight text-foreground"
+              style={{ fontSize: "var(--modal-title-size)" }}
+            >
               {title}
             </h2>
             {description ? (
-              <div id={descriptionId} className="text-sm leading-6 text-foreground/68">
+              <div id={descriptionId} className="break-keep text-xs leading-5 text-foreground/60 md:text-sm">
                 {description}
               </div>
             ) : null}
           </div>
 
           <div className="flex items-start gap-2">
-            {mascotVariant ? <Mascot variant={mascotVariant} className="h-16 w-16 shrink-0 opacity-95 sm:h-20 sm:w-20" /> : null}
+            {mascotVariant ? <Mascot variant={mascotVariant} className="h-[var(--mascot-dialog-size)] w-[var(--mascot-dialog-size)] shrink-0 opacity-95" /> : null}
             {showCloseButton ? (
               <Button
                 variant="ghost"
-                size="sm"
-                className="shrink-0"
+                size="small"
+                iconOnly
+                className="text-foreground/52 hover:text-foreground"
                 onClick={onClose}
                 disabled={busy}
                 aria-label="닫기"
@@ -110,9 +119,13 @@ function DialogPanel({
         </div>
       </div>
 
-      <div className={cn("space-y-5 p-5 sm:p-6", contentClassName)}>
+      <div className={cn("space-y-[var(--modal-section-gap)] p-4 md:p-5", contentClassName)}>
         {children}
-        {footer ? <div className="flex flex-wrap justify-end gap-2 border-t border-border/70 pt-4">{footer}</div> : null}
+        {footer ? (
+          <div className="flex flex-wrap items-center justify-end gap-2 border-t border-border/70 pt-3 sm:flex-nowrap">
+            {footer}
+          </div>
+        ) : null}
       </div>
     </Card>
   );
@@ -123,8 +136,8 @@ export function DialogShellPreview({
   ...props
 }: Omit<DialogShellProps, "open">) {
   return (
-    <div className="rounded-[32px] border border-border/70 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.9),_rgba(233,240,248,0.96))] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] sm:p-6">
-      <div className="flex min-h-[180px] items-center justify-center">
+    <div className="rounded-xl border border-border/70 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.9),_rgba(233,240,248,0.96))] p-3 shadow-subtle md:rounded-2xl md:p-4">
+      <div className="flex min-h-[160px] items-center justify-center">
         <DialogPanel {...props} className={className} />
       </div>
     </div>
@@ -154,7 +167,7 @@ export function DialogShell({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[rgb(88_94_104/0.46)] px-4 py-6 backdrop-blur-[2px]"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[rgb(88_94_104/0.46)] px-3 py-4 backdrop-blur-[2px] md:px-4 md:py-6"
       onClick={() => {
         if (busy) return;
         onClose();
@@ -164,3 +177,4 @@ export function DialogShell({
     </div>
   );
 }
+

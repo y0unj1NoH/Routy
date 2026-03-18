@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Noto_Sans_KR, Space_Grotesk } from "next/font/google";
+import { Noto_Sans_KR } from "next/font/google";
 
 import { AppShell } from "@/components/layout/app-shell";
 import { Providers } from "@/app/providers";
@@ -10,12 +10,6 @@ const bodyFont = Noto_Sans_KR({
   subsets: ["latin"],
   variable: "--font-body",
   weight: ["400", "500", "700", "900"]
-});
-
-const headingFont = Space_Grotesk({
-  subsets: ["latin"],
-  variable: "--font-heading",
-  weight: ["500", "700"]
 });
 
 export const metadata: Metadata = {
@@ -30,7 +24,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
-      <body className={`${bodyFont.variable} ${headingFont.variable} antialiased`}>
+      <body className={`${bodyFont.variable} antialiased`}>
         <Providers>
           <AppShell>{children}</AppShell>
         </Providers>

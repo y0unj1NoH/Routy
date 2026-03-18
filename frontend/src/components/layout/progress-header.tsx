@@ -9,7 +9,7 @@ type ProgressHeaderProps = {
 export function ProgressHeader({ currentStep, totalSteps = 5, className }: ProgressHeaderProps) {
   return (
     <header
-      className={cn("mx-auto grid w-full max-w-[1194px] gap-3", className)}
+      className={cn("mx-auto grid w-full max-w-[var(--page-content-max-width)] gap-2.5 md:gap-3", className)}
       style={{ gridTemplateColumns: `repeat(${totalSteps}, minmax(0, 1fr))` }}
     >
       {Array.from({ length: totalSteps }).map((_, index) => {
@@ -18,8 +18,8 @@ export function ProgressHeader({ currentStep, totalSteps = 5, className }: Progr
           <div
             key={index}
             className={cn(
-              "h-4 rounded-full transition-colors",
-              active ? "bg-primary shadow-[0_8px_18px_rgba(60,157,255,0.18)]" : "bg-primary/14"
+              "h-3 rounded-full transition-colors md:h-3.5",
+              active ? "bg-primary shadow-subtle" : "bg-primary/14"
             )}
           />
         );

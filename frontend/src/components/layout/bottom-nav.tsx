@@ -20,9 +20,9 @@ export function BottomNav() {
   return (
     <nav
       aria-label="하단 내비게이션"
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-border/80 bg-white pb-[env(safe-area-inset-bottom)] shadow-[0_-10px_28px_rgba(24,72,136,0.08)]"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-border/80 bg-white/96 pb-[env(safe-area-inset-bottom)] shadow-floating backdrop-blur-sm"
     >
-      <div className="mx-auto grid h-(--bottom-nav-height) w-full max-w-[1280px] grid-cols-4 px-2">
+      <div className="mx-auto grid h-(--bottom-nav-height) w-full max-w-[var(--page-content-max-width)] grid-cols-4 px-1.5 md:px-2">
         {items.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || (href !== "/" && pathname.startsWith(href));
           return (
@@ -30,13 +30,13 @@ export function BottomNav() {
               key={href}
               href={href}
               className={cn(
-                "flex flex-col items-center justify-center gap-1 rounded-xl text-xs font-medium transition-[background-color,color] duration-200",
+                "flex flex-col items-center justify-center gap-1 rounded-xl text-2xs font-semibold leading-none transition-[background-color,color,box-shadow] duration-200 md:rounded-2xl md:text-xs",
                 active
-                  ? "bg-primary-soft text-primary"
+                  ? "bg-primary-soft text-primary shadow-subtle"
                   : "text-foreground/55 hover:bg-primary-soft/70 hover:text-foreground"
               )}
             >
-              <Icon className="h-4 w-4" />
+              <Icon className="h-4 w-4 md:h-[18px] md:w-[18px]" />
               <span>{label}</span>
             </Link>
           );

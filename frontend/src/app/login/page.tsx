@@ -187,7 +187,7 @@ export default function LoginPage() {
 
   return (
     <PageContainer className="grid min-h-dvh place-items-center pt-0 pb-0 md:pb-0">
-      <section className="w-full max-w-[440px] space-y-6 rounded-2xl border border-border bg-card p-8 shadow-soft">
+      <section className="w-full max-w-sm space-y-5 rounded-xl border border-border bg-card p-5 shadow-surface md:rounded-2xl md:p-6">
         <PageTitle title={UI_COPY.auth.login.title} />
 
         <form onSubmit={onSubmit} className="space-y-4" aria-busy={isAuthBusy}>
@@ -198,7 +198,7 @@ export default function LoginPage() {
           ) : null}
 
           <div className="space-y-2">
-            <label htmlFor="email" className="text-sm font-semibold">
+            <label htmlFor="email" className="text-xs font-semibold md:text-sm">
               {UI_COPY.auth.login.emailLabel}
             </label>
             <Input id="email" type="email" autoComplete="email" disabled={isAuthBusy} {...form.register("email")} />
@@ -206,7 +206,7 @@ export default function LoginPage() {
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="password" className="text-sm font-semibold">
+            <label htmlFor="password" className="text-xs font-semibold md:text-sm">
               {UI_COPY.auth.login.passwordLabel}
             </label>
             <Input
@@ -221,7 +221,7 @@ export default function LoginPage() {
 
           <label
             htmlFor="keepSignedIn"
-            className="inline-flex w-fit cursor-pointer select-none items-center gap-2 text-sm font-semibold text-foreground touch-manipulation [-webkit-tap-highlight-color:transparent]"
+            className="inline-flex w-fit cursor-pointer select-none items-center gap-2 text-xs font-semibold text-foreground touch-manipulation [-webkit-tap-highlight-color:transparent] md:text-sm"
           >
             <input
               id="keepSignedIn"
@@ -233,14 +233,14 @@ export default function LoginPage() {
             />
             <span
               aria-hidden="true"
-              className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] border border-border bg-card/92 text-transparent shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] transition-[border-color,box-shadow,background-color,color] duration-200 peer-focus-visible:border-primary-light peer-focus-visible:ring-4 peer-focus-visible:ring-primary/15 peer-checked:border-transparent peer-checked:bg-primary peer-checked:text-white peer-checked:shadow-none peer-disabled:opacity-50"
+              className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-xs border border-border bg-card/92 text-transparent shadow-inset-field transition-[border-color,box-shadow,background-color,color] duration-200 peer-focus-visible:border-primary-light peer-focus-visible:ring-4 peer-focus-visible:ring-primary/15 peer-checked:border-transparent peer-checked:bg-primary peer-checked:text-white peer-checked:shadow-none peer-disabled:opacity-50"
             >
               <Check className="h-3 w-3" strokeWidth={3.5} />
             </span>
             {UI_COPY.auth.login.rememberLabel}
           </label>
 
-          <Button type="submit" fullWidth size="lg" disabled={isAuthBusy}>
+          <Button type="submit" fullWidth size="large" disabled={isAuthBusy}>
             {isPasswordSubmitting ? UI_COPY.auth.login.submitting : UI_COPY.auth.login.submit}
           </Button>
         </form>
@@ -248,7 +248,7 @@ export default function LoginPage() {
         <Button
           variant="secondary"
           fullWidth
-          size="lg"
+          size="large"
           onClick={handleGoogleSignIn}
           disabled={!isSupabaseEnvConfigured || isAuthBusy}
         >
@@ -268,3 +268,4 @@ export default function LoginPage() {
     </PageContainer>
   );
 }
+

@@ -2,9 +2,10 @@ import { Children, isValidElement, type HTMLAttributes, type ReactNode } from "r
 
 import { cn } from "@/lib/cn";
 import { resolveBadgeColor } from "@/lib/badge-theme";
-import { BADGE_HEIGHT_CLASS, BADGE_TEXT_CLASS } from "@/lib/badge-size";
+import { BADGE_BASE_CLASS, BADGE_SIZE_CLASS_MAP, type BadgeSize } from "@/lib/badge-size";
 
 type BadgeProps = HTMLAttributes<HTMLSpanElement> & {
+  size?: BadgeSize;
   tone?: "default" | "primary";
 };
 
@@ -23,17 +24,16 @@ function extractTextContent(node: ReactNode): string {
     .trim();
 }
 
-export function Badge({ className, tone = "default", ...props }: BadgeProps) {
+export function Badge({ className, size = "default", tone = "default", ...props }: BadgeProps) {
   const badgeColor = resolveBadgeColor(extractTextContent(props.children));
 
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full border px-2.5 font-semibold",
-        BADGE_HEIGHT_CLASS.small,
-        BADGE_TEXT_CLASS.small,
+        BADGE_BASE_CLASS,
+        BADGE_SIZE_CLASS_MAP[size],
         badgeColor
-          ? "border-transparent text-white shadow-[0_8px_16px_rgba(15,23,42,0.12)]"
+          ? "border-transparent text-white shadow-subtle"
           : tone === "primary"
             ? "border-primary-light/45 bg-primary-soft text-primary-hover"
             : "border-border/70 bg-card/80 text-foreground/80",

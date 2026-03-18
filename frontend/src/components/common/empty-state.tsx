@@ -44,8 +44,8 @@ export function EmptyState({
     <section
       className={cn(
         isPage
-          ? "flex max-w-md flex-col items-center gap-5 px-6 text-center"
-          : "rounded-[28px] border border-dashed border-border-strong bg-card/90 px-6 py-12 text-center shadow-soft",
+          ? "flex w-full max-w-sm flex-col items-center gap-4 px-4 text-center md:max-w-md md:gap-5 md:px-6 xl:max-w-lg xl:gap-6 xl:px-8"
+          : "w-full rounded-xl border border-dashed border-border-strong bg-card/90 px-5 py-8 text-center shadow-surface md:rounded-2xl md:px-6 md:py-10",
         className
       )}
     >
@@ -57,24 +57,32 @@ export function EmptyState({
             floating={resolvedMascotMotion === "floating"}
             priority={resolvedMascotSize === "featured"}
             className={cn(
-              resolvedMascotSize === "featured" ? MASCOT_SIZE_CLASS.featuredPage : MASCOT_SIZE_CLASS.compact,
+              resolvedMascotSize === "featured" ? MASCOT_SIZE_CLASS.pageHero : MASCOT_SIZE_CLASS.emptyState,
               mascotClassName
             )}
           />
         ) : (
-          <div className="mb-5 flex justify-center">
-            <Mascot variant={mascotVariant} className={cn(MASCOT_SIZE_CLASS.compact, mascotClassName)} />
+          <div className="mb-4 flex justify-center">
+            <Mascot variant={mascotVariant} className={cn(MASCOT_SIZE_CLASS.emptyState, mascotClassName)} />
           </div>
         )
       ) : null}
-      <div className={cn(isPage && "space-y-2")}>
-        <h2 className={cn(isPage ? "text-2xl font-black leading-tight md:text-3xl" : "text-xl font-bold", titleClassName)}>
+      <div className={cn(isPage && "space-y-2 md:space-y-2.5")}>
+        <h2
+          className={cn(
+            "font-black leading-[1.2]",
+            titleClassName
+          )}
+          style={{ fontSize: isPage ? "var(--page-empty-title-size)" : "var(--card-title-size)" }}
+        >
           {title}
         </h2>
         {description ? (
           <p
             className={cn(
-              isPage ? "text-sm font-semibold text-foreground/65 md:text-base" : "mx-auto mt-2 max-w-lg text-sm text-foreground/65",
+              isPage
+                ? "mx-auto max-w-sm text-xs leading-6 text-foreground/65 md:max-w-md md:text-sm md:leading-[1.7]"
+                : "mx-auto mt-2 max-w-lg text-xs leading-6 text-foreground/65 md:text-sm",
               descriptionClassName
             )}
           >

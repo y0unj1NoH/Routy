@@ -1,56 +1,65 @@
 "use client";
 
 import { useEffect } from "react";
-import { AlertCircle, CheckCircle2, Info } from "lucide-react";
+import { X } from "lucide-react";
 
+import { cn } from "@/lib/cn";
+import { ToastCard } from "@/components/layout/toast-card";
 import { useUiStore } from "@/stores/ui-store";
 
-const ICON_MAP = {
-  success: CheckCircle2,
-  error: AlertCircle,
-  info: Info
-} as const;
-
-const ICON_CLASS_MAP = {
-  success: "text-success",
-  error: "text-danger",
-  info: "text-primary"
-} as const;
+const TOAST_DURATION_MS = 3600;
 
 export function ToastViewport() {
   const toasts = useUiStore((state) => state.toasts);
   const removeToast = useUiStore((state) => state.removeToast);
 
   useEffect(() => {
-    if (toasts.length === 0) return;
+    if (toasts.length === 0) {
+      return;
+    }
 
     const timers = toasts.map((toast) =>
       window.setTimeout(() => {
         removeToast(toast.id);
-      }, 3600)
+      }, TOAST_DURATION_MS)
     );
 
-    return () => {
-      timers.forEach((timer) => window.clearTimeout(timer));
-    };
+    return () => timers.forEach((timer) => window.clearTimeout(timer));
   }, [toasts, removeToast]);
 
-  if (toasts.length === 0) return null;
-
   return (
-    <div className="pointer-events-none fixed right-4 top-4 z-50 flex w-[min(90vw,360px)] flex-col gap-2">
-      {toasts.map((toast) => {
-        const Icon = ICON_MAP[toast.kind];
-        return (
-          <div
-            key={toast.id}
-            className="pointer-events-auto flex animate-fade-up items-start gap-3 rounded-xl border border-border/80 bg-card/92 p-3 text-sm shadow-soft backdrop-blur-xs"
-          >
-            <Icon className={`mt-0.5 h-4 w-4 ${ICON_CLASS_MAP[toast.kind]}`} />
-            <p>{toast.message}</p>
-          </div>
-        );
-      })}
+    <div
+      aria-atomic="true"
+      aria-live="polite"
+      className="pointer-events-none fixed inset-x-0 top-3 z-50 flex justify-center px-3 md:top-4 md:justify-end md:px-4"
+    >
+      <div className="flex w-full max-w-[24rem] flex-col gap-2.5">
+        {toasts.map((toast) => {
+          return (
+            <ToastCard
+              key={toast.id}
+              kind={toast.kind}
+              role={toast.kind === "error" ? "alert" : "status"}
+              message={toast.message}
+              action={
+                <button
+                  type="button"
+                  aria-label="토스트 닫기"
+                  className={cn(
+                    "inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-foreground/34 transition-colors md:h-7 md:w-7",
+                    toast.kind === "success" && "hover:bg-white/72 hover:text-success/88",
+                    toast.kind === "error" && "hover:bg-white/76 hover:text-danger/92",
+                    toast.kind === "info" && "hover:bg-white/74 hover:text-primary-hover/90"
+                  )}
+                  onClick={() => removeToast(toast.id)}
+                >
+                  <X className="h-[15px] w-[15px]" />
+                </button>
+              }
+            />
+          );
+        })}
+      </div>
     </div>
   );
 }
