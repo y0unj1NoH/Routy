@@ -60,7 +60,7 @@ export default function SavedPage() {
 
   if (lists.length === 0) {
     return (
-      <PageContainer className="flex min-h-full flex-1 flex-col gap-10">
+      <PageContainer className="flex min-h-full flex-1 flex-col gap-[var(--page-section-gap)]">
         <PageTitle title={UI_COPY.saved.index.title} subtitle={UI_COPY.saved.index.subtitle} />
         <div className="flex flex-1 items-center justify-center">
           <div className="-translate-y-[calc(var(--bottom-nav-offset)/2)]">
@@ -77,21 +77,21 @@ export default function SavedPage() {
   }
 
   return (
-    <PageContainer className="space-y-8 pb-[calc(11rem+env(safe-area-inset-bottom))]">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <PageTitle title={UI_COPY.saved.index.title} subtitle={UI_COPY.saved.index.subtitle} />
-        <Button size="sm" onClick={() => setIsImportModalOpen(true)}>
-          <Plus className="mr-1 h-4 w-4" /> {UI_COPY.saved.index.addAction}
+    <PageContainer className="space-y-[var(--page-section-gap)] pb-[calc(11rem+env(safe-area-inset-bottom))]">
+      <div className="flex items-start justify-between gap-3 md:gap-4">
+        <PageTitle title={UI_COPY.saved.index.title} subtitle={UI_COPY.saved.index.subtitle} className="min-w-0 flex-1" />
+        <Button size="small" className="shrink-0" onClick={() => setIsImportModalOpen(true)}>
+          <Plus className="h-4 w-4" /> {UI_COPY.saved.index.addAction}
         </Button>
       </div>
 
-      <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 xl:grid-cols-4">
+      <section className="grid grid-cols-2 gap-[var(--card-list-gap)] md:grid-cols-3 lg:grid-cols-[repeat(auto-fit,minmax(14.75rem,16.25rem))] lg:justify-start">
         {lists.map((list) => (
           <ListItemCard
             key={list.id}
             href={`/saved/${list.id}`}
-            title={`${list.name} | ${list.city}`}
-            description={UI_COPY.saved.index.listCount(list.itemCount)}
+            title={list.name}
+            description={UI_COPY.saved.index.listDescription(list.city, list.itemCount)}
             previewPlaces={list.previewPlaces}
           />
         ))}
@@ -105,3 +105,4 @@ export default function SavedPage() {
     </PageContainer>
   );
 }
+

@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, CheckCircle2, Pencil, Plus, Trash2, X } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, type ComponentProps } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -13,14 +13,14 @@ import { DialogShell } from "@/components/common/dialog-shell";
 import { EmptyState } from "@/components/common/empty-state";
 import { LinkInput } from "@/components/common/link-input";
 import { LoadingPanel } from "@/components/common/loading-panel";
-import { PageBackButton } from "@/components/common/page-back-button";
-import { SectionHeader } from "@/components/common/section-header";
 import { PageContainer } from "@/components/layout/page-container";
+import { ToastCard } from "@/components/layout/toast-card";
 import { SavedListPlaceCard } from "@/components/saved/saved-list-place-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { UI_COPY } from "@/constants/ui-copy";
 import { useRequireAuth } from "@/hooks/use-require-auth";
+import { cn } from "@/lib/cn";
 import {
   googleMapsImportFormSchema,
   PLACE_LIST_CITY_MAX_LENGTH,
@@ -44,6 +44,42 @@ import type { PlaceList, PlaceListItem } from "@/types/domain";
 
 type GoogleLinkFormValues = z.infer<typeof googleMapsImportFormSchema>;
 const PLACE_REMOVE_UNDO_MS = 5000;
+
+function countCharacters(value: string) {
+  return Array.from(value).length;
+}
+
+type HeaderInlineCounterInputProps = ComponentProps<typeof Input> & {
+  maxCount: number;
+  wrapperClassName?: string;
+  counterClassName?: string;
+};
+
+function HeaderInlineCounterInput({
+  value,
+  maxCount,
+  className,
+  wrapperClassName,
+  counterClassName,
+  ...props
+}: HeaderInlineCounterInputProps) {
+  const currentCount = countCharacters(String(value ?? ""));
+
+  return (
+    <div className={cn("relative min-w-0", wrapperClassName)}>
+      <Input {...props} value={value} className={cn(className, "pr-14 md:pr-16")} />
+      <span
+        aria-hidden="true"
+        className={cn(
+          "pointer-events-none absolute right-0 tabular-nums text-2xs font-semibold text-foreground/38 md:text-xs",
+          counterClassName
+        )}
+      >
+        {currentCount}/{maxCount}
+      </span>
+    </div>
+  );
+}
 
 export default function SavedListDetailPage() {
   const addPlaceFormId = useId();
@@ -76,6 +112,7 @@ export default function SavedListDetailPage() {
     }
   });
   const googleLinkInput = addPlaceForm.watch("googleUrl");
+  const compactHeaderActionButtonClassName = "w-9 gap-0 px-0 md:w-auto md:gap-1.5 md:px-3.5";
   const closeAddPlaceModal = () => {
     addPlaceForm.clearErrors();
     setIsAddPlaceModalOpen(false);
@@ -442,95 +479,148 @@ export default function SavedListDetailPage() {
   };
 
   return (
-    <PageContainer className="space-y-6 pb-[calc(11rem+env(safe-area-inset-bottom))]">
-      <div className="space-y-4 border-b border-border/70 pb-6">
+    <PageContainer className="space-y-[var(--page-section-gap)] pb-[calc(11rem+env(safe-area-inset-bottom))]">
+      <div className="space-y-[var(--page-block-gap)]">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0 flex-1">
-            <div className="flex items-start gap-2.5">
-              <PageBackButton href="/saved" className="-ml-1 mt-0.5" />
-              <div className="min-w-0 flex-1 space-y-3">
-                {isHeaderEditing ? (
-                  <>
-                    <div className="space-y-1.5">
-                      <Input
-                        value={headerDraft.name}
-                        onChange={(event) => {
-                          clearListFieldError("name");
-                          setHeaderDraft((current) => ({
-                            ...current,
-                            name: event.target.value
-                          }));
-                        }}
-                        maxLength={PLACE_LIST_NAME_MAX_LENGTH}
-                        placeholder={list.name}
-                        className="h-auto rounded-none border-0 border-b border-border/70 bg-transparent px-0 py-2 text-3xl font-black tracking-tight shadow-none focus-visible:ring-0 md:text-4xl"
-                        aria-label="리스트 이름"
-                        aria-invalid={Boolean(listFieldErrors.name)}
-                      />
-                      <p className="text-xs text-danger">{listFieldErrors.name}</p>
-                    </div>
+            <div className={`min-w-0 ${isHeaderEditing ? "space-y-3" : "space-y-1.5"}`}>
+              {isHeaderEditing ? (
+                <>
+                  <div className="space-y-0">
+                    <HeaderInlineCounterInput
+                      value={headerDraft.name}
+                      onChange={(event) => {
+                        clearListFieldError("name");
+                        setHeaderDraft((current) => ({
+                          ...current,
+                          name: event.target.value
+                        }));
+                      }}
+                      maxCount={PLACE_LIST_NAME_MAX_LENGTH}
+                      maxLength={PLACE_LIST_NAME_MAX_LENGTH}
+                      placeholder={list.name}
+                      className="h-auto rounded-none border-0 border-b border-border/70 bg-transparent px-0 py-2 font-black leading-[1.2] tracking-[-0.03em] text-foreground shadow-none focus-visible:ring-0"
+                      counterClassName="bottom-2 md:bottom-2.5"
+                      style={{ fontSize: "var(--page-title-size)" }}
+                      aria-label="리스트 이름"
+                      aria-invalid={Boolean(listFieldErrors.name)}
+                    />
+                    <p className="text-xs text-danger">{listFieldErrors.name}</p>
+                  </div>
 
-                    <div className="space-y-1.5">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Input
+                  <div className="space-y-1.5">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <HeaderInlineCounterInput
                         value={headerDraft.city}
                         onChange={(event) => {
                           clearListFieldError("city");
                           setHeaderDraft((current) => ({
-                              ...current,
-                              city: event.target.value
+                            ...current,
+                            city: event.target.value
                           }));
                         }}
+                        maxCount={PLACE_LIST_CITY_MAX_LENGTH}
                         maxLength={PLACE_LIST_CITY_MAX_LENGTH}
                         placeholder={list.city}
-                        className="h-10 max-w-xs border-border/70 bg-card/70"
+                        wrapperClassName="min-w-[7rem] max-w-xs flex-1"
+                        className="h-auto w-full rounded-none border-0 border-b border-border/70 bg-transparent px-0 py-1 font-medium leading-[1.5] text-foreground shadow-none focus-visible:ring-0"
+                        counterClassName="bottom-1.5 md:bottom-2"
+                        style={{ fontSize: "var(--page-subtitle-size)" }}
                         aria-label="도시"
                         aria-invalid={Boolean(listFieldErrors.city)}
                       />
-                        <span className="text-sm text-foreground/52">{visibleItemCount}개 장소</span>
-                      </div>
-                      <p className="text-xs text-danger">{listFieldErrors.city}</p>
+                      <span
+                        className="font-medium leading-[1.5] text-foreground/52"
+                        style={{ fontSize: "var(--page-subtitle-size)" }}
+                      >
+                        {visibleItemCount}개 장소
+                      </span>
                     </div>
-                  </>
-                ) : (
-                  <>
-                    <h1 className="truncate text-3xl font-black tracking-tight md:text-4xl">{list.name}</h1>
-                    <div className="flex flex-wrap items-center gap-2 text-sm text-foreground/58">
-                      <span className="font-semibold text-foreground/72">{list.city}</span>
-                      <span className="h-1 w-1 rounded-full bg-foreground/20" />
-                      <span>{visibleItemCount}개 장소</span>
-                    </div>
-                  </>
-                )}
-              </div>
+                    <p className="text-xs text-danger">{listFieldErrors.city}</p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <h1
+                    className="truncate break-keep font-black leading-[1.2] tracking-[-0.03em] text-foreground"
+                    style={{ fontSize: "var(--page-title-size)" }}
+                  >
+                    {list.name}
+                  </h1>
+                  <div
+                    className="flex flex-wrap items-center gap-2 font-medium leading-[1.5] text-foreground/58"
+                    style={{ fontSize: "var(--page-subtitle-size)" }}
+                  >
+                    <span className="font-semibold text-foreground/72">{list.city}</span>
+                    <span className="h-1 w-1 rounded-full bg-foreground/20" />
+                    <span>{visibleItemCount}개 장소</span>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
           <div className="flex flex-wrap gap-2">
             {isHeaderEditing ? (
               <>
-                <Button variant="secondary" size="sm" disabled={listUpdateMutation.isPending} onClick={cancelHeaderEditing}>
-                  <X className="mr-1 h-4 w-4" />
-                  {UI_COPY.common.action.cancel}
+                <Button
+                  variant="secondary"
+                  size="small"
+                  shape="pill"
+                  className={compactHeaderActionButtonClassName}
+                  aria-label={UI_COPY.common.action.cancel}
+                  title={UI_COPY.common.action.cancel}
+                  disabled={listUpdateMutation.isPending}
+                  onClick={cancelHeaderEditing}
+                >
+                  <X className="h-4 w-4" />
+                  <span className="hidden md:inline">{UI_COPY.common.action.cancel}</span>
                 </Button>
-                <Button size="sm" disabled={listUpdateMutation.isPending} onClick={saveHeader}>
-                  <Check className="mr-1 h-4 w-4" />
-                  {listUpdateMutation.isPending ? UI_COPY.saved.detail.headerEditor.saving : UI_COPY.saved.detail.headerEditor.save}
+                <Button
+                  size="small"
+                  shape="pill"
+                  className={`shadow-surface ${compactHeaderActionButtonClassName}`}
+                  aria-label={
+                    listUpdateMutation.isPending ? UI_COPY.saved.detail.headerEditor.saving : UI_COPY.saved.detail.headerEditor.save
+                  }
+                  title={
+                    listUpdateMutation.isPending ? UI_COPY.saved.detail.headerEditor.saving : UI_COPY.saved.detail.headerEditor.save
+                  }
+                  disabled={listUpdateMutation.isPending}
+                  onClick={saveHeader}
+                >
+                  <Check className="h-4 w-4" />
+                  <span className="hidden md:inline">
+                    {listUpdateMutation.isPending ? UI_COPY.saved.detail.headerEditor.saving : UI_COPY.saved.detail.headerEditor.save}
+                  </span>
                 </Button>
               </>
             ) : (
               <>
-                <Button size="sm" variant="secondary" onClick={startHeaderEditing}>
-                  <Pencil className="mr-1 h-4 w-4" />
-                  {UI_COPY.saved.detail.headerActions.editList}
+                <Button
+                  size="small"
+                  variant="secondary"
+                  shape="pill"
+                  className={compactHeaderActionButtonClassName}
+                  aria-label={UI_COPY.saved.detail.headerActions.editList}
+                  title={UI_COPY.saved.detail.headerActions.editList}
+                  onClick={startHeaderEditing}
+                >
+                  <Pencil className="h-4 w-4" />
+                  <span className="hidden md:inline">{UI_COPY.saved.detail.headerActions.editList}</span>
                 </Button>
                 <Button
-                  size="sm"
+                  size="small"
                   variant="danger"
+                  shape="pill"
+                  className={`shadow-subtle ${compactHeaderActionButtonClassName}`}
+                  aria-label={UI_COPY.saved.detail.headerActions.deleteList}
+                  title={UI_COPY.saved.detail.headerActions.deleteList}
                   disabled={deleteListMutation.isPending}
                   onClick={() => setIsDeleteDialogOpen(true)}
                 >
-                  <Trash2 className="mr-1 h-4 w-4" /> {UI_COPY.saved.detail.headerActions.deleteList}
+                  <Trash2 className="h-4 w-4" />
+                  <span className="hidden md:inline">{UI_COPY.saved.detail.headerActions.deleteList}</span>
                 </Button>
               </>
             )}
@@ -539,15 +629,11 @@ export default function SavedListDetailPage() {
       </div>
 
       <section className="space-y-4">
-        <SectionHeader
-          title={UI_COPY.saved.detail.placesSection.title}
-          description={UI_COPY.saved.detail.placesSection.description}
-          action={
-            <Button size="sm" onClick={() => setIsAddPlaceModalOpen(true)}>
-              <Plus className="mr-1 h-4 w-4" /> {UI_COPY.saved.detail.headerActions.addPlace}
-            </Button>
-          }
-        />
+        <div className="flex justify-end">
+          <Button size="small" onClick={() => setIsAddPlaceModalOpen(true)}>
+            <Plus className="h-4 w-4" /> {UI_COPY.saved.detail.headerActions.addPlace}
+          </Button>
+        </div>
 
         <div className="grid gap-3">
           {visibleItems.length === 0 ? (
@@ -561,6 +647,7 @@ export default function SavedListDetailPage() {
                 key={item.id}
                 item={item}
                 detailHref={`/saved/${listId}/${item.place.id}`}
+                variant="comparison"
                 isNoteSaving={noteMutation.isPending && noteMutation.variables?.itemId === item.id}
                 isPrioritySaving={prioritySavingItemIds.includes(item.id)}
                 onTogglePriority={handleTogglePriority}
@@ -581,9 +668,8 @@ export default function SavedListDetailPage() {
         open={isAddPlaceModalOpen}
         eyebrow="Add Place"
         title={UI_COPY.saved.detail.addPlaceModal.title}
-        description={UI_COPY.saved.detail.addPlaceModal.description}
         busy={addPlaceByLinkMutation.isPending}
-        mascotVariant="detective"
+        mascotVariant={null}
         showCloseButton={false}
         headerClassName="bg-[linear-gradient(135deg,rgba(232,244,255,0.94),rgba(255,255,255,1)_72%)]"
         size="lg"
@@ -592,8 +678,7 @@ export default function SavedListDetailPage() {
           <>
             <Button
               variant="secondary"
-              size="sm"
-              className="min-w-[88px]"
+              size="medium"
               onClick={() => {
                 if (addPlaceByLinkMutation.isPending) return;
                 closeAddPlaceModal();
@@ -604,8 +689,7 @@ export default function SavedListDetailPage() {
             <Button
               type="submit"
               form={addPlaceFormId}
-              size="sm"
-              className="min-w-[88px]"
+              size="medium"
               disabled={addPlaceByLinkMutation.isPending || !googleLinkInput.trim()}
             >
               {addPlaceByLinkMutation.isPending ? UI_COPY.saved.detail.addPlaceModal.submitting : UI_COPY.saved.detail.addPlaceModal.submit}
@@ -654,20 +738,22 @@ export default function SavedListDetailPage() {
       {pendingRemovalItemIds.length > 0 ? (
         <div className="pointer-events-none fixed inset-x-0 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-40 flex flex-col items-center gap-2 px-4">
           {pendingRemovalItemIds.map((itemId) => (
-            <div
+            <ToastCard
               key={itemId}
-              className="pointer-events-auto flex w-full max-w-[340px] items-center gap-3 rounded-2xl border border-border/80 bg-card/92 px-4 py-3 text-sm shadow-soft backdrop-blur-xs"
-            >
-              <CheckCircle2 className="h-4 w-4 shrink-0 text-success" />
-              <p className="min-w-0 flex-1 leading-5 text-slate-700">{UI_COPY.saved.detail.removePlaceSuccess}</p>
-              <button
-                type="button"
-                onClick={() => undoQueuedRemoval(itemId)}
-                className="shrink-0 text-sm font-semibold text-primary transition hover:text-primary-hover"
-              >
-                {UI_COPY.common.action.restore}
-              </button>
-            </div>
+              kind="success"
+              role="status"
+              className="w-full max-w-[340px]"
+              message={UI_COPY.saved.detail.removePlaceSuccess}
+              action={
+                <button
+                  type="button"
+                  onClick={() => undoQueuedRemoval(itemId)}
+                  className="inline-flex h-7 shrink-0 items-center justify-center rounded-full border border-primary-light/34 bg-white/78 px-3 text-xs font-semibold text-primary-hover transition-colors hover:bg-white hover:text-primary md:h-8 md:px-3.5"
+                >
+                  {UI_COPY.common.action.restore}
+                </button>
+              }
+            />
           ))}
         </div>
       ) : null}

@@ -136,15 +136,15 @@ export const UI_COPY = {
     submit: "리스트 가져오기",
     submitting: "가져오는 중",
     close: "취소",
-    loading: "저장 리스트를 가져오는 중",
-    loadingHint: "장소가 많을수록 시간이 조금 더 걸릴 수 있어요. 잠시만 기다려 주세요",
+    loading: "리스트 가져오는 중",
+    loadingHint: "장소가 많을수록 시간이 더 걸릴 수 있어요\n잠시만 기다려 주세요",
     labels: {
       url: "Google Maps 저장 리스트 링크",
       listName: "리스트 이름",
       city: "도시 이름"
     },
     placeholders: {
-      url: "https://maps.app.goo.gl/저장리스트링크",
+      url: "https://maps.app.goo.gl/...",
       listName: "예: 방콕 3박 4일",
       city: "예: 방콕"
     },
@@ -201,7 +201,7 @@ export const UI_COPY = {
       notFoundTitle: "리스트를 찾을 수 없어요",
       notFoundDescription: "리스트를 찾을 수 없어요. 다시 확인해 주세요",
       listSubtitle: (city: string, itemCount: number) => `${city} · ${itemCount}개 장소`,
-      updateSuccess: "리스트 정보를 업데이트했어요",
+      updateSuccess: "리스트를 업데이트했어요",
       updateError: "리스트 업데이트에 실패했어요",
       noteError: "메모를 저장하지 못했어요",
       removePlaceSuccess: "장소를 리스트에서 삭제했어요",
@@ -214,9 +214,9 @@ export const UI_COPY = {
         importedCount > 1 ? `${importedCount}개 장소를 이 리스트에 추가했어요` : `${primaryPlaceName}를 리스트에 추가했어요`,
       addPlaceError: "장소 추가에 실패했어요",
       headerActions: {
-        editList: "리스트 편집",
+        editList: "편집",
         addPlace: "링크로 장소 추가",
-        deleteList: "리스트 삭제"
+        deleteList: "삭제"
       },
       headerEditor: {
         save: "저장",
@@ -227,6 +227,8 @@ export const UI_COPY = {
         description: "Must Visit 표시와 메모를 정리해 보세요",
         emptyTitle: "리스트가 비어 있어요",
         emptyDescription: "Google Maps 링크로 장소를 추가해 보세요",
+        comparisonPreviewLabel: "새 카드 시안",
+        comparisonCurrentLabel: "현재 카드",
         placeFallback: "이름 없는 장소",
         addressFallback: "주소 없음",
         notePlaceholder: "메모를 입력해 주세요",
@@ -237,7 +239,7 @@ export const UI_COPY = {
         title: "이 리스트에 장소 추가",
         description: "Google Maps 장소 링크를 붙여넣어 현재 리스트에 넣을 장소를 불러와요",
         label: "Google Maps 장소 링크",
-        placeholder: "https://maps.app.goo.gl/장소링크",
+        placeholder: "https://maps.app.goo.gl/...",
         submit: "장소 추가",
         submitting: "추가 중"
       },

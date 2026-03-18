@@ -107,9 +107,8 @@ export function ImportListModal({ isOpen, accessToken, onClose, onImported }: Im
       open={isOpen}
       eyebrow="Import List"
       title={UI_COPY.importListModal.title}
-      description={UI_COPY.importListModal.description}
       busy={crawlerMutation.isPending}
-      mascotVariant="detective"
+      mascotVariant={null}
       showCloseButton={false}
       headerClassName="bg-[linear-gradient(135deg,rgba(232,244,255,0.94),rgba(255,255,255,1)_72%)]"
       size="lg"
@@ -118,8 +117,7 @@ export function ImportListModal({ isOpen, accessToken, onClose, onImported }: Im
         <>
           <Button
             variant="secondary"
-            size="sm"
-            className="min-w-[88px]"
+            size="medium"
             onClick={() => {
               if (crawlerMutation.isPending) return;
               handleClose();
@@ -130,8 +128,7 @@ export function ImportListModal({ isOpen, accessToken, onClose, onImported }: Im
           <Button
             type="submit"
             form={formId}
-            size="sm"
-            className="min-w-[88px]"
+            size="medium"
             disabled={crawlerMutation.isPending || !crawlerUrl.trim() || !city.trim()}
           >
             {crawlerMutation.isPending ? UI_COPY.importListModal.submitting : UI_COPY.importListModal.submit}
