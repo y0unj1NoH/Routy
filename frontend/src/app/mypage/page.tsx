@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { startTransition, useEffect, useId, useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
@@ -25,10 +25,11 @@ import { DialogShell } from "@/components/common/dialog-shell";
 import { EmptyState } from "@/components/common/empty-state";
 import { ListItemCard } from "@/components/common/list-item-card";
 import { LoadingPanel } from "@/components/common/loading-panel";
+import { NextTripCard } from "@/components/common/next-trip-card";
 import { PageTitle } from "@/components/common/page-title";
 import { SectionHeader } from "@/components/common/section-header";
 import { UI_COPY } from "@/constants/ui-copy";
-import { Mascot } from "@/components/layout/mascot";
+import { Mascot, MASCOT_SIZE_CLASS } from "@/components/layout/mascot";
 import { PageContainer } from "@/components/layout/page-container";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -57,6 +58,7 @@ import { useUiStore } from "@/stores/ui-store";
 import type { Schedule } from "@/types/domain";
 
 const WEEKDAY_LABELS = UI_COPY.mypage.weekdayLabels;
+const INTEGER_FORMATTER = new Intl.NumberFormat("ko-KR");
 
 type PreferenceBadgeItem = {
   id: string;
@@ -65,6 +67,8 @@ type PreferenceBadgeItem = {
   text: string;
   icon: BadgeIconName;
 };
+
+type SummaryTone = "blue" | "amber" | "mint" | "yellow";
 
 type CompanionKey = keyof typeof COMPANION_BADGE_MAP;
 type PaceKey = keyof typeof PACE_BADGE_MAP;
@@ -264,30 +268,69 @@ function getSegmentTone(status: ScheduleStatus) {
   return "bg-primary text-white";
 }
 
-function SummaryCard({
+function formatMetricValue(value: number) {
+  return INTEGER_FORMATTER.format(value);
+}
+
+function getSummaryToneClasses(tone: SummaryTone) {
+  switch (tone) {
+    case "amber":
+      return {
+        card: "border-[#f4debf]",
+        accent: "bg-[#efc46d]",
+        icon: "text-[#dfa44d]"
+      };
+    case "mint":
+      return {
+        card: "border-[#d3e8d9]",
+        accent: "bg-[#6bc89b]",
+        icon: "text-[#45b27e]"
+      };
+    case "yellow":
+      return {
+        card: "border-[#f1e2a4]",
+        accent: "bg-[#f1cc52]",
+        icon: "text-[#e1bb3a]"
+      };
+    case "blue":
+    default:
+      return {
+        card: "border-[#cfe6fb]",
+        accent: "bg-[#7cc7ff]",
+        icon: "text-[#58b7f6]"
+      };
+  }
+}
+
+function SummaryMetricCard({
   icon: Icon,
   label,
   value,
-  hint
+  tone
 }: {
   icon: typeof CalendarRange;
   label: string;
   value: string;
-  hint: string;
+  tone: SummaryTone;
 }) {
+  const toneClasses = getSummaryToneClasses(tone);
+
   return (
-    <Card className="space-y-4 p-5">
-      <div className="flex items-center justify-between gap-3">
-        <div className="rounded-full bg-primary/12 p-2 text-primary">
-          <Icon className="h-5 w-5" />
+    <div
+      className={cn(
+        "relative overflow-hidden rounded-[20px] border bg-white/90 px-4 py-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.78)] md:rounded-[22px] md:px-4 md:py-4",
+        toneClasses.card
+      )}
+    >
+      <div className={cn("absolute left-3 right-3 top-0 h-[2.5px] rounded-full opacity-95 md:left-4 md:right-4", toneClasses.accent)} />
+      <div className="flex h-full flex-col justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <Icon className={cn("h-4 w-4 shrink-0 md:h-[18px] md:w-[18px]", toneClasses.icon)} />
+          <p className="font-black leading-none tracking-[-0.06em] text-foreground" style={{ fontSize: "var(--page-empty-title-size)" }}>{value}</p>
         </div>
-        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-foreground/45">{label}</p>
+        <p className="text-[11px] leading-[1.3] tracking-[-0.01em] text-foreground/56 md:text-xs">{label}</p>
       </div>
-      <div className="space-y-1">
-        <p className="text-3xl font-black">{value}</p>
-        <p className="text-sm text-foreground/60">{hint}</p>
-      </div>
-    </Card>
+    </div>
   );
 }
 
@@ -361,6 +404,8 @@ export default function MyPage() {
   );
 
   const nextSchedule = upcomingAndOngoingSchedules[0] || null;
+  const totalScheduleCount = schedules.length;
+  const upcomingScheduleCount = upcomingAndOngoingSchedules.length;
   const totalSavedPlaces = placeLists.reduce((sum, list) => sum + list.itemCount, 0);
   const preferenceBadges = buildPreferenceBadges(schedules);
   const isDeleteAccountEmailMatched =
@@ -474,110 +519,100 @@ export default function MyPage() {
   }
 
   return (
-    <PageContainer className="space-y-8 pb-[calc(11rem+env(safe-area-inset-bottom))]">
-      <section className="flex flex-wrap items-start justify-between gap-4">
-        <PageTitle
-          title={UI_COPY.mypage.title}
-          subtitle={UI_COPY.mypage.subtitle}
-          className="min-w-0"
-        />
-        <Mascot variant="map" floating className="h-28 w-28 shrink-0" />
+    <PageContainer className="space-y-[var(--page-section-gap)] pb-[calc(var(--bottom-nav-offset)+var(--page-bottom-padding))]">
+      <section className="flex items-start justify-between gap-4">
+        <PageTitle title={UI_COPY.mypage.title} className="min-w-0" />
+        <Mascot variant="map" className={cn(MASCOT_SIZE_CLASS.compactAside, "shrink-0")} />
       </section>
 
       {nextSchedule ? (
-        <Link href={`/routes/${nextSchedule.id}`} className="block">
-          <Card className="overflow-hidden border-primary-light bg-[linear-gradient(135deg,rgba(255,255,255,0.98),rgba(244,251,255,0.96))] p-6">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div className="space-y-3">
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">{UI_COPY.mypage.nextTripEyebrow}</p>
-                <div className="space-y-1">
-                  <h2 className="text-2xl font-black md:text-3xl">{nextSchedule.title}</h2>
-                  <p className="text-sm text-foreground/68 md:text-base">
-                    {nextSchedule.placeList.city} · {formatDateRange(nextSchedule.startDate, nextSchedule.endDate)}
-                  </p>
-                </div>
-              </div>
-              <div
-                className={cn(
-                  "inline-flex items-center rounded-full border border-border-strong bg-card px-4 font-bold text-primary shadow-soft",
-                  BADGE_HEIGHT_CLASS.medium,
-                  BADGE_TEXT_CLASS.medium
-                )}
-              >
-                {formatRelativeTripLabel(nextSchedule.startDate, nextSchedule.endDate)}
-              </div>
-            </div>
-          </Card>
-        </Link>
+        <NextTripCard
+          href={`/routes/${nextSchedule.id}`}
+          eyebrow={UI_COPY.mypage.nextTripEyebrow}
+          title={nextSchedule.title}
+          description={`${nextSchedule.placeList.city} · ${formatDateRange(nextSchedule.startDate, nextSchedule.endDate)}`}
+          statusLabel={formatRelativeTripLabel(nextSchedule.startDate, nextSchedule.endDate)}
+        />
       ) : null}
 
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <SummaryCard
-          icon={CalendarRange}
-          label={UI_COPY.mypage.summaryCards.totalSchedules.label}
-          value={`${schedules.length}개`}
-          hint={UI_COPY.mypage.summaryCards.totalSchedules.hint}
-        />
-        <SummaryCard
-          icon={Sparkles}
-          label={UI_COPY.mypage.summaryCards.upcomingSchedules.label}
-          value={`${upcomingAndOngoingSchedules.length}개`}
-          hint={UI_COPY.mypage.summaryCards.upcomingSchedules.hint}
-        />
-        <SummaryCard
-          icon={ListTree}
-          label={UI_COPY.mypage.summaryCards.savedLists.label}
-          value={`${placeLists.length}개`}
-          hint={UI_COPY.mypage.summaryCards.savedLists.hint}
-        />
-        <SummaryCard
-          icon={MapPinned}
-          label={UI_COPY.mypage.summaryCards.savedPlaces.label}
-          value={`${totalSavedPlaces}개`}
-          hint={UI_COPY.mypage.summaryCards.savedPlaces.hint}
-        />
-      </section>
+      <Card className="overflow-hidden rounded-[28px] border-primary-light/25 bg-[radial-gradient(circle_at_top_left,rgba(124,199,255,0.14),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(255,235,163,0.18),transparent_30%),linear-gradient(180deg,rgba(255,255,255,0.98),rgba(247,250,255,0.96))] p-3 shadow-[0_18px_40px_rgba(15,23,42,0.05)] md:rounded-[30px] md:p-3.5">
+        <div className="grid grid-cols-2 gap-2.5 md:gap-3">
+          <SummaryMetricCard
+            icon={CalendarRange}
+            tone="blue"
+            label={UI_COPY.mypage.summaryCards.totalSchedules.label}
+            value={formatMetricValue(totalScheduleCount)}
+          />
+          <SummaryMetricCard
+            icon={Sparkles}
+            tone="amber"
+            label={UI_COPY.mypage.summaryCards.upcomingSchedules.label}
+            value={formatMetricValue(upcomingScheduleCount)}
+          />
+          <SummaryMetricCard
+            icon={ListTree}
+            tone="mint"
+            label={UI_COPY.mypage.summaryCards.savedLists.label}
+            value={formatMetricValue(placeLists.length)}
+          />
+          <SummaryMetricCard
+            icon={MapPinned}
+            tone="yellow"
+            label={UI_COPY.mypage.summaryCards.savedPlaces.label}
+            value={formatMetricValue(totalSavedPlaces)}
+          />
+        </div>
+      </Card>
 
-      <Card className="space-y-5 p-5">
-        <SectionHeader
-          title={
-            <span className="inline-flex items-center gap-2">
-              <CalendarRange className="h-5 w-5" />
+      <Card className="space-y-5 p-4 md:p-5">
+        <div className="space-y-2.5">
+          <div className="flex items-start justify-between gap-3">
+            <h2
+              className="inline-flex min-w-0 items-center gap-2 break-keep font-black leading-[1.2] text-foreground"
+              style={{ fontSize: "var(--section-title-size)" }}
+            >
+              <CalendarRange className="h-5 w-5 shrink-0" />
               {UI_COPY.mypage.calendarSection.title}
-            </span>
-          }
-          description={UI_COPY.mypage.calendarSection.description}
-          action={
-            <div className="flex items-center gap-2">
-              <Button
-                size="sm"
-                variant="secondary"
-                shape="pill"
-                className="h-7 w-7 p-0 sm:h-8 sm:w-8"
-                onClick={() => setMonthOffset((current) => current - 1)}
-                aria-label="이전 달"
-              >
-                <ChevronLeft className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-              </Button>
-              <div className="min-w-30 text-center text-sm font-bold">{formatMonthTitle(visibleMonth)}</div>
-              <Button
-                size="sm"
-                variant="secondary"
-                shape="pill"
-                className="h-7 w-7 p-0 sm:h-8 sm:w-8"
-                onClick={() => setMonthOffset((current) => current + 1)}
-                aria-label="다음 달"
-              >
-                <ChevronRight className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-              </Button>
+            </h2>
+            <div className="shrink-0">
+              <div className="flex items-center gap-1 md:gap-1.5">
+                <Button
+                  size="small"
+                  variant="secondary"
+                  iconOnly
+                  className="text-foreground/58 hover:text-primary"
+                  onClick={() => setMonthOffset((current) => current - 1)}
+                  aria-label="이전 달"
+                  title="이전 달"
+                >
+                  <ChevronLeft />
+                </Button>
+                <div className="min-w-0 whitespace-nowrap px-1 text-center text-xs font-semibold md:min-w-30 md:text-sm md:font-bold">
+                  {formatMonthTitle(visibleMonth)}
+                </div>
+                <Button
+                  size="small"
+                  variant="secondary"
+                  iconOnly
+                  className="text-foreground/58 hover:text-primary"
+                  onClick={() => setMonthOffset((current) => current + 1)}
+                  aria-label="다음 달"
+                  title="다음 달"
+                >
+                  <ChevronRight />
+                </Button>
+              </div>
             </div>
-          }
-        />
+          </div>
+          <p className="break-keep text-xs leading-relaxed text-foreground/60 md:text-sm">
+            {UI_COPY.mypage.calendarSection.description}
+          </p>
+        </div>
 
-        <div className="overflow-hidden rounded-2xl border border-border/90 bg-card/70">
+        <div className="overflow-hidden rounded-xl border border-border/90 bg-card/70 md:rounded-2xl">
           <div className="grid grid-cols-7 border-b border-border/80 bg-primary-soft/75">
             {WEEKDAY_LABELS.map((label) => (
-              <div key={label} className="px-1 py-3 text-center text-[10px] font-bold uppercase tracking-widest text-foreground/52 sm:px-3 sm:text-xs">
+              <div key={label} className="px-1 py-3 text-center text-2xs font-bold uppercase tracking-widest text-foreground/52 md:px-3 md:text-xs">
                 {label}
               </div>
             ))}
@@ -585,7 +620,7 @@ export default function MyPage() {
           <div className="grid grid-cols-7">
             {monthCells.map((date, index) => {
               if (!date) {
-                return <div key={`empty-${index}`} className="min-h-[74px] border-b border-r border-border/60 bg-muted/18 sm:min-h-[106px]" />;
+                return <div key={`empty-${index}`} className="min-h-[74px] border-b border-r border-border/60 bg-muted/18 md:min-h-[106px]" />;
               }
 
               const daySchedules = visibleMonthSchedules.filter((schedule) => doesScheduleOverlapDate(schedule, date));
@@ -596,9 +631,9 @@ export default function MyPage() {
               return (
                 <div
                   key={date.toISOString()}
-                  className="min-h-[74px] border-b border-r border-border/60 bg-card/82 px-0.5 py-1 align-top sm:min-h-[106px] sm:px-1 sm:py-2"
+                  className="min-h-[74px] border-b border-r border-border/60 bg-card/82 px-0.5 py-1 align-top md:min-h-[106px] md:px-1 md:py-2"
                 >
-                  <div className={cn("mb-1 px-1 text-[11px] font-bold text-foreground/75 sm:mb-2 sm:px-2 sm:text-sm", isToday && "text-primary")}>
+                  <div className={cn("mb-1 px-1 text-xs font-bold text-foreground/75 md:mb-2 md:px-2 md:text-sm", isToday && "text-primary")}>
                     {date.getDate()}
                   </div>
 
@@ -621,15 +656,15 @@ export default function MyPage() {
                           key={`${schedule.id}-${date.toISOString()}`}
                           href={`/routes/${schedule.id}`}
                           aria-label={`${schedule.title} 일정으로 이동`}
-                          className="relative block h-4 text-[9px] font-bold transition-opacity hover:opacity-85 sm:h-5 sm:text-[10px]"
+                          className="relative block h-4 text-3xs font-bold transition-opacity hover:opacity-85 md:h-5 md:text-2xs"
                           title={`${schedule.title} · ${formatDateRange(schedule.startDate, schedule.endDate)}`}
                         >
                           <span
                             className={cn(
-                              "absolute inset-y-0 flex items-center overflow-hidden border border-white/10 shadow-[0_6px_16px_rgba(15,23,42,0.12)]",
+                              "absolute inset-y-0 flex items-center overflow-hidden border border-white/10 shadow-subtle",
                               getSegmentTone(status),
-                              startsSegment ? "left-0.5 rounded-l-full pl-2 sm:left-1" : "-left-px rounded-l-none",
-                              endsSegment ? "right-0.5 rounded-r-full pr-2 sm:right-1" : "-right-px rounded-r-none"
+                              startsSegment ? "left-0.5 rounded-l-full pl-2 md:left-1" : "-left-px rounded-l-none",
+                              endsSegment ? "right-0.5 rounded-r-full pr-2 md:right-1" : "-right-px rounded-r-none"
                             )}
                           >
                             <span className="block truncate px-1">{showLabel ? schedule.title : "\u00A0"}</span>
@@ -638,7 +673,7 @@ export default function MyPage() {
                       );
                     })}
                     {hiddenScheduleCount > 0 ? (
-                      <p className="px-1 text-[9px] font-semibold text-foreground/52 sm:px-2 sm:text-[11px]">
+                      <p className="px-1 text-3xs font-semibold text-foreground/52 md:px-2 md:text-xs">
                         {UI_COPY.mypage.calendarSection.hiddenSchedules(hiddenScheduleCount)}
                       </p>
                     ) : null}
@@ -658,7 +693,7 @@ export default function MyPage() {
           )}
         >
           {pastSchedules.length > 0 ? (
-            <Card className="space-y-4 p-5">
+            <Card className="space-y-4 p-4 md:p-5">
               <SectionHeader title={UI_COPY.mypage.archiveSection.title} description={UI_COPY.mypage.archiveSection.description} />
 
               <div className="grid gap-3">
@@ -686,7 +721,7 @@ export default function MyPage() {
           ) : null}
 
           {preferenceBadges.length > 0 ? (
-            <Card className="space-y-4 p-5">
+            <Card className="space-y-4 p-4 md:p-5">
               <SectionHeader
                 title={
                   <span className="inline-flex items-center gap-2">
@@ -707,7 +742,7 @@ export default function MyPage() {
         </section>
       ) : null}
 
-      <Card className="space-y-5 overflow-hidden border-primary-light/35 bg-[linear-gradient(135deg,rgba(255,255,255,0.98),rgba(244,251,255,0.96))] p-5">
+      <Card className="space-y-5 overflow-hidden border-primary-light/35 bg-[linear-gradient(135deg,rgba(255,255,255,0.98),rgba(244,251,255,0.96))] p-4 md:p-5">
         <SectionHeader
           title={
             <span className="inline-flex items-center gap-2">
@@ -717,8 +752,8 @@ export default function MyPage() {
           }
         />
 
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="rounded-[22px] border border-border/75 bg-card/86 p-4 shadow-[0_14px_30px_rgba(15,23,42,0.05)]">
+        <div className="grid gap-3 md:grid-cols-2">
+          <div className="rounded-xl border border-border/75 bg-card/86 p-4 shadow-surface md:rounded-2xl">
             <div className="flex items-start gap-3">
               <div className="rounded-2xl bg-primary-soft p-2.5 text-primary">
                 <Mail className="h-4 w-4" />
@@ -732,7 +767,7 @@ export default function MyPage() {
             </div>
           </div>
 
-          <div className="rounded-[22px] border border-border/75 bg-card/86 p-4 shadow-[0_14px_30px_rgba(15,23,42,0.05)]">
+          <div className="rounded-xl border border-border/75 bg-card/86 p-4 shadow-surface md:rounded-2xl">
             <div className="flex items-start gap-3">
               <div className="rounded-2xl bg-primary-soft p-2.5 text-primary">
                 <UserCircle2 className="h-4 w-4" />
@@ -748,13 +783,13 @@ export default function MyPage() {
         </div>
 
         <Button
-          size="sm"
+          size="small"
           variant="secondary"
           disabled={isSigningOut}
           onClick={handleSignOut}
-          className="w-full justify-center sm:w-auto"
+          className="self-start"
         >
-          <LogOut className="mr-2 h-4 w-4" />
+          <LogOut className="h-4 w-4" />
           {isSigningOut ? UI_COPY.mypage.logout.loading : UI_COPY.mypage.logout.action}
         </Button>
 
@@ -766,7 +801,7 @@ export default function MyPage() {
             deleteAccountForm.reset();
             setIsDeleteAccountDialogOpen(true);
           }}
-          className="block pl-1 text-left text-[11px] font-medium text-foreground/48 underline underline-offset-2 decoration-foreground/28 transition-colors hover:text-foreground/68 hover:decoration-foreground/44 focus-visible:outline-hidden focus-visible:text-foreground/68 disabled:cursor-not-allowed disabled:opacity-50"
+          className="block pl-1 text-left text-2xs font-medium text-foreground/48 underline underline-offset-2 decoration-foreground/28 transition-colors hover:text-foreground/68 hover:decoration-foreground/44 focus-visible:outline-hidden focus-visible:text-foreground/68 disabled:cursor-not-allowed disabled:opacity-50 md:text-xs"
         >
           {UI_COPY.mypage.deleteAccount.action}
         </button>
@@ -787,8 +822,7 @@ export default function MyPage() {
           <>
             <Button
               variant="secondary"
-              size="sm"
-              className="min-w-[88px]"
+              size="medium"
               onClick={closeDeleteAccountDialog}
               disabled={deleteAccountMutation.isPending}
             >
@@ -798,8 +832,7 @@ export default function MyPage() {
               type="submit"
               form={deleteAccountFormId}
               variant="danger"
-              size="sm"
-              className="min-w-[96px]"
+              size="medium"
               disabled={!isDeleteAccountEmailMatched || deleteAccountMutation.isPending}
             >
               {deleteAccountMutation.isPending ? UI_COPY.mypage.deleteAccount.confirming : UI_COPY.mypage.deleteAccount.confirm}
@@ -822,9 +855,9 @@ export default function MyPage() {
             </p>
           ) : null}
 
-          <div className="flex items-center gap-3 rounded-[22px] border border-danger/24 bg-danger/8 p-4 shadow-[0_12px_26px_rgba(15,23,42,0.04)]">
+          <div className="flex items-center gap-3 rounded-lg border border-danger/24 bg-danger/8 p-4 shadow-subtle md:rounded-xl">
             <AlertTriangle className="h-4 w-4 shrink-0 text-danger" />
-            <p className="text-sm leading-6 text-foreground/72">{UI_COPY.mypage.deleteAccount.description}</p>
+            <p className="text-xs leading-6 text-foreground/72 md:text-sm">{UI_COPY.mypage.deleteAccount.description}</p>
           </div>
 
           <div className="space-y-1">
@@ -850,3 +883,4 @@ export default function MyPage() {
     </PageContainer>
   );
 }
+

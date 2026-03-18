@@ -159,6 +159,7 @@ export const UI_COPY = {
       title: "내 일정",
       subtitle: "다가오는 여행만 먼저 보여드려요"
     },
+    nextTripEyebrow: "NEXT TRIP",
     loading: {
       schedules: "일정 목록 불러오는 중"
     },
@@ -610,14 +611,13 @@ export const UI_COPY = {
       description: "잠시 후 다시 시도해 주세요"
     },
     title: "마이페이지",
-    subtitle: "다가올 여행과 지난 여행을 한눈에 확인할 수 있어요",
-    nextTripEyebrow: "next trip",
+    nextTripEyebrow: "NEXT TRIP",
     weekdayLabels: ["일", "월", "화", "수", "목", "금", "토"],
     summaryCards: {
-      totalSchedules: { label: "전체 일정", hint: "지금까지 만든 여행 일정" },
-      upcomingSchedules: { label: "다가오는 일정", hint: "출발 전이거나 진행 중인 여행" },
-      savedLists: { label: "저장 리스트", hint: "도시별로 모아 둔 여행 장소" },
-      savedPlaces: { label: "저장 장소", hint: "리스트에 담아 둔 전체 장소" }
+      totalSchedules: { label: "만든 여행" },
+      upcomingSchedules: { label: "곧 떠날 여행" },
+      savedLists: { label: "모아둔 리스트" },
+      savedPlaces: { label: "담아둔 장소" }
     },
     calendarSection: {
       title: "여행 캘린더",

@@ -77,7 +77,7 @@ export function getRelativeTripLabel(startDate: string, endDate?: string): { kin
     return { kind: "starting_today", text: UI_COPY.scheduleStatus.startingToday };
   }
   if (diffDays <= UPCOMING_SOON_THRESHOLD_DAYS) {
-    return { kind: "upcoming_soon", text: UI_COPY.scheduleStatus.upcomingSoon };
+    return { kind: "upcoming_soon", text: UI_COPY.scheduleStatus.upcomingInDays(diffDays) };
   }
   return { kind: "upcoming", text: UI_COPY.scheduleStatus.upcomingInDays(diffDays) };
 }

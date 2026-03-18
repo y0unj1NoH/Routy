@@ -9,6 +9,7 @@ import { ListItemCard } from "@/components/common/list-item-card";
 import { HomeEmptyState } from "@/components/home/home-empty-state";
 import { HomeScheduleHeader } from "@/components/home/home-schedule-header";
 import { LoadingPanel } from "@/components/common/loading-panel";
+import { NextTripCard } from "@/components/common/next-trip-card";
 import { UI_COPY } from "@/constants/ui-copy";
 import { PageContainer } from "@/components/layout/page-container";
 import { buttonStyles } from "@/components/ui/button-styles";
@@ -80,7 +81,7 @@ export default function HomePage() {
 
   if (schedules.length === 0) {
     return (
-      <PageContainer className="flex min-h-full flex-1 flex-col gap-10">
+      <PageContainer className="flex min-h-full flex-1 flex-col gap-[var(--page-section-gap)]">
         <HomeScheduleHeader showMascot={false} />
         <div className="flex flex-1 items-center justify-center">
           <div className="-translate-y-[calc(var(--bottom-nav-offset)/2)]">
@@ -93,14 +94,14 @@ export default function HomePage() {
 
   if (!heroSchedule) {
     return (
-      <PageContainer className="space-y-10">
+      <PageContainer className="space-y-[var(--page-section-gap)]">
         <HomeScheduleHeader showMascot={false} />
         <EmptyState
           title={UI_COPY.home.pastOnly.title}
           description={UI_COPY.home.pastOnly.description(pastSchedules.length)}
           mascotVariant="map"
           action={
-            <div className="flex flex-col justify-center gap-2 sm:flex-row">
+            <div className="flex flex-col justify-center gap-2 md:flex-row">
               <Link href="/routes/new" className={buttonStyles({ shape: "pill", className: "px-5 font-semibold" })}>
                 {UI_COPY.home.pastOnly.createAction}
               </Link>
@@ -117,25 +118,23 @@ export default function HomePage() {
     );
   }
 
-  const heroScheduleDday = getScheduleDdayLabel(heroSchedule.startDate);
-
   return (
-    <PageContainer className="space-y-10">
-      <HomeScheduleHeader statusLabel={formatRelativeTripLabel(heroSchedule.startDate, heroSchedule.endDate)} />
+    <PageContainer className="space-y-[var(--page-section-gap)]">
+      <HomeScheduleHeader />
 
-      <ListItemCard
+      <NextTripCard
         href={`/routes/${heroSchedule.id}`}
+        eyebrow={UI_COPY.home.nextTripEyebrow}
         title={heroSchedule.title}
         description={`${heroSchedule.placeList.city} · ${formatDateRange(heroSchedule.startDate, heroSchedule.endDate)}`}
-        badge={heroScheduleDday ? <DDayBadge label={heroScheduleDday} /> : undefined}
-        variant="featured"
+        statusLabel={formatRelativeTripLabel(heroSchedule.startDate, heroSchedule.endDate)}
       />
 
       {restSchedules.length > 0 ? (
         <section className="space-y-4">
           <div className="flex items-center gap-3">
             <div className="h-px flex-1 border-t border-dashed border-border/80" />
-            <p className="shrink-0 text-[11px] font-black uppercase tracking-[0.24em] text-foreground/45">
+            <p className="shrink-0 text-xs font-black uppercase tracking-[0.24em] text-foreground/45">
               {UI_COPY.home.otherSchedulesLabel}
             </p>
             <div className="h-px flex-1 border-t border-dashed border-border/80" />

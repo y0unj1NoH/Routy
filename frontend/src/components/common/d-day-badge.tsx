@@ -1,4 +1,3 @@
-import { Badge } from "@/components/ui/badge";
 import { DDAY_BADGE_STYLE } from "@/lib/badge-theme";
 
 type DDayBadgeProps = {
@@ -7,12 +6,11 @@ type DDayBadgeProps = {
 
 export function DDayBadge({ label }: DDayBadgeProps) {
   return (
-    <Badge
-      tone="primary"
-      className="min-w-18 justify-center border-transparent px-3 py-1 text-xs font-semibold text-white shadow-[0_8px_16px_rgba(15,23,42,0.12)]"
+    <span
+      className="inline-flex min-h-8 min-w-[3.6rem] items-center justify-center rounded-full border border-white/55 px-3 text-[11px] font-black leading-none tracking-[-0.02em] tabular-nums text-white shadow-[0_10px_22px_rgba(60,157,255,0.22)] md:min-h-9 md:min-w-[4rem] md:px-3.5 md:text-xs"
       style={{ backgroundColor: DDAY_BADGE_STYLE.bg, color: DDAY_BADGE_STYLE.text }}
     >
       {label}
-    </Badge>
+    </span>
   );
 }
