@@ -30,6 +30,7 @@ import { DialogFieldHint, DialogFieldLabel } from "@/components/common/dialog-fi
 import { DialogShell } from "@/components/common/dialog-shell";
 import { LinkInput } from "@/components/common/link-input";
 import { LoadingPanel } from "@/components/common/loading-panel";
+import { MustVisitIconBadge } from "@/components/common/must-visit-icon-badge";
 import { PageEmptyState } from "@/components/common/page-empty-state";
 import { PlacePhoto } from "@/components/common/place-photo";
 import { ImportListModal } from "@/components/import/import-list-modal";
@@ -47,7 +48,7 @@ import {
   normalizeFunnelStep,
   type FunnelQueryStep
 } from "@/constants/funnel";
-import { MUST_VISIT_BADGE, type ThemeValue } from "@/constants/route-taxonomy";
+import { type ThemeValue } from "@/constants/route-taxonomy";
 import { UI_COPY } from "@/constants/ui-copy";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import { cn } from "@/lib/cn";
@@ -316,7 +317,7 @@ function StayOptionCard({
                 {item.place.name || UI_COPY.saved.detail.placesSection.placeFallback}
               </p>
               <div className="flex flex-wrap items-center gap-1.5">
-                {item.isMustVisit ? <Badge size="card" tone="primary">{MUST_VISIT_BADGE}</Badge> : null}
+                {item.isMustVisit ? <MustVisitIconBadge size="card" /> : null}
                 {isNewlyAdded ? <Badge size="card" className="bg-white/90">Google 추가</Badge> : null}
               </div>
             </div>
@@ -573,7 +574,7 @@ export default function NewRoutePage() {
         throw new Error(UI_COPY.saved.detail.addPlaceNotFound);
       }
 
-      const stayPlaces = places.filter((place) => place.category === "STAY");
+      const stayPlaces = places.filter((place) => place.categories.includes("STAY"));
       if (stayPlaces.length === 0) {
         throw new Error(UI_COPY.routes.new.toast.addedStayTypeError);
       }
@@ -664,7 +665,7 @@ export default function NewRoutePage() {
   }, [minViewMonth, viewMonthStart]);
 
   const stayItems = useMemo(
-    () => (selectedListDetailQuery.data?.items || []).filter((item) => item.place.category === "STAY"),
+    () => (selectedListDetailQuery.data?.items || []).filter((item) => item.place.categories.includes("STAY")),
     [selectedListDetailQuery.data?.items]
   );
 

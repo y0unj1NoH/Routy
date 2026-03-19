@@ -3,7 +3,6 @@
 import {
   ArrowDown,
   ArrowUp,
-  Clock3,
   MapPin,
   Plus,
   Sparkles,
@@ -15,14 +14,13 @@ import { useEffect, useState, type MouseEvent as ReactMouseEvent } from "react";
 
 import { CategoryBadge } from "@/components/common/category-badge";
 import { GoogleMapsMark } from "@/components/common/google-maps-mark";
+import { MustVisitIconBadge } from "@/components/common/must-visit-icon-badge";
 import { NoteDisplayPanel, NoteEditorPanel } from "@/components/common/note-panels";
 import { PlacePhoto } from "@/components/common/place-photo";
 import { RouteLabelChip } from "@/components/routes/route-label-chip";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { buttonStyles } from "@/components/ui/button-styles";
 import { Card } from "@/components/ui/card";
-import { MUST_VISIT_BADGE } from "@/constants/route-taxonomy";
 import { UI_COPY } from "@/constants/ui-copy";
 import { cn } from "@/lib/cn";
 import { buildPlaceOpeningHint } from "@/lib/place-opening";
@@ -32,10 +30,11 @@ type RouteStopPlace = {
   name: string | null;
   formattedAddress: string | null;
   openingHours?: unknown;
-  category?: string | null;
+  categories: string[];
   rating?: number | null;
   userRatingCount?: number | null;
   priceLevel?: number | null;
+  typesRaw?: string[] | null;
   googleMapsUrl?: string | null;
   photos?: string[] | null;
 };
@@ -68,7 +67,9 @@ type RouteStopCardProps = {
   isActive: boolean;
   onFocus: (stopId: string) => void;
   showMapAction?: boolean;
+  showPlaceInfoAction?: boolean;
   showNoteSection?: boolean;
+  showNoteActions?: boolean;
   isNoteOpen?: boolean;
   isNoteSaving?: boolean;
   onToggleNote?: (stopId: string) => void;
@@ -175,7 +176,9 @@ export function RouteStopCard({
   isActive,
   onFocus,
   showMapAction = true,
+  showPlaceInfoAction = true,
   showNoteSection = true,
+  showNoteActions = true,
   isNoteOpen = false,
   isNoteSaving = false,
   onToggleNote,
@@ -186,7 +189,7 @@ export function RouteStopCard({
   const openingHint = buildPlaceOpeningHint(stop.place.openingHours);
   const summaryText = hideGeneratedMeta ? "" : normalizeCopy(stop.visitTip);
   const savedNote = showNoteSection ? normalizeCopy(stop.note) : "";
-  const canEditNote = showNoteSection && Boolean(onToggleNote && onSaveNote);
+  const canEditNote = showNoteSection && showNoteActions && Boolean(onToggleNote && onSaveNote);
   const [draftNote, setDraftNote] = useState(savedNote);
   const hasEditActions = Boolean(editActions);
 
@@ -228,10 +231,19 @@ export function RouteStopCard({
   const showAddNoteAction = canEditNote && !savedNote && !isNoteOpen && !hasEditActions;
   const resolvedEditActions = editActions;
   const hasMapAction = showMapAction && Boolean(stop.place.googleMapsUrl);
+  const hasPlaceInfoAction = showPlaceInfoAction;
   const hasRating = typeof stop.place.rating === "number";
   const cardUtilityActionButtonClassName =
     "border border-border text-foreground/78 hover:!border-border-strong hover:!bg-slate-50 hover:!text-foreground";
   const cardMapIconButtonClassName = `w-8 px-0 justify-center md:w-10 ${cardUtilityActionButtonClassName}`;
+  const primaryCategory = Array.isArray(stop.place.categories) ? (stop.place.categories[0] ?? null) : null;
+  const renderCategoryBadge = () => {
+    if (!primaryCategory) {
+      return null;
+    }
+
+    return <CategoryBadge value={primaryCategory} size="card" />;
+  };
 
   return (
     <Card
@@ -248,8 +260,8 @@ export function RouteStopCard({
           <div className="min-w-0 flex-1 flex flex-col gap-1.5 pt-0.5">
             <div className="flex flex-wrap items-center gap-1.5">
               {!hideGeneratedMeta && stop.label ? <RouteLabelChip value={stop.label} size="card" /> : null}
-              {stop.isMustVisit ? <Badge size="card" tone="primary">{MUST_VISIT_BADGE}</Badge> : null}
-              <CategoryBadge value={stop.place.category} size="card" />
+              {renderCategoryBadge()}
+              {stop.isMustVisit ? <MustVisitIconBadge size="card" /> : null}
             </div>
             <h3
               title={stop.place.name || UI_COPY.routes.stopCard.placeFallback}
@@ -257,12 +269,6 @@ export function RouteStopCard({
             >
               {stop.place.name || UI_COPY.routes.stopCard.placeFallback}
             </h3>
-            <StatusInline
-              label={statusLabel}
-              detail={openingHint.warningText}
-              tone={statusTone}
-              className="max-w-full flex-wrap gap-x-1.5 gap-y-0.5 text-2xs leading-none"
-            />
           </div>
 
           <div className="relative shrink-0">
@@ -281,14 +287,23 @@ export function RouteStopCard({
           </div>
         </div>
 
-        {stop.place.formattedAddress ? (
-          <div className="text-xs font-medium text-slate-500">
-            <span className="inline-flex items-start gap-1.5">
-              <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
-              <span className="line-clamp-2">{compactLocation(stop.place.formattedAddress)}</span>
-            </span>
-          </div>
-        ) : null}
+        <div className="flex flex-wrap items-center gap-1.5 text-xs font-medium text-slate-500">
+          <StatusInline
+            label={statusLabel}
+            detail={openingHint.warningText}
+            tone={statusTone}
+            className="ml-0.5 max-w-full flex-wrap gap-x-1.5 gap-y-0.5 leading-none"
+          />
+          {stop.place.formattedAddress ? (
+            <>
+              <DotDivider />
+              <span className="inline-flex items-start gap-1.5">
+                <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+                <span className="line-clamp-2">{compactLocation(stop.place.formattedAddress)}</span>
+              </span>
+            </>
+          ) : null}
+        </div>
 
         {summaryText ? (
           <div className="rounded-[20px] border border-[#CFE4FF] bg-[linear-gradient(135deg,rgba(60,157,255,0.14),rgba(255,255,255,0.96)_56%,rgba(235,244,255,0.94)_100%)] px-3 py-2.5 shadow-surface">
@@ -347,7 +362,7 @@ export function RouteStopCard({
             </div>
           ) : null}
 
-          <div className={cn("flex items-center justify-end gap-2", hasMapAction ? "shrink-0" : undefined)}>
+          <div className={cn("flex items-center justify-end gap-2", hasMapAction || hasPlaceInfoAction ? "shrink-0" : undefined)}>
             {hasMapAction ? (
               <a
                 href={stop.place.googleMapsUrl || undefined}
@@ -365,17 +380,19 @@ export function RouteStopCard({
                 <GoogleMapsMark />
               </a>
             ) : null}
-            <Link
-              href={detailHref}
-              onClick={(event) => event.stopPropagation()}
-              className={buttonStyles({
-                size: "xsmall",
-                shape: "pill",
-                className: "text-white"
-              })}
-            >
-              {UI_COPY.routes.stopCard.placeInfoAction}
-            </Link>
+            {hasPlaceInfoAction ? (
+              <Link
+                href={detailHref}
+                onClick={(event) => event.stopPropagation()}
+                className={buttonStyles({
+                  size: "xsmall",
+                  shape: "pill",
+                  className: "text-white"
+                })}
+              >
+                {UI_COPY.routes.stopCard.placeInfoAction}
+              </Link>
+            ) : null}
           </div>
         </div>
       </div>
@@ -383,20 +400,10 @@ export function RouteStopCard({
       <div className="hidden md:block">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0 flex-1 space-y-3">
-            <div className="flex flex-wrap items-center gap-1.5 text-xs font-semibold text-slate-500">
-              {!hideGeneratedMeta ? (
-                <>
-                  <span className="inline-flex items-center gap-1.5">
-                    <Clock3 className="h-3.5 w-3.5 text-primary" />
-                    {stop.time || "--:--"}
-                  </span>
-                  <DotDivider />
-                  <RouteLabelChip value={stop.label || "VISIT"} size="card" />
-                  <StatusInline label={statusLabel} detail={openingHint.warningText} tone={statusTone} />
-                </>
-              ) : (
-                <StatusInline label={statusLabel} detail={openingHint.warningText} tone={statusTone} />
-              )}
+            <div className="flex flex-wrap items-center gap-1.5">
+              {!hideGeneratedMeta && stop.label ? <RouteLabelChip value={stop.label} size="card" /> : null}
+              {renderCategoryBadge()}
+              {stop.isMustVisit ? <MustVisitIconBadge size="card" /> : null}
             </div>
 
             <h3
@@ -407,7 +414,7 @@ export function RouteStopCard({
             </h3>
 
             <div className="flex flex-wrap items-center gap-1.5 text-xs font-medium text-slate-500">
-              <CategoryBadge value={stop.place.category} size="card" />
+              <StatusInline label={statusLabel} detail={openingHint.warningText} tone={statusTone} className="ml-0.5" />
               {hasRating ? (
                 <>
                   <DotDivider />
@@ -511,25 +518,22 @@ export function RouteStopCard({
         />
       ) : null}
 
-      <div className={cn("hidden md:flex flex-wrap items-center gap-3", showAddNoteAction || stop.isMustVisit ? "justify-between" : "justify-end")}>
-        {showAddNoteAction || stop.isMustVisit ? (
+      <div className={cn("hidden md:flex flex-wrap items-center gap-3", showAddNoteAction ? "justify-between" : "justify-end")}>
+        {showAddNoteAction ? (
           <div className="flex flex-wrap items-center gap-2.5">
-            {showAddNoteAction ? (
-              <button
-                type="button"
-                onClick={handleToggleNote}
-                className={buttonStyles({
-                  variant: "ghost",
-                  size: "xsmall",
-                  shape: "pill",
-                  className: `${cardUtilityActionButtonClassName} [&_svg]:shrink-0`
-                })}
-              >
-                <Plus />
-                {UI_COPY.routes.stopCard.addNote}
-              </button>
-            ) : null}
-            {stop.isMustVisit ? <Badge size="card" tone="primary">{MUST_VISIT_BADGE}</Badge> : null}
+            <button
+              type="button"
+              onClick={handleToggleNote}
+              className={buttonStyles({
+                variant: "ghost",
+                size: "xsmall",
+                shape: "pill",
+                className: `${cardUtilityActionButtonClassName} [&_svg]:shrink-0`
+              })}
+            >
+              <Plus />
+              {UI_COPY.routes.stopCard.addNote}
+            </button>
           </div>
         ) : null}
 
@@ -552,13 +556,15 @@ export function RouteStopCard({
               <GoogleMapsMark />
             </a>
           ) : null}
-          <Link
-            href={detailHref}
-            onClick={(event) => event.stopPropagation()}
-            className={buttonStyles({ size: "xsmall", shape: "pill", className: "text-white" })}
-          >
-            {UI_COPY.routes.stopCard.placeInfoAction}
-          </Link>
+          {showPlaceInfoAction ? (
+            <Link
+              href={detailHref}
+              onClick={(event) => event.stopPropagation()}
+              className={buttonStyles({ size: "xsmall", shape: "pill", className: "text-white" })}
+            >
+              {UI_COPY.routes.stopCard.placeInfoAction}
+            </Link>
+          ) : null}
         </div>
       </div>
     </Card>

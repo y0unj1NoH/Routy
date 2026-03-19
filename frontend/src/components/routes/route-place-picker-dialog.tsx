@@ -5,11 +5,10 @@ import { useMemo, useState } from "react";
 
 import { CategoryBadge } from "@/components/common/category-badge";
 import { DialogShell } from "@/components/common/dialog-shell";
+import { MustVisitIconBadge } from "@/components/common/must-visit-icon-badge";
 import { PlacePhoto } from "@/components/common/place-photo";
-import { Badge } from "@/components/ui/badge";
 import { buttonStyles } from "@/components/ui/button-styles";
 import { Input } from "@/components/ui/input";
-import { MUST_VISIT_BADGE } from "@/constants/route-taxonomy";
 import { cn } from "@/lib/cn";
 import type { PlaceListItem } from "@/types/domain";
 
@@ -140,8 +139,8 @@ export function RoutePlacePickerDialog({
                   />
                   <div className="min-w-0 flex-1 space-y-2">
                     <div className="flex flex-wrap items-center gap-2">
-                      {item.isMustVisit ? <Badge size="card" tone="primary">{MUST_VISIT_BADGE}</Badge> : null}
-                      {item.place.category ? <CategoryBadge size="card" value={item.place.category} /> : null}
+                      {item.place.categories[0] ? <CategoryBadge size="card" value={item.place.categories[0]} /> : null}
+                      {item.isMustVisit ? <MustVisitIconBadge size="card" /> : null}
                     </div>
                     <div className="space-y-1">
                       <p className="line-clamp-2 text-base font-black text-foreground">{item.place.name || "이름 없는 장소"}</p>

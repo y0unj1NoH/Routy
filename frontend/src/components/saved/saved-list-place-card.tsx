@@ -6,9 +6,9 @@ import { useEffect, useState, type MouseEvent as ReactMouseEvent } from "react";
 
 import { CategoryBadge } from "@/components/common/category-badge";
 import { GoogleMapsMark } from "@/components/common/google-maps-mark";
+import { MustVisitIconBadge } from "@/components/common/must-visit-icon-badge";
 import { NoteDisplayPanel, NoteEditorPanel } from "@/components/common/note-panels";
 import { PlacePhoto } from "@/components/common/place-photo";
-import { Badge } from "@/components/ui/badge";
 import { buttonStyles } from "@/components/ui/button-styles";
 import { UI_COPY } from "@/constants/ui-copy";
 import { cn } from "@/lib/cn";
@@ -411,9 +411,7 @@ export function SavedListPlaceCard({
             <div className="absolute inset-x-0 top-0 flex items-start justify-between gap-3 p-4">
               <div className="flex min-w-0 flex-wrap items-center gap-2">
                 {item.isMustVisit ? (
-                  <Badge size={savedCardBadgeSize} className="uppercase tracking-[0.14em] shadow-subtle">
-                    {UI_COPY.saved.detail.placesSection.mustVisitBadge}
-                  </Badge>
+                  <MustVisitIconBadge size={savedCardBadgeSize} className="shadow-subtle" />
                 ) : null}
               </div>
 
@@ -460,7 +458,7 @@ export function SavedListPlaceCard({
           <div className="flex flex-col gap-3 p-4">
             <div className="flex flex-col gap-2">
               <div className="flex flex-wrap items-center gap-2">
-                <CategoryBadge value={item.place.category} size={savedCardBadgeSize} />
+                <CategoryBadge value={item.place.categories[0] ?? null} size={savedCardBadgeSize} />
                 <StatusInline label={statusLabel} detail={openingHint.warningText} tone={statusTone} className="text-[11px] md:text-xs" />
               </div>
 
@@ -494,12 +492,10 @@ export function SavedListPlaceCard({
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 space-y-3">
                     <div className="flex flex-wrap items-center gap-2">
+                      <CategoryBadge value={item.place.categories[0] ?? null} size={savedCardBadgeSize} />
                       {item.isMustVisit ? (
-                        <Badge size={savedCardBadgeSize} className="uppercase tracking-[0.14em]">
-                          {UI_COPY.saved.detail.placesSection.mustVisitBadge}
-                        </Badge>
+                        <MustVisitIconBadge size={savedCardBadgeSize} />
                       ) : null}
-                      <CategoryBadge value={item.place.category} size={savedCardBadgeSize} />
                       <StatusInline label={statusLabel} detail={openingHint.warningText} tone={statusTone} />
                     </div>
 
@@ -596,12 +592,10 @@ export function SavedListPlaceCard({
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 space-y-3">
               <div className="flex flex-wrap items-center gap-2">
+                <CategoryBadge value={item.place.categories[0] ?? null} size={savedCardBadgeSize} />
                 {item.isMustVisit ? (
-                  <Badge size={savedCardBadgeSize} className="uppercase tracking-[0.14em]">
-                    {UI_COPY.saved.detail.placesSection.mustVisitBadge}
-                  </Badge>
+                  <MustVisitIconBadge size={savedCardBadgeSize} />
                 ) : null}
-                <CategoryBadge value={item.place.category} size={savedCardBadgeSize} />
                 <StatusInline label={statusLabel} detail={openingHint.warningText} tone={statusTone} />
               </div>
 
