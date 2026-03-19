@@ -220,12 +220,13 @@ export default function RecommendationPage() {
   const renderMobilePreviewHero = () => (
     <div className="lg:hidden">
       <div
+        aria-hidden={isMobileHeroCollapsed}
         className={cn(
-          "grid overflow-hidden transition-[grid-template-rows] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
+          "grid overflow-hidden rounded-xl transition-[grid-template-rows] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none md:rounded-2xl",
           isMobileHeroCollapsed ? "grid-rows-[0fr]" : "grid-rows-[1fr]"
         )}
       >
-        <div className="min-h-0 overflow-hidden">
+        <div className="min-h-0 overflow-hidden rounded-[inherit]">
           <div
             className={cn(
               "transition-[opacity,transform,scale] duration-220 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
