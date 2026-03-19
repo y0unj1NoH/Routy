@@ -313,7 +313,7 @@ function StayOptionCard({
         <div className="min-w-0 flex-1 space-y-1">
           <div className="flex items-start gap-2">
             <div className="min-w-0 flex-1 space-y-1">
-              <p className="line-clamp-2 break-keep text-xs font-black leading-[1.35] text-foreground">
+              <p className="line-clamp-2 break-keep text-xs font-black leading-[1.35] text-foreground md:text-sm">
                 {item.place.name || UI_COPY.saved.detail.placesSection.placeFallback}
               </p>
               <div className="flex flex-wrap items-center gap-1.5">

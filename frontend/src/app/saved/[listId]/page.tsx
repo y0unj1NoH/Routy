@@ -566,7 +566,6 @@ export default function SavedListDetailPage() {
                 <Button
                   variant="secondary"
                   size="small"
-                  shape="pill"
                   className={compactHeaderActionButtonClassName}
                   aria-label={UI_COPY.common.action.cancel}
                   title={UI_COPY.common.action.cancel}
@@ -578,7 +577,6 @@ export default function SavedListDetailPage() {
                 </Button>
                 <Button
                   size="small"
-                  shape="pill"
                   className={`shadow-surface ${compactHeaderActionButtonClassName}`}
                   aria-label={
                     listUpdateMutation.isPending ? UI_COPY.saved.detail.headerEditor.saving : UI_COPY.saved.detail.headerEditor.save
@@ -600,7 +598,6 @@ export default function SavedListDetailPage() {
                 <Button
                   size="small"
                   variant="secondary"
-                  shape="pill"
                   className={compactHeaderActionButtonClassName}
                   aria-label={UI_COPY.saved.detail.headerActions.editList}
                   title={UI_COPY.saved.detail.headerActions.editList}
@@ -612,7 +609,6 @@ export default function SavedListDetailPage() {
                 <Button
                   size="small"
                   variant="danger"
-                  shape="pill"
                   className={`shadow-subtle ${compactHeaderActionButtonClassName}`}
                   aria-label={UI_COPY.saved.detail.headerActions.deleteList}
                   title={UI_COPY.saved.detail.headerActions.deleteList}
