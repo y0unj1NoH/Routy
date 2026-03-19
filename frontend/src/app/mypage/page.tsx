@@ -814,7 +814,8 @@ export default function MyPage() {
         description={undefined}
         busy={deleteAccountMutation.isPending}
         mascotVariant="sad"
-        headerClassName="bg-[linear-gradient(135deg,rgba(232,244,255,0.94),rgba(255,255,255,1)_72%)]"
+        mascotClassName="h-[calc(var(--mascot-dialog-size)*1.5)] w-[calc(var(--mascot-dialog-size)*1.5)]"
+        tone="danger"
         showCloseButton={false}
         size="md"
         onClose={closeDeleteAccountDialog}

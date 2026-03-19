@@ -40,6 +40,8 @@ export function ConfirmDialog({
   const resolvedMascotVariant = intent === "danger" ? null : mascotVariant;
   const resolvedDescription = description || UI_COPY.common.deleteConfirm.description;
   const resolvedEyebrow = intent === "danger" ? "Delete Confirm" : undefined;
+  const resolvedHeaderClassName =
+    intent === "danger" ? undefined : "bg-[linear-gradient(135deg,rgba(232,244,255,0.94),rgba(255,255,255,1)_72%)]";
 
   return (
     <DialogShell
@@ -49,7 +51,8 @@ export function ConfirmDialog({
       description={undefined}
       busy={busy}
       mascotVariant={resolvedMascotVariant}
-      headerClassName="bg-[linear-gradient(135deg,rgba(232,244,255,0.94),rgba(255,255,255,1)_72%)]"
+      tone={intent}
+      headerClassName={resolvedHeaderClassName}
       showCloseButton={false}
       size="md"
       onClose={onClose}

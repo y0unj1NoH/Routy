@@ -17,7 +17,9 @@ type DialogShellProps = {
   footer?: ReactNode;
   busy?: boolean;
   mascotVariant?: MascotVariant | null;
+  mascotClassName?: string;
   size?: "md" | "lg";
+  tone?: "default" | "danger";
   className?: string;
   contentClassName?: string;
   headerClassName?: string;
@@ -42,7 +44,9 @@ function DialogPanel({
   footer,
   busy = false,
   mascotVariant = "detective",
+  mascotClassName,
   size = "md",
+  tone = "default",
   className,
   contentClassName,
   headerClassName,
@@ -66,7 +70,7 @@ function DialogPanel({
     <Card
       {...modalA11yProps}
       className={cn(
-        "w-full overflow-hidden border-border bg-white/98 p-0 shadow-floating backdrop-blur-none rounded-xl md:rounded-2xl",
+        "flex w-full max-h-[calc(100dvh-2rem)] flex-col overflow-hidden rounded-xl border-border bg-white/98 p-0 shadow-floating backdrop-blur-none md:max-h-[calc(100dvh-3rem)] md:rounded-2xl",
         sizeClasses[size],
         className
       )}
@@ -74,15 +78,29 @@ function DialogPanel({
     >
       <div
         className={cn(
-          "relative overflow-hidden border-b border-border/80 bg-linear-to-br from-primary-soft via-white to-card px-4 py-4 md:px-5 md:py-5",
+          "relative overflow-hidden border-b px-4 py-4 md:px-5 md:py-5",
+          tone === "danger"
+            ? "border-danger/18 bg-[linear-gradient(135deg,rgba(255,239,242,0.98),rgba(255,255,255,1)_74%)]"
+            : "border-border/80 bg-linear-to-br from-primary-soft via-white to-card",
           headerClassName
         )}
       >
-        <div className="absolute -right-10 -top-10 h-24 w-24 rounded-full bg-primary/10 blur-3xl" />
+        <div
+          className={cn(
+            "absolute -right-10 -top-10 h-24 w-24 rounded-full blur-3xl",
+            tone === "danger" ? "bg-danger/12" : "bg-primary/10"
+          )}
+        />
         <div className="relative flex items-center justify-between gap-4">
           <div className="min-w-0 flex-1 space-y-1">
             {eyebrow ? (
-              <div className="font-black uppercase tracking-[0.16em] leading-none text-primary/82" style={{ fontSize: "var(--page-eyebrow-size)" }}>
+              <div
+                className={cn(
+                  "font-black uppercase tracking-[0.16em] leading-none",
+                  tone === "danger" ? "text-danger" : "text-primary/82"
+                )}
+                style={{ fontSize: "var(--page-eyebrow-size)" }}
+              >
                 {eyebrow}
               </div>
             ) : null}
@@ -101,7 +119,12 @@ function DialogPanel({
           </div>
 
           <div className="flex items-start gap-2">
-            {mascotVariant ? <Mascot variant={mascotVariant} className="h-[var(--mascot-dialog-size)] w-[var(--mascot-dialog-size)] shrink-0 opacity-95" /> : null}
+            {mascotVariant ? (
+              <Mascot
+                variant={mascotVariant}
+                className={cn("h-[var(--mascot-dialog-size)] w-[var(--mascot-dialog-size)] shrink-0 opacity-95", mascotClassName)}
+              />
+            ) : null}
             {showCloseButton ? (
               <Button
                 variant="ghost"
@@ -119,10 +142,12 @@ function DialogPanel({
         </div>
       </div>
 
-      <div className={cn("space-y-[var(--modal-section-gap)] p-4 md:p-5", contentClassName)}>
-        {children}
+      <div className="flex min-h-0 flex-1 flex-col">
+        <div className={cn("min-h-0 flex-1 space-y-[var(--modal-section-gap)] overflow-y-auto p-4 md:p-5", contentClassName)}>
+          {children}
+        </div>
         {footer ? (
-          <div className="flex flex-wrap items-center justify-end gap-2 border-t border-border/70 pt-3 sm:flex-nowrap">
+          <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 border-t border-border/70 px-4 py-3 md:px-5 sm:flex-nowrap">
             {footer}
           </div>
         ) : null}
