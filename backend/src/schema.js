@@ -195,6 +195,21 @@ const typeDefs = /* GraphQL */ `
     note: String
   }
 
+  input SaveScheduleEditStopInput {
+    placeId: ID!
+    note: String
+    isMustVisit: Boolean = false
+  }
+
+  input SaveScheduleEditDayInput {
+    dayNumber: Int!
+    stops: [SaveScheduleEditStopInput!]!
+  }
+
+  input SaveScheduleEditsInput {
+    days: [SaveScheduleEditDayInput!]!
+  }
+
   type Query {
     health: HealthCheck!
     me: User
@@ -230,6 +245,7 @@ const typeDefs = /* GraphQL */ `
     regenerateSchedule(scheduleId: ID!, input: RegenerateScheduleInput!): Schedule!
     moveScheduleStop(scheduleId: ID!, input: MoveScheduleStopInput!): Schedule!
     updateScheduleStop(scheduleId: ID!, input: UpdateScheduleStopInput!): ScheduleStop!
+    saveScheduleEdits(scheduleId: ID!, input: SaveScheduleEditsInput!): Schedule!
     deleteSchedule(id: ID!): Boolean!
   }
 `;

@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, PencilLine, Plus, Trash2, X } from "lucide-react";
+import { Check, LoaderCircle, PencilLine, Plus, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState, type ComponentProps, type ReactNode } from "react";
 
 import { PageTitle } from "@/components/common/page-title";
@@ -45,6 +45,7 @@ type RouteDetailViewProps = {
   onCancelEdit?: () => void;
   onCommitEdit?: () => void;
   editCommitBusy?: boolean;
+  editCommitDisabled?: boolean;
   editedDayNumbers?: number[];
   onAddPlace?: (dayNumber: number) => void;
   getStopEditActions?: (stop: ScheduleStop, day: ScheduleDay) => RouteStopCardEditActions | null;
@@ -71,6 +72,7 @@ export function RouteDetailView({
   onCancelEdit,
   onCommitEdit,
   editCommitBusy = false,
+  editCommitDisabled = false,
   editedDayNumbers = [],
   onAddPlace,
   getStopEditActions,
@@ -131,7 +133,7 @@ export function RouteDetailView({
   });
 
   const dayTopContent = useMemo(() => {
-    if (!isEditMode && !isCurrentDayEdited) return null;
+    if (!isEditMode) return null;
 
     return (
       <div className="space-y-3">
@@ -165,6 +167,9 @@ export function RouteDetailView({
         detailHref={currentDay?.date ? `/places/${stop.place.id}?visitDate=${encodeURIComponent(currentDay.date)}` : `/places/${stop.place.id}`}
         isActive={isActive}
         onFocus={focusStopFromCard}
+        showMapAction={!isEditMode}
+        showPlaceInfoAction={!isEditMode}
+        showNoteActions={!isEditMode}
         isNoteOpen={!isEditMode && editingStopId === stop.id}
         isNoteSaving={!isEditMode && isStopNoteSaving && noteSavingStopId === stop.id}
         onToggleNote={
@@ -221,10 +226,10 @@ export function RouteDetailView({
             size="small"
             className={`shrink-0 shadow-surface ${compactHeaderActionButtonClassName}`}
             onClick={onCommitEdit}
-            disabled={editCommitBusy}
+            disabled={editCommitBusy || editCommitDisabled}
             aria-label="저장"
           >
-            <Check className="h-4 w-4" />
+            {editCommitBusy ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
             <span className="hidden md:inline">저장</span>
           </Button>
         </>
@@ -246,7 +251,6 @@ export function RouteDetailView({
             <Button
               size="small"
               variant="danger"
-              shape="pill"
               className={`shrink-0 justify-center shadow-subtle ${compactHeaderActionButtonClassName}`}
               onClick={onDelete}
               disabled={deleteBusy}

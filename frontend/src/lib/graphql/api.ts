@@ -13,6 +13,7 @@ import {
   MY_SCHEDULES_QUERY,
   PLACE_DETAIL_QUERY,
   PLACE_LIST_DETAIL_QUERY,
+  SAVE_SCHEDULE_EDITS_MUTATION,
   REGENERATE_SCHEDULE_MUTATION,
   REMOVE_PLACE_LIST_ITEM_MUTATION,
   SCHEDULE_DETAIL_QUERY,
@@ -204,6 +205,28 @@ export async function updateScheduleStopNote(
     { scheduleId, input },
     accessToken
   );
+}
+
+export async function saveScheduleEdits(
+  accessToken: string,
+  scheduleId: string,
+  input: {
+    days: Array<{
+      dayNumber: number;
+      stops: Array<{
+        placeId: string;
+        note?: string | null;
+        isMustVisit?: boolean;
+      }>;
+    }>;
+  }
+) {
+  const data = await gqlRequest<{ saveScheduleEdits: Schedule }, { scheduleId: string; input: typeof input }>(
+    SAVE_SCHEDULE_EDITS_MUTATION,
+    { scheduleId, input },
+    accessToken
+  );
+  return data.saveScheduleEdits;
 }
 
 export async function regenerateSchedule(accessToken: string, scheduleId: string) {

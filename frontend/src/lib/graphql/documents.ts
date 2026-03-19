@@ -121,13 +121,13 @@ export const SCHEDULE_DETAIL_QUERY = /* GraphQL */ `
       createdAt
       updatedAt
       placeList {
-        ${PLACE_LIST_CARD_FIELDS}
+        ${PLACE_LIST_DETAIL_FIELDS}
       }
-    stayPlace {
-      ${PLACE_FIELDS}
-    }
-    stayRecommendation
-    days {
+      stayPlace {
+        ${PLACE_FIELDS}
+      }
+      stayRecommendation
+      days {
         id
         dayNumber
         date
@@ -241,6 +241,54 @@ export const UPDATE_SCHEDULE_STOP_MUTATION = /* GraphQL */ `
       id
       note
       isUserModified
+    }
+  }
+`;
+
+export const SAVE_SCHEDULE_EDITS_MUTATION = /* GraphQL */ `
+  mutation SaveScheduleEdits($scheduleId: ID!, $input: SaveScheduleEditsInput!) {
+    saveScheduleEdits(scheduleId: $scheduleId, input: $input) {
+      id
+      userId
+      title
+      startDate
+      endDate
+      dayCount
+      companions
+      pace
+      themes
+      outputLanguage
+      generationInput
+      generationVersion
+      isManualModified
+      createdAt
+      updatedAt
+      placeList {
+        ${PLACE_LIST_DETAIL_FIELDS}
+      }
+      stayPlace {
+        ${PLACE_FIELDS}
+      }
+      stayRecommendation
+      days {
+        id
+        dayNumber
+        date
+        stops {
+          id
+          stopOrder
+          time
+          label
+          isMustVisit
+          note
+          visitTip
+          transportToNext
+          isUserModified
+          place {
+            ${PLACE_FIELDS}
+          }
+        }
+      }
     }
   }
 `;

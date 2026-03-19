@@ -70,7 +70,7 @@ function DialogPanel({
     <Card
       {...modalA11yProps}
       className={cn(
-        "flex w-full max-h-[calc(100dvh-2rem)] flex-col overflow-hidden rounded-xl border-border bg-white/98 p-0 shadow-floating backdrop-blur-none md:max-h-[calc(100dvh-3rem)] md:rounded-2xl",
+        "flex w-full max-h-[calc(100dvh-1rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))] flex-col overflow-hidden rounded-xl border-border bg-white/98 p-0 shadow-floating backdrop-blur-none md:max-h-[calc(100dvh-3rem)] md:rounded-2xl",
         sizeClasses[size],
         className
       )}
@@ -192,7 +192,7 @@ export function DialogShell({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[rgb(88_94_104/0.46)] px-3 py-4 backdrop-blur-[2px] md:px-4 md:py-6"
+      className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-[rgb(88_94_104/0.46)] px-3 py-4 backdrop-blur-[2px] md:px-4 md:py-6"
       onClick={() => {
         if (busy) return;
         onClose();

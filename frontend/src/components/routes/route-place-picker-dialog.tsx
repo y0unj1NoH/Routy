@@ -1,6 +1,6 @@
 "use client";
 
-import { NotebookPen, Search } from "lucide-react";
+import { MapPin, NotebookPen, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { CategoryBadge } from "@/components/common/category-badge";
@@ -73,6 +73,7 @@ export function RoutePlacePickerDialog({
       headerClassName="bg-[linear-gradient(135deg,rgba(232,244,255,0.94),rgba(255,255,255,1)_72%)]"
       showCloseButton={false}
       size="lg"
+      contentClassName="flex min-h-0 flex-col overflow-hidden p-4 md:p-5"
       footer={
         <>
           <button
@@ -101,7 +102,7 @@ export function RoutePlacePickerDialog({
         </>
       }
     >
-      <div className="space-y-4">
+      <div className="flex min-h-0 flex-1 flex-col gap-4">
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/35" />
           <Input
@@ -112,7 +113,8 @@ export function RoutePlacePickerDialog({
           />
         </div>
 
-        <div className="space-y-3">
+        <div className="min-h-0 max-h-[50dvh] overflow-y-auto pr-1">
+          <div className="space-y-3">
           {filteredPlaces.length === 0 ? (
             <div className="rounded-xl border border-dashed border-border bg-card/80 px-4 py-8 text-center text-xs font-medium text-foreground/58 md:rounded-2xl md:text-sm">
               추가할 장소가 없어요
@@ -127,39 +129,59 @@ export function RoutePlacePickerDialog({
                   setQuery("");
                 }}
                 className={cn(
-                  "w-full rounded-xl border border-border/75 bg-white/96 px-4 py-4 text-left shadow-surface transition hover:border-primary-light/65 hover:bg-primary-soft/30 md:rounded-2xl"
+                  "w-full rounded-xl border px-4 py-3 text-left shadow-surface transition-[background-color,border-color,box-shadow] md:rounded-2xl md:px-5 md:py-4",
+                  "border-border/75 bg-white hover:border-primary/25 hover:bg-primary/5"
                 )}
               >
-                <div className="flex items-start gap-4">
+                <div className="flex items-start gap-2.5">
                   <PlacePhoto
                     name={item.place.name}
                     photos={item.place.photos}
-                    className="h-20 w-20 shrink-0 rounded-lg md:h-[92px] md:w-[92px] md:rounded-xl"
-                    sizes="(max-width: 767px) 80px, 92px"
+                    className="h-16 w-16 shrink-0 rounded-lg md:h-20 md:w-20 md:rounded-xl"
+                    sizes="(min-width: 640px) 80px, 64px"
                   />
-                  <div className="min-w-0 flex-1 space-y-2">
-                    <div className="flex flex-wrap items-center gap-2">
-                      {item.place.categories[0] ? <CategoryBadge size="card" value={item.place.categories[0]} /> : null}
-                      {item.isMustVisit ? <MustVisitIconBadge size="card" /> : null}
+
+                  <div className="min-w-0 flex-1 space-y-1.5">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+                        {item.place.categories[0] ? <CategoryBadge size="compact" value={item.place.categories[0]} /> : null}
+                        {item.isMustVisit ? <MustVisitIconBadge size="compact" /> : null}
+                      </div>
+                      <span
+                        className={buttonStyles({
+                          size: "small",
+                          shape: "pill",
+                          className:
+                            "min-h-6 px-2 py-0.5 text-3xs font-black tracking-[0.06em] text-white shrink-0 self-start md:min-h-7 md:px-2.5 md:py-1 md:font-bold md:text-2xs"
+                        })}
+                      >
+                        추가
+                      </span>
                     </div>
-                    <div className="space-y-1">
-                      <p className="line-clamp-2 text-base font-black text-foreground">{item.place.name || "이름 없는 장소"}</p>
-                      <p className="text-sm font-medium text-foreground/62">{compactLocation(item.place.formattedAddress)}</p>
+
+                    <p className="line-clamp-2 break-keep text-xs font-black leading-[1.35] text-foreground md:text-sm">
+                      {item.place.name || "이름 없는 장소"}
+                    </p>
+
+                    <div className="flex items-center gap-1.5 text-2xs font-medium text-foreground/60 md:text-xs">
+                      <MapPin className="h-3 w-3 shrink-0 text-primary" />
+                      <span className="line-clamp-2 break-keep leading-[1.4]">
+                        {compactLocation(item.place.formattedAddress)}
+                      </span>
                     </div>
+
                     {item.note ? (
-                      <div className="flex items-start gap-2 text-sm leading-6 text-foreground/72">
-                        <NotebookPen className="mt-1 h-4 w-4 shrink-0 text-foreground/42" />
-                        <p className="min-w-0">{item.note}</p>
+                      <div className="flex items-center gap-1.5 text-2xs text-foreground/62 md:text-xs">
+                        <NotebookPen className="h-3 w-3 shrink-0 text-foreground/38" />
+                        <p className="line-clamp-2 break-keep leading-[1.4]">{item.note}</p>
                       </div>
                     ) : null}
                   </div>
-                  <span className={buttonStyles({ size: "small", shape: "pill", className: "shrink-0 text-white" })}>
-                    추가
-                  </span>
                 </div>
               </button>
             ))
           )}
+          </div>
         </div>
       </div>
     </DialogShell>

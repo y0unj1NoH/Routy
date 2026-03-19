@@ -733,29 +733,59 @@ async function preloadScheduleDetail(supabase, userId, scheduleRow) {
   }
 
   const days = (dayRows || []).map((row) => {
-    const sanitizedStops = recomputeStopTransports(
-      sanitizeScheduledDayStops({
-        stops: stopsByDayId.get(row.id) || [],
-        visitDate: row.date,
-        outputLanguage: mappedSchedule.outputLanguage
-      })
-    ).map((stop) => {
-      const { corrected, ...resolvedStop } = stop;
-      return resolvedStop;
-    });
+    const resolvedStops = mappedSchedule.isManualModified
+      ? recomputeStopTransports(stopsByDayId.get(row.id) || [])
+      : recomputeStopTransports(
+          sanitizeScheduledDayStops({
+            stops: stopsByDayId.get(row.id) || [],
+            visitDate: row.date,
+            outputLanguage: mappedSchedule.outputLanguage
+          })
+        ).map((stop) => {
+          const { corrected, ...resolvedStop } = stop;
+          return resolvedStop;
+        });
 
     return {
       ...mapScheduleDay(row),
-      stops: sanitizedStops
+      stops: resolvedStops
     };
   });
 
   return {
     ...mappedSchedule,
-    placeList: placeListRow ? mapPlaceList(placeListRow) : null,
+    placeList: placeListRow ? await preloadPlaceListDetail(supabase, placeListRow) : null,
     stayPlace: scheduleRow.stay_place_id ? placeById.get(scheduleRow.stay_place_id) || null : null,
     days
   };
+}
+
+function normalizeScheduleEditNote(value) {
+  return typeof value === "string" ? value.trim() || null : null;
+}
+
+function buildManualScheduleStopSnapshot(dayInput, placeById) {
+  const draftStops = (Array.isArray(dayInput?.stops) ? dayInput.stops : []).map((stop) => {
+    const place = placeById.get(stop.placeId);
+    return {
+      place,
+      note: normalizeScheduleEditNote(stop.note),
+      isMustVisit: Boolean(stop.isMustVisit)
+    };
+  });
+
+  return recomputeStopTransports(draftStops).map((stop, index) => ({
+    stopOrder: index + 1,
+    placeId: stop.place.id,
+    time: null,
+    label: null,
+    isMustVisit: Boolean(stop.isMustVisit),
+    note: stop.note ?? null,
+    reason: null,
+    visitTip: null,
+    transportToNext: stop.transportToNext || null,
+    isUserModified: true
+  }));
 }
 
 async function writeScheduleDaysAndStops({ supabase, scheduleId, planDays, startDate, isUserModified = false }) {
@@ -1631,6 +1661,114 @@ const resolvers = {
       return mapSchedule(await fetchOwnedSchedule(context.supabase, user.id, scheduleId));
     },
 
+    async saveScheduleEdits(_, { scheduleId, input }, context) {
+      const user = await requireUser(context);
+      const schedule = await fetchOwnedSchedule(context.supabase, user.id, scheduleId);
+      if (!schedule) fail("Schedule not found", "NOT_FOUND");
+
+      const { data: dayRows, error: dayError } = await context.supabase
+        .from(TABLES.scheduleDays)
+        .select("id,day_number,date")
+        .eq("schedule_id", scheduleId)
+        .order("day_number", { ascending: true });
+      assertSupabase(dayError, "Failed to fetch schedule days");
+
+      const expectedDayRows = dayRows || [];
+      const dayRowsByNumber = new Map(expectedDayRows.map((row) => [row.day_number, row]));
+      const inputDays = Array.isArray(input?.days) ? input.days : [];
+
+      if (inputDays.length !== expectedDayRows.length) {
+        fail("days must include every schedule day", "BAD_USER_INPUT");
+      }
+
+      const seenDayNumbers = new Set();
+      for (const dayInput of inputDays) {
+        const dayNumber = Number(dayInput?.dayNumber);
+        if (!Number.isInteger(dayNumber) || !dayRowsByNumber.has(dayNumber)) {
+          fail("dayNumber is invalid", "BAD_USER_INPUT");
+        }
+        if (seenDayNumbers.has(dayNumber)) {
+          fail("dayNumber must be unique", "BAD_USER_INPUT");
+        }
+        seenDayNumbers.add(dayNumber);
+      }
+
+      const { items: placeListItems, placeById: placeRowsById } = await fetchPlaceListCandidates(
+        context.supabase,
+        schedule.place_list_id
+      );
+      const allowedPlaceIds = new Set((placeListItems || []).map((item) => item.place_id));
+      const mappedPlaceById = new Map(
+        [...placeRowsById.entries()].map(([placeId, placeRow]) => [placeId, mapPlace(placeRow)])
+      );
+
+      const allPlaceIds = [];
+      for (const dayInput of inputDays) {
+        const stops = Array.isArray(dayInput?.stops) ? dayInput.stops : [];
+        for (const stopInput of stops) {
+          const placeId = String(stopInput?.placeId || "").trim();
+          if (!placeId) {
+            fail("placeId is required", "BAD_USER_INPUT");
+          }
+          if (!allowedPlaceIds.has(placeId)) {
+            fail("All edited stops must belong to the schedule place list", "BAD_USER_INPUT");
+          }
+          if (!mappedPlaceById.has(placeId)) {
+            fail("Place data is missing for an edited stop", "BAD_USER_INPUT");
+          }
+          allPlaceIds.push(placeId);
+        }
+      }
+
+      if (new Set(allPlaceIds).size !== allPlaceIds.length) {
+        fail("Each place can only appear once in a saved schedule", "BAD_USER_INPUT");
+      }
+
+      const nextStopsByDayNumber = new Map(
+        inputDays.map((dayInput) => [Number(dayInput.dayNumber), buildManualScheduleStopSnapshot(dayInput, mappedPlaceById)])
+      );
+      const dayIds = expectedDayRows.map((row) => row.id);
+
+      if (dayIds.length > 0) {
+        const { error: deleteError } = await context.supabase
+          .from(TABLES.scheduleStops)
+          .delete()
+          .in("schedule_day_id", dayIds);
+        assertSupabase(deleteError, "Failed to replace schedule stops");
+      }
+
+      const stopPayload = expectedDayRows.flatMap((dayRow) =>
+        (nextStopsByDayNumber.get(dayRow.day_number) || []).map((stop) => ({
+          schedule_day_id: dayRow.id,
+          stop_order: stop.stopOrder,
+          place_id: stop.placeId,
+          time: null,
+          label: null,
+          is_must_visit: stop.isMustVisit,
+          note: stop.note,
+          reason: null,
+          visit_tip: null,
+          transport_to_next: stop.transportToNext,
+          is_user_modified: true
+        }))
+      );
+
+      if (stopPayload.length > 0) {
+        const { error: insertError } = await context.supabase.from(TABLES.scheduleStops).insert(stopPayload);
+        assertSupabase(insertError, "Failed to save edited schedule stops");
+      }
+
+      const { error: scheduleError } = await context.supabase
+        .from(TABLES.schedules)
+        .update({ is_manual_modified: true })
+        .eq("id", scheduleId)
+        .eq("user_id", user.id);
+      assertSupabase(scheduleError, "Failed to update manual state");
+
+      const updatedSchedule = await fetchOwnedSchedule(context.supabase, user.id, scheduleId);
+      return preloadScheduleDetail(context.supabase, user.id, updatedSchedule);
+    },
+
     async updateScheduleStop(_, { scheduleId, input }, context) {
       const user = await requireUser(context);
       const schedule = await fetchOwnedSchedule(context.supabase, user.id, scheduleId);
@@ -1653,13 +1791,6 @@ const resolvers = {
         .select("*")
         .single();
       assertSupabase(error, "Failed to update schedule stop");
-
-      const { error: scheduleError } = await context.supabase
-        .from(TABLES.schedules)
-        .update({ is_manual_modified: true })
-        .eq("id", scheduleId)
-        .eq("user_id", user.id);
-      assertSupabase(scheduleError, "Failed to update manual state");
 
       return mapScheduleStop(data);
     },
