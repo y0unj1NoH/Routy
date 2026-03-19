@@ -16,6 +16,7 @@ type RouteStopListProps = {
   day: ScheduleDay | null;
   refs: RouteStopListRefs;
   renderStopCard: (stop: ScheduleStop, isActive: boolean) => ReactNode;
+  showTravelInfo?: boolean;
   topContent?: ReactNode;
 };
 
@@ -25,6 +26,7 @@ export function RouteStopList({
   day,
   refs,
   renderStopCard,
+  showTravelInfo = true,
   topContent
 }: RouteStopListProps) {
   const stops = day?.stops || [];
@@ -40,7 +42,7 @@ export function RouteStopList({
       ) : (
         <div className="flex flex-col gap-4 pb-4">
           {stops.map((stop, index) => {
-            const travelInfo = inferRouteTravelInfo(stop, stops[index + 1]);
+            const travelInfo = showTravelInfo ? inferRouteTravelInfo(stop, stops[index + 1]) : null;
             const isActive = activeStopId === stop.id;
 
             return (

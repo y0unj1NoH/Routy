@@ -137,7 +137,7 @@ export function RouteDetailView({
       <div className="space-y-3">
         {isCurrentDayEdited ? (
           <div className="rounded-xl border border-[#D8E8FB] bg-white/86 px-4 py-3 text-xs font-medium leading-6 text-foreground/72 shadow-surface md:rounded-2xl md:text-sm">
-            수동 편집 후 추천 시간, 라벨, 이동 정보, AI 팁은 숨겨졌어요
+            수동 편집 후 추천 시간, 라벨, AI 팁은 숨겨지고 이동 정보는 현재 순서 기준으로 다시 계산돼요
           </div>
         ) : null}
         {isEditMode && currentDay && onAddPlace ? (
@@ -206,25 +206,27 @@ export function RouteDetailView({
       />
       {isEditMode ? (
         <>
-            <Button
-              size="small"
-              variant="secondary"
-              className={`shrink-0 ${compactHeaderActionButtonClassName}`}
-              onClick={onCancelEdit}
-              disabled={editCommitBusy}
-            >
-              <X className="h-4 w-4" />
-              취소
-            </Button>
-            <Button
-              size="small"
-              className={`shrink-0 shadow-surface ${compactHeaderActionButtonClassName}`}
-              onClick={onCommitEdit}
-              disabled={editCommitBusy}
-            >
-              <Check className="h-4 w-4" />
-              편집 완료
-            </Button>
+          <Button
+            size="small"
+            variant="secondary"
+            className={`shrink-0 ${compactHeaderActionButtonClassName}`}
+            onClick={onCancelEdit}
+            disabled={editCommitBusy}
+            aria-label="취소"
+          >
+            <X className="h-4 w-4" />
+            <span className="hidden md:inline">취소</span>
+          </Button>
+          <Button
+            size="small"
+            className={`shrink-0 shadow-surface ${compactHeaderActionButtonClassName}`}
+            onClick={onCommitEdit}
+            disabled={editCommitBusy}
+            aria-label="저장"
+          >
+            <Check className="h-4 w-4" />
+            <span className="hidden md:inline">저장</span>
+          </Button>
         </>
       ) : (
         <>
@@ -234,9 +236,10 @@ export function RouteDetailView({
               variant="secondary"
               className={`shrink-0 ${compactHeaderActionButtonClassName}`}
               onClick={onEnterEdit}
+              aria-label="편집"
             >
               <PencilLine className="h-4 w-4" />
-              편집
+              <span className="hidden md:inline">편집</span>
             </Button>
           ) : null}
           {onDelete ? (
@@ -296,6 +299,7 @@ export function RouteDetailView({
           refs={listRefs.mobile}
           className="min-h-0 shrink-0 [&>div:last-child]:pb-0"
           renderStopCard={renderStopCard}
+          showTravelInfo={!isEditMode}
           topContent={dayTopContent}
         />
       }
@@ -306,6 +310,7 @@ export function RouteDetailView({
           refs={listRefs.desktopSplit}
           className="min-h-0 flex-1 overflow-y-auto"
           renderStopCard={renderStopCard}
+          showTravelInfo={!isEditMode}
           topContent={dayTopContent}
         />
       }
@@ -316,6 +321,7 @@ export function RouteDetailView({
           refs={listRefs.list}
           className="flex-1 lg:min-h-0 lg:overflow-y-auto"
           renderStopCard={renderStopCard}
+          showTravelInfo={!isEditMode}
           topContent={dayTopContent}
         />
       }

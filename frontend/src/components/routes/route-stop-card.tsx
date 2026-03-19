@@ -84,6 +84,12 @@ function normalizeCopy(value: string | null | undefined) {
     .trim();
 }
 
+function normalizeBadgeValue(value: string | null | undefined) {
+  return String(value || "")
+    .trim()
+    .toUpperCase();
+}
+
 function compactLocation(address: string) {
   const cleaned = address
     .split(",")
@@ -237,8 +243,13 @@ export function RouteStopCard({
     "border border-border text-foreground/78 hover:!border-border-strong hover:!bg-slate-50 hover:!text-foreground";
   const cardMapIconButtonClassName = `w-8 px-0 justify-center md:w-10 ${cardUtilityActionButtonClassName}`;
   const primaryCategory = Array.isArray(stop.place.categories) ? (stop.place.categories[0] ?? null) : null;
+  const shouldHideRedundantCategoryBadge =
+    !hideGeneratedMeta &&
+    Boolean(stop.label) &&
+    Boolean(primaryCategory) &&
+    normalizeBadgeValue(stop.label) === normalizeBadgeValue(primaryCategory);
   const renderCategoryBadge = () => {
-    if (!primaryCategory) {
+    if (!primaryCategory || shouldHideRedundantCategoryBadge) {
       return null;
     }
 

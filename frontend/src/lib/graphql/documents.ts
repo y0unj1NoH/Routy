@@ -9,7 +9,9 @@ export const PLACE_FIELDS = /* GraphQL */ `
   userRatingCount
   priceLevel
   typesRaw
-  category
+  primaryType
+  primaryTypeDisplayName
+  categories
   googleMapsUrl
   openingHours
   photos

@@ -24,11 +24,14 @@ export const BADGE_TEXT_COLOR = "#FFFFFF";
 export const BADGE_COLORS = {
   primary: "#3C9DFF",
 
-  meal: "#F08A4B",
-  brunch: "#F3A35F",
+  restaurant: "#F08A4B",
   cafe: "#8A5C37",
-  snack: "#D56BA5",
-  night: "#3E4A78",
+  dessert: "#D56BA5",
+  snack: "#E9A14A",
+  bar: "#7A4B8E",
+  nightlife: "#3E4A78",
+  market: "#D46A4C",
+  culture: "#5A6FD8",
   activity: "#4A8E85",
   landmark: "#4C7FEF",
   shopping: "#8B78F2",
@@ -60,17 +63,11 @@ export const CATEGORY_BADGE_MAP = {
     bg: "#F1FCF9",
     text: "#1C8174"
   },
-  MEAL: {
-    label: "MEAL",
+  RESTAURANT: {
+    label: "RESTAURANT",
     border: "#FFDCC3",
     bg: "#FFF4EA",
     text: "#B85E23"
-  },
-  BRUNCH: {
-    label: "BRUNCH",
-    border: "#FFE3C7",
-    bg: "#FFF5EB",
-    text: "#B9721F"
   },
   CAFE: {
     label: "CAFE",
@@ -78,17 +75,41 @@ export const CATEGORY_BADGE_MAP = {
     bg: "#FBF3EC",
     text: "#8A5C37"
   },
-  SNACK: {
-    label: "SNACK",
+  DESSERT: {
+    label: "DESSERT",
     border: "#F3D3E6",
     bg: "#FDF1F8",
     text: "#B04B82"
   },
-  NIGHT: {
-    label: "NIGHT",
+  SNACK: {
+    label: "SNACK",
+    border: "#FFE3C7",
+    bg: "#FFF5EB",
+    text: "#B9721F"
+  },
+  BAR: {
+    label: "BAR",
+    border: "#E7D6F0",
+    bg: "#FAF4FD",
+    text: "#7A4B8E"
+  },
+  NIGHTLIFE: {
+    label: "NIGHTLIFE",
     border: "#D7DCF5",
     bg: "#F2F4FD",
     text: "#4B568B"
+  },
+  MARKET: {
+    label: "MARKET",
+    border: "#FFDCC3",
+    bg: "#FFF4EA",
+    text: "#B85E23"
+  },
+  CULTURE: {
+    label: "CULTURE",
+    border: "#CFD9FF",
+    bg: "#F3F6FF",
+    text: "#4D74D6"
   },
   ACTIVITY: {
     label: "ACTIVITY",
@@ -174,7 +195,7 @@ export const THEME_BADGE_MAP = {
   FOODIE: {
     label: "식도락이 1순위",
     shortLabel: "식도락",
-    bg: BADGE_COLORS.meal,
+    bg: BADGE_COLORS.restaurant,
     text: BADGE_TEXT_COLOR,
     icon: "UtensilsCrossed"
   },
@@ -209,19 +230,25 @@ export const DDAY_BADGE_STYLE = {
 const CATEGORY_BADGE_ALIASES: Record<string, PlaceCategoryValue> = {
   STAY: "STAY",
   숙소: "STAY",
-  MEAL: "MEAL",
-  식사: "MEAL",
-  BRUNCH: "BRUNCH",
-  브런치: "BRUNCH",
-  아침: "BRUNCH",
+  RESTAURANT: "RESTAURANT",
+  식당: "RESTAURANT",
+  식사: "RESTAURANT",
   CAFE: "CAFE",
   카페: "CAFE",
+  DESSERT: "DESSERT",
+  디저트: "DESSERT",
+  베이커리: "DESSERT",
   SNACK: "SNACK",
   간식: "SNACK",
-  디저트: "SNACK",
-  NIGHT: "NIGHT",
-  밤: "NIGHT",
-  바: "NIGHT",
+  BAR: "BAR",
+  바: "BAR",
+  NIGHTLIFE: "NIGHTLIFE",
+  클럽: "NIGHTLIFE",
+  나이트라이프: "NIGHTLIFE",
+  MARKET: "MARKET",
+  시장: "MARKET",
+  CULTURE: "CULTURE",
+  문화: "CULTURE",
   ACTIVITY: "ACTIVITY",
   액티비티: "ACTIVITY",
   체험: "ACTIVITY",

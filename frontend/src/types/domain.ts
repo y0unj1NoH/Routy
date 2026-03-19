@@ -16,7 +16,9 @@ export type Place = {
   userRatingCount: number | null;
   priceLevel: number | null;
   typesRaw: string[];
-  category: string | null;
+  primaryType: string | null;
+  primaryTypeDisplayName: string | null;
+  categories: string[];
   googleMapsUrl: string | null;
   openingHours: unknown;
   photos: string[];

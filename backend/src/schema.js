@@ -37,7 +37,9 @@ const typeDefs = /* GraphQL */ `
     userRatingCount: Int
     priceLevel: Int
     typesRaw: JSON
-    category: String
+    primaryType: String
+    primaryTypeDisplayName: String
+    categories: [String!]!
     googleMapsUrl: String
     openingHours: JSON
     photos: JSON
@@ -123,7 +125,8 @@ const typeDefs = /* GraphQL */ `
     userRatingCount: Int
     priceLevel: Int
     typesRaw: JSON
-    category: String
+    primaryType: String
+    primaryTypeDisplayName: String
     googleMapsUrl: String
     openingHours: JSON
     photos: JSON

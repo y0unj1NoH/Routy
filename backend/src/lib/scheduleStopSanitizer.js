@@ -71,7 +71,6 @@ function normalizeStopLabel(label, index, totalStops) {
     normalized === "BAR" ||
     normalized === "PUB" ||
     normalized === "CLUB" ||
-    normalized === "NIGHT_VIEW" ||
     normalized === "NIGHTLIFE" ||
     normalized === "LATE_NIGHT"
   ) {

@@ -1,66 +1,26 @@
-const { PLACE_CATEGORY, PLACE_CATEGORY_VALUES } = require("./route-taxonomy");
+const { derivePlaceCategories } = require("./place-semantics");
 
 const SEARCH_URL = "https://places.googleapis.com/v1/places:searchText";
 const DETAILS_BASE_URL = "https://places.googleapis.com/v1/places";
-const STAY_TYPE_PATTERN =
-  /(^|_)(lodging|hotel|hostel|guest_house|motel|resort_hotel|japanese_inn|budget_japanese_inn|extended_stay_hotel|private_guest_room|bed_and_breakfast|farmstay|cottage|campground|camping_cabin|rv_park|mobile_home_park|inn)(_|$)/i;
-const IZAKAYA_TYPE_PATTERN =
-  /(^|_)(japanese_izakaya_restaurant|izakaya)(_|$)/i;
-const NIGHT_ACTIVITY_TYPE_PATTERN =
-  /(^|_)(night_club|club|karaoke|live_music_venue|observation_deck|observation_tower|lookout|ferris_wheel)(_|$)/i;
-const NIGHT_DRINK_TYPE_PATTERN =
-  /(^|_)(bar|pub|wine_bar|cocktail_bar|beer_hall|beer_garden|sports_bar)(_|$)/i;
-const ACTIVITY_TYPE_PATTERN =
-  /(^|_)(amusement_center|amusement_park|bowling_alley|video_arcade|sports_activity_location|sports_complex|go_kart_track|public_bath|sauna)(_|$)/i;
-const NATURE_TYPE_PATTERN =
-  /(^|_)(natural_feature|national_park|garden|botanical_garden|beach|hiking_area|campground|camping_cabin|rv_park|mountain_peak|hot_spring|waterfall)(_|$)/i;
-const LANDMARK_TYPE_PATTERN =
-  /(^|_)(tourist_attraction|museum|art_gallery|park|historical_place|monument|castle|temple|church|mosque|synagogue|monastery|plaza|national_park|zoo)(_|$)/i;
-const BRUNCH_TYPE_PATTERN =
-  /(^|_)(breakfast_restaurant|brunch_restaurant|brunch)(_|$)/i;
-const CAFE_TYPE_PATTERN =
-  /(^|_)(cafe|coffee_shop|tea_house)(_|$)/i;
-const SNACK_TYPE_PATTERN =
-  /(^|_)(bakery|dessert|dessert_shop|dessert_restaurant|pastry|pastry_shop|patisserie|cake_shop|ice_cream_shop|ice_cream|juice_shop|donut_shop|chocolate_shop|confectionery|creperie|meal_takeaway)(_|$)/i;
-const MEAL_TYPE_PATTERN =
-  /(^|_)(restaurant|ramen_restaurant|sushi_restaurant|yakiniku_restaurant|yakitori_restaurant|izakaya|steak_house|seafood_restaurant|korean_restaurant|japanese_restaurant|italian_restaurant|french_restaurant|pizza_restaurant|burger_restaurant|udon_restaurant|soba_restaurant|tempura_restaurant|shabu_shabu_restaurant|tonkatsu_restaurant|curry_restaurant|food_court|meal_delivery)(_|$)/i;
-const STRONG_MEAL_TYPE_PATTERN =
-  /(^|_)(ramen_restaurant|sushi_restaurant|yakiniku_restaurant|steak_house|seafood_restaurant|korean_restaurant|italian_restaurant|french_restaurant|pizza_restaurant|burger_restaurant|udon_restaurant|soba_restaurant|tempura_restaurant|shabu_shabu_restaurant|tonkatsu_restaurant|curry_restaurant|western_restaurant|chicken_restaurant|hot_pot_restaurant)(_|$)/i;
-const WEAK_FOODIE_TYPE_PATTERN = /(^|_)(food_store)(_|$)/i;
-const SHOPPING_TYPE_PATTERN =
-  /(^|_)(shopping_mall|department_store|clothing_store|electronics_store|furniture_store|gift_shop|book_store|jewelry_store|shoe_store|discount_store|drugstore|convenience_store|market|outlet_mall|home_goods_store|sporting_goods_store|toy_store)(_|$)/i;
-const WEAK_STORE_TYPE_PATTERN = /(^|_)store($|_)/i;
-const BRUNCH_NAME_PATTERN =
-  /breakfast|brunch|모닝|브런치|아침/i;
-const CAFE_NAME_PATTERN =
-  /cafe|coffee|tea|roastery|카페|커피|로스터리|찻집/i;
-const DESSERT_NAME_PATTERN =
-  /cheesecake|pudding|dessert|sweet|sweets|cake|tart|pie|gelato|ice\s*cream|donut|macaron|chocolate|cookie|치즈케이크|푸딩|디저트|케이크|타르트|젤라또|아이스크림|도넛|마카롱|초콜릿|プリン|チーズケーキ|デザート|スイーツ|ケーキ|タルト|ジェラート|アイス|ドーナツ|マカロン|ショコラ|洋菓子/i;
-const STRONG_MEAL_NAME_PATTERN =
-  /ramen|sushi|yakiniku|gyukatsu|tonkatsu|katsu|udon|soba|tempura|okonomiyaki|shabu|sukiyaki|steak|burger|pizza|pasta|seafood|오코노미야키|규카츠|돈카츠|카츠|우동|소바|샤브|스키야키|스테이크|초밥|스시|라멘|해산물|쿠시카츠|くしかつ|串カツ|牛かつ|とんかつ|寿司|すし|ラーメン|うどん|そば|天ぷら|しゃぶ|すき焼き/i;
-const NIGHT_ACTIVITY_NAME_PATTERN =
-  /night\s*view|observation|observatory|lookout|rooftop|sky\s*lounge|skyline|tower|야경|전망대|루프탑|스카이라운지|클럽|노래방|가라오케|라이브/i;
-const NIGHT_DRINK_NAME_PATTERN =
-  /(^|[\s/&()\-])(?:bar|pub|club|karaoke|cocktail|lounge|speakeasy)(?=$|[\s/&()\-])|와인바|칵테일바|라운지|술집|펍/i;
-const PLACE_CATEGORY_SET = new Set(PLACE_CATEGORY_VALUES);
 const MINUTES_PER_DAY = 24 * 60;
 const MINUTES_PER_WEEK = MINUTES_PER_DAY * 7;
 const DAYTIME_SERVICE_START_MINUTES = 6 * 60;
 const DAYTIME_SERVICE_END_MINUTES = 15 * 60;
 const EVENING_OPEN_THRESHOLD_MINUTES = 16 * 60 + 30;
 const LATE_CLOSE_THRESHOLD_MINUTES = 22 * 60;
-const WEAK_STORE_FALLBACK_CATEGORY_SET = new Set([
-  PLACE_CATEGORY.STAY,
-  PLACE_CATEGORY.MEAL,
-  PLACE_CATEGORY.BRUNCH,
-  PLACE_CATEGORY.CAFE,
-  PLACE_CATEGORY.SNACK,
-  PLACE_CATEGORY.ACTIVITY,
-  PLACE_CATEGORY.LANDMARK,
-  PLACE_CATEGORY.NATURE,
-  PLACE_CATEGORY.SHOP
+const KNOWN_BUSINESS_STATUS = new Set([
+  "OPERATIONAL",
+  "CLOSED_TEMPORARILY",
+  "CLOSED_PERMANENTLY",
+  "FUTURE_OPENING",
+  "BUSINESS_STATUS_UNSPECIFIED"
 ]);
-
+const IMPORT_BLOCKED_BUSINESS_STATUS = new Set(["CLOSED_PERMANENTLY", "FUTURE_OPENING"]);
+const UNSCHEDULABLE_BUSINESS_STATUS = new Set([
+  "CLOSED_PERMANENTLY",
+  "CLOSED_TEMPORARILY",
+  "FUTURE_OPENING"
+]);
 function getGooglePlacesApiKey() {
   return process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_MAPS_API_KEY || "";
 }
@@ -271,7 +231,7 @@ async function fetchPlaceDetailsById(placeId) {
     headers: {
       "X-Goog-Api-Key": apiKey,
       "X-Goog-FieldMask":
-        "id,displayName,formattedAddress,location,rating,userRatingCount,priceLevel,types,primaryType,regularOpeningHours,photos,reviews,nationalPhoneNumber,websiteUri,googleMapsUri"
+        "id,displayName,formattedAddress,addressComponents,location,rating,userRatingCount,priceLevel,types,primaryType,primaryTypeDisplayName,businessStatus,regularOpeningHours,photos,reviews,nationalPhoneNumber,websiteUri,googleMapsUri"
     }
   });
 }
@@ -326,8 +286,12 @@ async function resolveGoogleMapsLink(rawUrl) {
 
 function normalizePlacePayload(googlePlace, fallback = {}) {
   const types = Array.isArray(googlePlace.types) && googlePlace.types.length > 0 ? googlePlace.types : fallback.typesRaw || [];
-  const primaryType = googlePlace.primaryType || null;
+  const primaryType = googlePlace.primaryType || fallback.primaryType || null;
   const placeName = googlePlace.displayName?.text || fallback.name || null;
+  const categories = derivePlaceCategories({
+    types,
+    primaryType
+  });
 
   return {
     google_place_id: googlePlace.id || fallback.googlePlaceId,
@@ -339,13 +303,14 @@ function normalizePlacePayload(googlePlace, fallback = {}) {
     user_rating_count: googlePlace.userRatingCount ?? fallback.userRatingCount ?? null,
     price_level: normalizePriceLevel(googlePlace.priceLevel, fallback.priceLevel),
     types_raw: types,
-    category: inferCategory(
-      types,
-      primaryType,
-      fallback.category,
-      placeName,
-      googlePlace.regularOpeningHours || fallback.openingHours || null
+    primary_type: primaryType,
+    primary_type_display_name: googlePlace.primaryTypeDisplayName?.text || fallback.primaryTypeDisplayName || null,
+    business_status: normalizeBusinessStatus(googlePlace.businessStatus || fallback.businessStatus || fallback.business_status),
+    address_components: normalizeAddressComponents(
+      googlePlace.addressComponents,
+      fallback.addressComponents || fallback.address_components
     ),
+    categories,
     photos: normalizePhotos(googlePlace.photos, fallback.photos),
     reviews: normalizeReviews(googlePlace.reviews, fallback.reviews),
     google_maps_url: googlePlace.googleMapsUri || fallback.googleMapsUrl || null,
@@ -380,21 +345,51 @@ function normalizeReviews(rawReviews, fallbackReviews) {
   return Array.isArray(fallbackReviews) ? fallbackReviews : [];
 }
 
-function normalizeSignalText(value) {
-  return String(value || "")
-    .normalize("NFKC")
-    .toLowerCase()
-    .trim();
+function normalizeAddressComponents(rawAddressComponents, fallbackAddressComponents) {
+  const source = Array.isArray(rawAddressComponents)
+    ? rawAddressComponents
+    : Array.isArray(fallbackAddressComponents)
+      ? fallbackAddressComponents
+      : [];
+
+  return source
+    .map((component) => {
+      const longText = typeof component?.longText === "string" ? component.longText.trim() : "";
+      const shortText = typeof component?.shortText === "string" ? component.shortText.trim() : "";
+      const types = Array.isArray(component?.types)
+        ? [...new Set(component.types.map((type) => String(type || "").trim()).filter(Boolean))]
+        : [];
+
+      if (!longText && !shortText && types.length === 0) {
+        return null;
+      }
+
+      return {
+        longText: longText || null,
+        shortText: shortText || null,
+        types
+      };
+    })
+    .filter(Boolean);
 }
 
-function normalizePlaceCategory(value) {
-  const normalized = normalizeSignalText(value).toUpperCase();
-  if (!normalized) return null;
-  return PLACE_CATEGORY_SET.has(normalized) ? normalized : null;
+function normalizeBusinessStatus(value) {
+  if (typeof value !== "string") return null;
+  const normalized = value.trim().toUpperCase();
+  if (!normalized || !KNOWN_BUSINESS_STATUS.has(normalized)) {
+    return null;
+  }
+  return normalized === "BUSINESS_STATUS_UNSPECIFIED" ? null : normalized;
 }
 
-function hasPatternMatch(values, pattern) {
-  return values.some((value) => pattern.test(String(value || "")));
+function isImportBlockedBusinessStatus(value) {
+  const normalized = normalizeBusinessStatus(value);
+  return normalized ? IMPORT_BLOCKED_BUSINESS_STATUS.has(normalized) : false;
+}
+
+function isUnschedulableBusinessStatus(value) {
+  const normalized = normalizeBusinessStatus(value);
+  return normalized ? UNSCHEDULABLE_BUSINESS_STATUS.has(normalized) : false;
 }
 
 function normalizeOpeningPoint(point) {
@@ -564,185 +559,6 @@ function getOpeningHoursSignals(openingHours) {
   };
 }
 
-function resolveFoodPreferredCategory({
-  hasBrunchType,
-  hasBrunchName,
-  hasSnackType,
-  hasDessertName,
-  hasStrongMealType,
-  hasStrongMealName,
-  hasMealType,
-  hasCafeType,
-  hasCafeName
-}) {
-  if (hasBrunchType || hasBrunchName) {
-    return PLACE_CATEGORY.BRUNCH;
-  }
-
-  // Tea salons and dessert cafes should stay in CAFE when Google provides
-  // both cafe and pastry/dessert signals.
-  if ((hasCafeType || hasCafeName) && (hasSnackType || hasDessertName) && !hasStrongMealType) {
-    return PLACE_CATEGORY.CAFE;
-  }
-
-  if (hasSnackType || hasDessertName) {
-    return PLACE_CATEGORY.SNACK;
-  }
-
-  if ((hasStrongMealType || hasStrongMealName) && hasMealType) {
-    return PLACE_CATEGORY.MEAL;
-  }
-
-  if (hasMealType || hasStrongMealName) {
-    return PLACE_CATEGORY.MEAL;
-  }
-
-  if (hasCafeType || hasCafeName) {
-    return PLACE_CATEGORY.CAFE;
-  }
-
-  return null;
-}
-
-function inferCategory(types, primaryType, fallbackCategory, placeName = null, openingHours = null) {
-  const joined = [...new Set([...(types || []), primaryType].filter(Boolean).map((value) => normalizeSignalText(value)))];
-  const normalizedName = normalizeSignalText(placeName);
-  const normalizedFallbackCategory = normalizePlaceCategory(fallbackCategory);
-  const hasIzakayaType = hasPatternMatch(joined, IZAKAYA_TYPE_PATTERN);
-  const hasNightActivityType = hasPatternMatch(joined, NIGHT_ACTIVITY_TYPE_PATTERN);
-  const hasNightDrinkType = hasPatternMatch(joined, NIGHT_DRINK_TYPE_PATTERN);
-  const hasActivityType = hasPatternMatch(joined, ACTIVITY_TYPE_PATTERN);
-  const hasNatureType = hasPatternMatch(joined, NATURE_TYPE_PATTERN);
-  const hasLandmarkType = hasPatternMatch(joined, LANDMARK_TYPE_PATTERN);
-  const hasShoppingType = hasPatternMatch(joined, SHOPPING_TYPE_PATTERN);
-  const hasBrunchType = hasPatternMatch(joined, BRUNCH_TYPE_PATTERN);
-  const hasCafeType = hasPatternMatch(joined, CAFE_TYPE_PATTERN);
-  const hasSnackType = hasPatternMatch(joined, SNACK_TYPE_PATTERN);
-  const hasMealType = hasPatternMatch(joined, MEAL_TYPE_PATTERN);
-  const hasStrongMealType = hasPatternMatch(joined, STRONG_MEAL_TYPE_PATTERN);
-  const hasWeakFoodieType = hasPatternMatch(joined, WEAK_FOODIE_TYPE_PATTERN);
-  const hasWeakStoreType = hasPatternMatch(joined, WEAK_STORE_TYPE_PATTERN);
-  const hasNightActivityName = NIGHT_ACTIVITY_NAME_PATTERN.test(normalizedName);
-  const hasNightDrinkName = NIGHT_DRINK_NAME_PATTERN.test(normalizedName);
-  const hasStrongMealName = STRONG_MEAL_NAME_PATTERN.test(normalizedName);
-  const hasBrunchName = BRUNCH_NAME_PATTERN.test(normalizedName);
-  const hasCafeName = CAFE_NAME_PATTERN.test(normalizedName);
-  const hasDessertName = DESSERT_NAME_PATTERN.test(normalizedName);
-  const hasFoodSignal =
-    hasBrunchType ||
-    hasBrunchName ||
-    hasCafeType ||
-    hasCafeName ||
-    hasSnackType ||
-    hasDessertName ||
-    hasMealType ||
-    hasWeakFoodieType ||
-    hasStrongMealName;
-  const foodPreferredCategory = resolveFoodPreferredCategory({
-    hasBrunchType,
-    hasBrunchName,
-    hasSnackType,
-    hasDessertName,
-    hasStrongMealType,
-    hasStrongMealName,
-    hasMealType,
-    hasCafeType,
-    hasCafeName
-  });
-  const openingSignals = getOpeningHoursSignals(openingHours);
-  const hasDaytimeService = openingSignals.hasDaytimeService;
-  const isEveningOnlyLateService = openingSignals.isEveningOnlyLateService;
-  const hasDrinkOrIzakayaSignal = hasIzakayaType || hasNightDrinkType || hasNightDrinkName;
-
-  if (hasPatternMatch(joined, STAY_TYPE_PATTERN)) {
-    return PLACE_CATEGORY.STAY;
-  }
-
-  if (hasNightActivityType) {
-    return PLACE_CATEGORY.NIGHT;
-  }
-
-  if (hasNatureType) {
-    return PLACE_CATEGORY.NATURE;
-  }
-
-  if (hasLandmarkType) {
-    return PLACE_CATEGORY.LANDMARK;
-  }
-
-  if (hasShoppingType) {
-    return PLACE_CATEGORY.SHOP;
-  }
-
-  if (hasActivityType) {
-    return PLACE_CATEGORY.ACTIVITY;
-  }
-
-  if (foodPreferredCategory === PLACE_CATEGORY.BRUNCH) {
-    return PLACE_CATEGORY.BRUNCH;
-  }
-
-  if (foodPreferredCategory === PLACE_CATEGORY.SNACK) {
-    return PLACE_CATEGORY.SNACK;
-  }
-
-  if (
-    foodPreferredCategory === PLACE_CATEGORY.MEAL &&
-    (hasStrongMealType || hasStrongMealName) &&
-    !hasDrinkOrIzakayaSignal
-  ) {
-    return PLACE_CATEGORY.MEAL;
-  }
-
-  if (hasDrinkOrIzakayaSignal) {
-    if (foodPreferredCategory && hasDaytimeService) {
-      return foodPreferredCategory;
-    }
-
-    if (foodPreferredCategory === PLACE_CATEGORY.MEAL && (hasStrongMealType || hasStrongMealName)) {
-      return hasIzakayaType && !hasDaytimeService ? PLACE_CATEGORY.NIGHT : PLACE_CATEGORY.MEAL;
-    }
-
-    if (isEveningOnlyLateService) {
-      return PLACE_CATEGORY.NIGHT;
-    }
-
-    if (hasIzakayaType && foodPreferredCategory === PLACE_CATEGORY.MEAL) {
-      return PLACE_CATEGORY.NIGHT;
-    }
-
-    if (!foodPreferredCategory) {
-      return PLACE_CATEGORY.NIGHT;
-    }
-
-    return foodPreferredCategory;
-  }
-
-  if (foodPreferredCategory === PLACE_CATEGORY.MEAL) {
-    return PLACE_CATEGORY.MEAL;
-  }
-
-  if (foodPreferredCategory === PLACE_CATEGORY.CAFE) {
-    return PLACE_CATEGORY.CAFE;
-  }
-
-  if ((hasNightDrinkType || hasNightActivityName || hasNightDrinkName) && !hasFoodSignal) {
-    return PLACE_CATEGORY.NIGHT;
-  }
-
-  if ((hasWeakStoreType || hasWeakFoodieType) && DESSERT_NAME_PATTERN.test(normalizedName)) {
-    return PLACE_CATEGORY.SNACK;
-  }
-
-  if (hasWeakStoreType || hasWeakFoodieType) {
-    return normalizedFallbackCategory && WEAK_STORE_FALLBACK_CATEGORY_SET.has(normalizedFallbackCategory)
-      ? normalizedFallbackCategory
-      : null;
-  }
-
-  return normalizedFallbackCategory || null;
-}
-
 module.exports = {
   hasGooglePlacesApiKey,
   extractPlaceIdsFromGoogleUrl,
@@ -750,6 +566,8 @@ module.exports = {
   searchPlacesByText,
   fetchPlaceDetailsById,
   normalizePlacePayload,
-  inferCategory,
+  normalizeBusinessStatus,
+  isImportBlockedBusinessStatus,
+  isUnschedulableBusinessStatus,
   getOpeningHoursSignals
 };

@@ -271,7 +271,6 @@ function normalizeGeneratedStopLabel(label, index, totalStops) {
     normalized === "BAR" ||
     normalized === "PUB" ||
     normalized === "CLUB" ||
-    normalized === "NIGHT_VIEW" ||
     normalized === "NIGHTLIFE" ||
     normalized === "LATE_NIGHT"
   ) {
@@ -374,7 +373,7 @@ function buildPromptTags(candidate) {
   if (traits.isAnchorMeal) tags.add("anchor_meal");
   if (traits.isAnchorVisit) tags.add("anchor_visit");
   if (traits.isNightlife) tags.add("nightlife");
-  if (traits.isNightView) tags.add("night_view");
+  if (traits.isViewSpot) tags.add("view_spot");
   if (traits.isNight) tags.add("night");
   if (traits.reservationRisk) tags.add("reservation_risk");
 
@@ -392,8 +391,12 @@ function buildPromptPlaceSummary(candidate, generationInput = {}, stayPlace = nu
   const summary = {
     id: place.id,
     name: place.name,
-    category: place.category || null,
-    types: Array.isArray(place.types_raw) ? place.types_raw.slice(0, 8) : [],
+    categories: Array.isArray(place.categories) ? place.categories : [],
+    types: Array.isArray(place.types_raw)
+      ? place.types_raw.slice(0, 8)
+      : Array.isArray(place.typesRaw)
+        ? place.typesRaw.slice(0, 8)
+        : [],
     coord: [roundCoordinate(place.lat), roundCoordinate(place.lng)],
     tags: buildPromptTags(candidate),
     price_level: traits.priceLevel,
@@ -401,7 +404,6 @@ function buildPromptPlaceSummary(candidate, generationInput = {}, stayPlace = nu
     review_count: traits.reviewCount,
     fame_score: Number(traits.fameScore.toFixed(3)),
     meal_fit: traits.mealFit,
-    night_subtype: traits.nightSubtype,
     anchor_candidate: Boolean(traits.isAnchorMeal || traits.isAnchorVisit),
     must_visit: Boolean(candidate.isMustVisit),
     user_note: candidate.note || null,
@@ -508,8 +510,7 @@ ${JSON.stringify(places)}
 Field notes:
 - "day_slots" is optional. Each entry looks like "1:MLVCDN" where M=morning, L=lunch, V=visit, C=dessert/cafe, D=dinner, N=night, and "-" means do not schedule that place on that trip day.
 - Treat place "tags" as hard hints for labels. A place tagged "meal" should be LUNCH or DINNER. "brunch", "cafe", and "snack" should usually be MORNING or DESSERT. "landmark", "nature", "shopping", and "activity" should usually be MORNING or VISIT.
-- "category" is already backend-normalized for scheduling. Trust it first. "types" are supporting raw Google hints.
-- "night_subtype" explains whether a NIGHT place is more like a bar, club, live venue, or night view. Use it to build a realistic evening sequence.
+- "categories" is already backend-normalized place classification. Use it before "types" when they disagree.
 - "meal_fit", "fame_score", and "anchor_candidate" show which meal or visit places are stronger anchors.
 
 Task:

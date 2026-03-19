@@ -3,7 +3,6 @@ const { createHash } = require("node:crypto");
 const GraphQLJSON = require("graphql-type-json");
 const { createSupabaseAdminClient, extractBearerToken } = require("./lib/supabase");
 const { buildSchedulePlan, recomputeStopTransports } = require("./lib/scheduleEngine");
-const { buildAiSchedulePlan } = require("./lib/geminiOptimizer");
 const { sanitizeScheduledDayStops } = require("./lib/scheduleStopSanitizer");
 const { buildStayRecommendation } = require("./lib/stayRecommendation");
 const { scrapeList } = require("./lib/aiCrawler");
@@ -13,9 +12,12 @@ const {
   searchPlacesByText,
   fetchPlaceDetailsById,
   normalizePlacePayload,
-  inferCategory
+  isImportBlockedBusinessStatus,
+  isUnschedulableBusinessStatus,
+  normalizeBusinessStatus
 } = require("./lib/googlePlaces");
-const { PLACE_CATEGORY } = require("./lib/route-taxonomy");
+const { derivePlaceCategories } = require("./lib/place-semantics");
+const { preprocessCandidatesForSchedule } = require("./lib/placeListPreprocessor");
 
 const TABLES = {
   places: "places",
@@ -30,7 +32,7 @@ const MAX_PLACE_LIST_NAME_LENGTH = 12;
 const MAX_PLACE_LIST_CITY_LENGTH = 12;
 const DEFAULT_OUTPUT_LANGUAGE = "ko";
 const SUPPORTED_APP_LANGUAGES = new Set(["ko", "en"]);
-const GENERATION_VERSION = "mvp_v2_visit_tip";
+const GENERATION_VERSION = "mvp_v3_deterministic_budget";
 const CITY_ALIAS_GROUPS = [
   ["bangkok", "방콕", "krung thep", "krungthep", "กรุงเทพ", "กรุงเทพมหานคร", "bkk"],
   ["osaka", "오사카", "大阪"],
@@ -152,15 +154,9 @@ function includesCityToken(text, cityTokens) {
   });
 }
 
-function isInsideBangkokBounds(place) {
-  const lat = Number(place?.lat);
-  const lng = Number(place?.lng);
-  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
-  return lat >= 13.45 && lat <= 14.2 && lng >= 100.3 && lng <= 100.95;
-}
-
 function isLodgingPlace(place) {
-  if (String(place?.category || "").trim().toUpperCase() === PLACE_CATEGORY.STAY) {
+  const categories = Array.isArray(place?.categories) ? place.categories : [];
+  if (categories.includes("STAY")) {
     return true;
   }
 
@@ -181,48 +177,37 @@ function normalizeStoredPlaceRow(row) {
       ? row.typesRaw
       : [];
 
+  const primaryType = row.primary_type || row.primaryType || null;
+  const categories = Array.isArray(row.categories)
+    ? row.categories
+    : derivePlaceCategories({
+        types: typesRaw,
+        primaryType
+      });
+
   return {
     ...row,
     types_raw: typesRaw,
-    category: inferCategory(typesRaw, null, row.category, row.name, row.opening_hours || row.openingHours || null)
+    primary_type: primaryType,
+    primary_type_display_name: row.primary_type_display_name || row.primaryTypeDisplayName || null,
+    business_status: normalizeBusinessStatus(row.business_status || row.businessStatus),
+    address_components: Array.isArray(row.address_components)
+      ? row.address_components
+      : Array.isArray(row.addressComponents)
+        ? row.addressComponents
+        : [],
+    categories
   };
 }
 
 function filterSchedulableCandidates(candidates) {
-  return (candidates || []).filter((candidate) => !isLodgingPlace(candidate?.place));
-}
-
-function filterCandidatesByCity(candidates, cityName) {
-  if (!cityName) return candidates;
-  const cityTokens = buildCityTokens(cityName);
-  if (cityTokens.length === 0) return candidates;
-
-  const filtered = (candidates || []).filter((candidate) => {
-    const place = candidate?.place;
+  return (candidates || []).filter((candidate) => {
+    const place = candidate?.place || null;
     if (!place) return false;
-
-    if (isBangkokCity(cityName)) {
-      const inBounds = isInsideBangkokBounds(place);
-      if (inBounds === true) return true;
-      if (inBounds === false) return false;
-    }
-
-    return includesCityToken(place.formatted_address, cityTokens) || includesCityToken(place.name, cityTokens);
+    if (isLodgingPlace(place)) return false;
+    if (isUnschedulableBusinessStatus(place.business_status || place.businessStatus)) return false;
+    return true;
   });
-
-  const totalCandidates = (candidates || []).length;
-  const minimumRetainedCount = Math.max(5, Math.ceil(totalCandidates * 0.25));
-
-  if (filtered.length === 0 || (totalCandidates >= 8 && filtered.length < minimumRetainedCount)) {
-    console.warn("City filter matched too few candidates. Using original candidate set.", {
-      cityName,
-      totalCandidates,
-      filteredCandidates: filtered.length
-    });
-    return candidates;
-  }
-
-  return filtered;
 }
 
 function parseDateStrict(value, fieldName) {
@@ -337,7 +322,10 @@ function mapPlace(row) {
     userRatingCount: normalizedRow.user_rating_count,
     priceLevel: normalizedRow.price_level,
     typesRaw: Array.isArray(normalizedRow.types_raw) ? normalizedRow.types_raw : [],
-    category: normalizedRow.category,
+    primaryType: normalizedRow.primary_type || null,
+    primaryTypeDisplayName: normalizedRow.primary_type_display_name || null,
+    businessStatus: normalizedRow.business_status || null,
+    categories: Array.isArray(normalizedRow.categories) ? normalizedRow.categories : [],
     openingHours: normalizedRow.opening_hours,
     photos: Array.isArray(normalizedRow.photos) ? normalizedRow.photos : [],
     reviews: Array.isArray(normalizedRow.reviews) ? normalizedRow.reviews : [],
@@ -848,6 +836,10 @@ function buildGenerationInput(payload) {
     placeListId: payload.placeListId,
     stayPlaceId: payload.stayPlaceId || null,
     outputLanguage: normalizeLanguage(payload.outputLanguage, DEFAULT_OUTPUT_LANGUAGE),
+    candidatePreprocess:
+      payload.candidatePreprocess && typeof payload.candidatePreprocess === "object"
+        ? payload.candidatePreprocess
+        : null,
     tripDays: buildTripDays(payload.startDate, payload.dayCount)
   };
 }
@@ -1020,6 +1012,12 @@ const resolvers = {
           if (apiKeyExists) {
             const details = await fetchPlaceDetailsById(resolvedPlaceId);
             placePayload = normalizePlacePayload(details, { googlePlaceId: resolvedPlaceId, name: placeData.name || null });
+            if (isImportBlockedBusinessStatus(placePayload.business_status)) {
+              console.warn(`Skipping non-importable place ${placeData.name}`, {
+                businessStatus: placePayload.business_status
+              });
+              continue;
+            }
           }
 
           const row = await upsertSharedPlace(context.supabase, placePayload);
@@ -1034,7 +1032,23 @@ const resolvers = {
       }
 
       if (importedItems.length === 0) {
-        fail("장소를 하나도 가져오지 못했습니다. 링크/키를 확인해 주세요.", "BAD_USER_INPUT");
+        fail("가져올 수 있는 운영 중 장소가 없어요. 링크나 폐업 여부를 확인해 주세요.", "BAD_USER_INPUT");
+      }
+
+      const dedupedImportedItems = [];
+      const importedItemByPlaceId = new Map();
+      for (const item of importedItems) {
+        const existingItem = importedItemByPlaceId.get(item.place_id);
+        if (!existingItem) {
+          importedItemByPlaceId.set(item.place_id, item);
+          dedupedImportedItems.push(item);
+          continue;
+        }
+
+        if (!existingItem.note && item.note) {
+          existingItem.note = item.note;
+        }
+        existingItem.is_must_visit = existingItem.is_must_visit || item.is_must_visit;
       }
 
       // 3. Create list only after we have at least one imported place.
@@ -1049,7 +1063,7 @@ const resolvers = {
       assertSupabase(listError, "Failed to create place list");
 
       // 4. Bulk attach imported places to the created list.
-      const listItemsPayload = importedItems.map((item, index) => ({
+      const listItemsPayload = dedupedImportedItems.map((item, index) => ({
         list_id: listRow.id,
         place_id: item.place_id,
         note: item.note,
@@ -1094,12 +1108,19 @@ const resolvers = {
           try {
             const details = await fetchPlaceDetailsById(placeId);
             payload = normalizePlacePayload(details, { googlePlaceId: placeId, googleMapsUrl: url });
+            if (isImportBlockedBusinessStatus(payload.business_status)) {
+              continue;
+            }
           } catch {
             payload = { ...payload, name: `Imported ${placeId}` };
           }
         }
 
         rows.push(await upsertSharedPlace(context.supabase, payload));
+      }
+
+      if (rows.length === 0) {
+        fail("운영 중인 장소를 찾지 못했어요. 폐업했거나 아직 영업 전인 장소일 수 있어요.", "BAD_USER_INPUT");
       }
 
       return rows.map(mapPlace);
@@ -1118,7 +1139,13 @@ const resolvers = {
         user_rating_count: input.userRatingCount ?? null,
         price_level: input.priceLevel ?? null,
         types_raw: Array.isArray(input.typesRaw) ? input.typesRaw : [],
-        category: input.category ?? null,
+        primary_type: input.primaryType ?? null,
+        primary_type_display_name: input.primaryTypeDisplayName ?? null,
+        business_status: null,
+        categories: derivePlaceCategories({
+          types: Array.isArray(input.typesRaw) ? input.typesRaw : [],
+          primaryType: input.primaryType ?? null
+        }),
         opening_hours: input.openingHours ?? null,
         photos: Array.isArray(input.photos) ? input.photos : [],
         reviews: Array.isArray(input.reviews) ? input.reviews : [],
@@ -1142,13 +1169,16 @@ const resolvers = {
         googlePlaceId: existing.google_place_id,
         name: existing.name,
         formattedAddress: existing.formatted_address,
+        addressComponents: existing.address_components,
         lat: existing.lat,
         lng: existing.lng,
         rating: existing.rating,
         userRatingCount: existing.user_rating_count,
         priceLevel: existing.price_level,
         typesRaw: existing.types_raw,
-        category: existing.category,
+        primaryType: existing.primary_type,
+        primaryTypeDisplayName: existing.primary_type_display_name,
+        businessStatus: existing.business_status,
         openingHours: existing.opening_hours,
         photos: existing.photos,
         reviews: existing.reviews,
@@ -1309,9 +1339,12 @@ const resolvers = {
         fail("숙소를 제외하면 추천 일정으로 만들 수 있는 장소가 없어요. 다른 장소를 더 추가해 주세요.", "BAD_USER_INPUT");
       }
 
-      const cityFilteredCandidates = filterCandidatesByCity(schedulableCandidates, list.city);
-      if (cityFilteredCandidates.length === 0) {
-        fail(`선택한 도시(${list.city})와 일치하는 장소가 없습니다. 리스트 장소를 확인해 주세요.`, "BAD_USER_INPUT");
+      const candidatePreprocess = preprocessCandidatesForSchedule({
+        candidates: schedulableCandidates,
+        cityName: list.city
+      });
+      if (candidatePreprocess.candidates.length === 0) {
+        fail("리스트 전처리 후 일정 후보가 남지 않았어요. 장소를 다시 확인해 주세요.", "BAD_USER_INPUT");
       }
 
       const stayPlaceId = input.stayPlaceId || null;
@@ -1338,32 +1371,17 @@ const resolvers = {
         themes,
         placeListId: list.id,
         stayPlaceId,
+        candidatePreprocess: candidatePreprocess.preprocessing,
         outputLanguage,
         dayCount
       });
 
-      let planDays = null;
-      try {
-        planDays = await buildAiSchedulePlan({
-          candidates: cityFilteredCandidates,
-          dayCount,
-          startDate,
-          stayPlace,
-          generationInput,
-          scenario: "Personalized"
-        });
-      } catch (error) {
-        console.error("AI schedule generation failed. Falling back to deterministic planner.", {
-          status: error?.status,
-          message: error?.message
-        });
-        planDays = buildSchedulePlan({
-          candidates: cityFilteredCandidates,
-          dayCount,
-          stayPlace,
-          generationInput
-        });
-      }
+      let planDays = buildSchedulePlan({
+        candidates: candidatePreprocess.candidates,
+        dayCount,
+        stayPlace,
+        generationInput
+      });
 
       planDays = sanitizePlanDaysForPersistence({
         planDays,
@@ -1462,9 +1480,12 @@ const resolvers = {
         fail("숙소를 제외하면 추천 일정으로 만들 수 있는 장소가 없어요. 다른 장소를 더 추가해 주세요.", "BAD_USER_INPUT");
       }
 
-      const cityFilteredCandidates = filterCandidatesByCity(schedulableCandidates, list.city);
-      if (cityFilteredCandidates.length === 0) {
-        fail(`선택한 도시(${list.city})와 일치하는 장소가 없습니다. 리스트 장소를 확인해 주세요.`, "BAD_USER_INPUT");
+      const candidatePreprocess = preprocessCandidatesForSchedule({
+        candidates: schedulableCandidates,
+        cityName: list.city
+      });
+      if (candidatePreprocess.candidates.length === 0) {
+        fail("리스트 전처리 후 일정 후보가 남지 않았어요. 장소를 다시 확인해 주세요.", "BAD_USER_INPUT");
       }
 
       const generationInput = buildGenerationInput({
@@ -1476,32 +1497,17 @@ const resolvers = {
         themes,
         placeListId: list.id,
         stayPlaceId,
+        candidatePreprocess: candidatePreprocess.preprocessing,
         outputLanguage,
         dayCount
       });
 
-      let planDays = null;
-      try {
-        planDays = await buildAiSchedulePlan({
-          candidates: cityFilteredCandidates,
-          dayCount,
-          startDate,
-          stayPlace,
-          generationInput,
-          scenario: "Personalized"
-        });
-      } catch (error) {
-        console.error("AI schedule regeneration failed. Falling back to deterministic planner.", {
-          status: error?.status,
-          message: error?.message
-        });
-        planDays = buildSchedulePlan({
-          candidates: cityFilteredCandidates,
-          dayCount,
-          stayPlace,
-          generationInput
-        });
-      }
+      let planDays = buildSchedulePlan({
+        candidates: candidatePreprocess.candidates,
+        dayCount,
+        stayPlace,
+        generationInput
+      });
 
       planDays = sanitizePlanDaysForPersistence({
         planDays,

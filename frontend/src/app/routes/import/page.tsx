@@ -268,7 +268,7 @@ export default function ImportRoutePage() {
                 <div className="min-w-0 flex-1 space-y-3">
                   <div className="space-y-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <CategoryBadge value={place.category} fallbackTone="primary" />
+                      <CategoryBadge value={place.categories[0] ?? null} fallbackTone="primary" />
                       {typeof place.rating === "number" ? (
                         <Badge className="gap-1">
                           <Star fill="currentColor" className="h-3.5 w-3.5 text-star" />

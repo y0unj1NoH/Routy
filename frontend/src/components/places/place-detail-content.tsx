@@ -427,7 +427,7 @@ export function PlaceDetailContent({ place, backAction, visitDate = null }: Plac
               />
 
               <div className="space-y-4 p-4 md:p-5">
-                <CategoryBadge value={place.category} fallbackTone="primary" />
+                <CategoryBadge value={place.categories[0] ?? null} fallbackTone="primary" />
 
                 <div className="space-y-2">
                   <h1 className="text-2xl font-black leading-[1.2] tracking-[-0.03em] text-foreground md:text-3xl">

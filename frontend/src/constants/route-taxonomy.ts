@@ -7,11 +7,14 @@ export type LegacyRouteStopLabel = "START" | "FINISH";
 export type RouteStopLabelValue = CanonicalRouteStopLabel | LegacyRouteStopLabel;
 export type PlaceCategoryValue =
   | "STAY"
-  | "MEAL"
-  | "BRUNCH"
+  | "RESTAURANT"
   | "CAFE"
+  | "DESSERT"
   | "SNACK"
-  | "NIGHT"
+  | "BAR"
+  | "NIGHTLIFE"
+  | "MARKET"
+  | "CULTURE"
   | "ACTIVITY"
   | "LANDMARK"
   | "NATURE"
