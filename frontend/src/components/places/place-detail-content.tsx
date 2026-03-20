@@ -5,7 +5,6 @@ import {
   ExternalLink,
   Globe,
   Navigation,
-  Phone,
   Star,
   Wallet,
   type LucideIcon
@@ -21,7 +20,7 @@ import { BADGE_HEIGHT_CLASS, BADGE_TEXT_CLASS } from "@/lib/badge-size";
 import { cn } from "@/lib/cn";
 import { buildMapEmbedUrl } from "@/lib/maps";
 import { buildPlaceOpeningHint, parseOpeningHours, type PlaceOpeningHint } from "@/lib/place-opening";
-import type { Place } from "@/types/domain";
+import type { Place, PlacePhoto as PlacePhotoAsset } from "@/types/domain";
 
 const MONDAY_FIRST_WEEKDAYS = ["월", "화", "수", "목", "금", "토", "일"];
 const PHOTO_SLIDER_AUTOPLAY_MS = 5000;
@@ -40,7 +39,7 @@ type InfoRowProps = {
 
 type PhotoSliderProps = {
   name: string | null;
-  photos: string[];
+  photos: PlacePhotoAsset[];
   rating: number | null;
   reviewLabel: string;
 };
@@ -78,12 +77,6 @@ function getMondayFirstWeekdayIndexFromIsoDate(value: string | null | undefined)
   return (weekday + 6) % 7;
 }
 
-function formatPriceLevelBadge(value: number | null | undefined) {
-  if (typeof value !== "number") return null;
-  if (value <= 0) return UI_COPY.places.detail.free;
-  return "₩".repeat(Math.min(Math.max(value, 1), 4));
-}
-
 function formatPriceLevelLabel(value: number | null | undefined) {
   if (typeof value !== "number") return UI_COPY.places.detail.priceUnknown;
   if (value <= 0) return UI_COPY.places.detail.free;
@@ -99,22 +92,6 @@ function formatUpdatedAt(value: string) {
 
 function formatUpdatedAtCaption(value: string) {
   return `${formatUpdatedAt(value)}에 업데이트`;
-}
-
-function formatReviewDate(value: string | null | undefined) {
-  if (!value) return null;
-  return new Date(value).toLocaleDateString("ko-KR", {
-    year: "numeric",
-    month: "short",
-    day: "numeric"
-  });
-}
-
-function truncateReviewText(value: string | null | undefined, maxLength = 140) {
-  const text = String(value || "").replace(/\s+/g, " ").trim();
-  if (!text) return "";
-  if (text.length <= maxLength) return text;
-  return `${text.slice(0, maxLength)}...`;
 }
 
 function buildOpeningRows(weekdayDescriptions: string[], visitDate?: string | null) {
@@ -191,7 +168,7 @@ function InfoRow({ icon: Icon, label, value }: InfoRowProps) {
 }
 
 function PhotoSlider({ name, photos, rating, reviewLabel }: PhotoSliderProps) {
-  const slides = photos.length > 0 ? photos : [""];
+  const slides: Array<PlacePhotoAsset | null> = photos.length > 0 ? photos : [null];
   const hasMultiplePhotos = photos.length > 1;
   const loopedSlides = hasMultiplePhotos ? [slides[slides.length - 1], ...slides, slides[0]] : slides;
   const [activeIndex, setActiveIndex] = useState(0);
@@ -203,6 +180,7 @@ function PhotoSlider({ name, photos, rating, reviewLabel }: PhotoSliderProps) {
   const [isAutoAdvanceEnabled, setIsAutoAdvanceEnabled] = useState(true);
 
   const safeIndex = slides[activeIndex] ? activeIndex : 0;
+  const activePhoto = slides[safeIndex] ?? null;
 
   const scrollToIndex = (index: number) => {
     const nextIndex = Math.max(0, Math.min(index, slides.length - 1));
@@ -315,10 +293,10 @@ function PhotoSlider({ name, photos, rating, reviewLabel }: PhotoSliderProps) {
           style={{ transform: `translate3d(calc(${trackIndex * -100}% + ${dragOffset}px), 0, 0)` }}
         >
           {loopedSlides.map((photo, index) => (
-            <div key={`${photo || "fallback"}-${index}`} className="h-full min-h-[240px] flex-[0_0_100%] md:min-h-[260px] lg:min-h-[280px] xl:min-h-[300px]">
+            <div key={`${photo?.name || "fallback"}-${index}`} className="h-full min-h-[240px] flex-[0_0_100%] md:min-h-[260px] lg:min-h-[280px] xl:min-h-[300px]">
               <PlacePhoto
                 name={name}
-                photos={photo ? [photo] : []}
+                coverPhoto={photo || null}
                 className="h-full min-h-[240px] w-full rounded-none md:min-h-[260px] lg:min-h-[280px] xl:min-h-[300px]"
                 imageClassName="object-cover"
                 sizes="(max-width: 1024px) 100vw, 896px"
@@ -330,7 +308,7 @@ function PhotoSlider({ name, photos, rating, reviewLabel }: PhotoSliderProps) {
 
         {hasMultiplePhotos ? (
           <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-end p-2.5 md:p-3">
-            <div className={cn("inline-flex items-center rounded-full bg-white/14 px-2 font-bold text-white backdrop-blur-xs", BADGE_HEIGHT_CLASS.small, BADGE_TEXT_CLASS.xxs)}>
+            <div className={cn("inline-flex items-center rounded-full bg-white/14 px-2 font-bold text-white backdrop-blur-xs", BADGE_HEIGHT_CLASS.small, BADGE_TEXT_CLASS.label)}>
               {safeIndex + 1} / {photos.length}
             </div>
           </div>
@@ -342,7 +320,7 @@ function PhotoSlider({ name, photos, rating, reviewLabel }: PhotoSliderProps) {
               className={cn(
                 "inline-flex items-center gap-1 rounded-full bg-white/15 px-2 font-black text-white backdrop-blur-xs",
                 BADGE_HEIGHT_CLASS.small,
-                BADGE_TEXT_CLASS.xxs
+                BADGE_TEXT_CLASS.label
               )}
             >
               <Star className="h-3 w-3 text-white" />
@@ -353,19 +331,27 @@ function PhotoSlider({ name, photos, rating, reviewLabel }: PhotoSliderProps) {
             className={cn(
               "inline-flex items-center rounded-full bg-white/15 px-2 font-semibold text-white backdrop-blur-xs",
               BADGE_HEIGHT_CLASS.small,
-              BADGE_TEXT_CLASS.xxs
+              BADGE_TEXT_CLASS.label
             )}
           >
             {reviewLabel}
           </div>
         </div>
 
+        {activePhoto?.displayName ? (
+          <div className="pointer-events-none absolute bottom-5 right-2.5 max-w-[68%] md:bottom-6 md:right-3">
+            <p className={cn("truncate rounded-full bg-white/14 px-2 py-1 font-medium text-white/88 backdrop-blur-xs", BADGE_TEXT_CLASS.xxs)}>
+              {activePhoto.displayName}
+            </p>
+          </div>
+        ) : null}
+
         {hasMultiplePhotos ? (
           <div className="absolute inset-x-0 bottom-3 flex items-center justify-center px-4">
             <div className="flex items-center justify-center gap-1 rounded-full bg-overlay/26 px-2 py-1 backdrop-blur-xs">
               {slides.map((photo, index) => (
                 <button
-                  key={`${photo || "fallback"}-${index}-indicator`}
+                  key={`${photo?.name || "fallback"}-${index}-indicator`}
                   type="button"
                   onPointerDown={(event) => event.stopPropagation()}
                   onClick={(event) => {
@@ -397,18 +383,12 @@ export function PlaceDetailContent({ place, backAction, visitDate = null }: Plac
   const openingHours = parseOpeningHours(place.openingHours);
   const openingHint = buildPlaceOpeningHint(place.openingHours);
   const openingRows = buildOpeningRows(openingHours.weekdayDescriptions, visitDate);
-  const priceLevelBadge = formatPriceLevelBadge(place.priceLevel);
   const googleMapUrl = buildGoogleMapUrl({
     placeName: place.name || "",
     address: place.formattedAddress || "",
     googleMapsUrl: place.googleMapsUrl || null
   });
-  const googleReviewsUrl = place.googlePlaceId
-    ? `https://www.google.com/maps/search/?api=1&query_place_id=${encodeURIComponent(place.googlePlaceId)}&query=${encodeURIComponent(
-        place.name || place.formattedAddress || UI_COPY.places.detail.placeQueryFallback
-      )}`
-    : googleMapUrl;
-  const photoGallery = Array.isArray(place.photos) ? place.photos.filter(Boolean).slice(0, 5) : [];
+  const photoGallery = Array.isArray(place.photos) ? place.photos.filter((photo) => Boolean(photo?.name)).slice(0, 5) : [];
 
   return (
     <div className="space-y-5">
@@ -440,16 +420,7 @@ export function PlaceDetailContent({ place, backAction, visitDate = null }: Plac
                   <InfoRow
                     icon={Wallet}
                     label={UI_COPY.places.detail.quickInfo.priceLevel}
-                    value={
-                      priceLevelBadge ? (
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-base font-black text-foreground">{priceLevelBadge}</span>
-                          <span className="text-sm text-foreground/62">{formatPriceLevelLabel(place.priceLevel)}</span>
-                        </div>
-                      ) : (
-                        formatPriceLevelLabel(place.priceLevel)
-                      )
-                    }
+                    value={formatPriceLevelLabel(place.priceLevel)}
                   />
                   <InfoRow
                     icon={Clock3}
@@ -460,11 +431,6 @@ export function PlaceDetailContent({ place, backAction, visitDate = null }: Plac
                         {openingHint.warningText ? <p className="text-xs font-semibold text-warning">{openingHint.warningText}</p> : null}
                       </div>
                     }
-                  />
-                  <InfoRow
-                    icon={Phone}
-                    label={UI_COPY.places.detail.quickInfo.phone}
-                    value={place.phone || UI_COPY.places.detail.quickInfo.phoneFallback}
                   />
                   <InfoRow
                     icon={Globe}
@@ -539,57 +505,6 @@ export function PlaceDetailContent({ place, backAction, visitDate = null }: Plac
             ) : (
               <div className="rounded-2xl border border-dashed border-border-strong bg-muted/24 px-4 py-5 text-sm text-foreground/60">
                 {UI_COPY.places.detail.openingHours.empty}
-              </div>
-            )}
-          </Card>
-
-          <Card className="space-y-4 p-4 md:p-5">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="text-lg font-black">{UI_COPY.places.detail.reviews.title}</h2>
-              <a
-                href={googleReviewsUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1 text-xs font-semibold text-primary underline underline-offset-4"
-              >
-                {UI_COPY.places.detail.actions.moreReviews}
-                <ExternalLink className="h-3.5 w-3.5" />
-              </a>
-            </div>
-
-            {Array.isArray(place.reviews) && place.reviews.length > 0 ? (
-              <div className="grid gap-3">
-                {place.reviews.map((review, index) => (
-                  <article key={`${review.authorName ?? "author"}-${index}`} className="rounded-xl border border-border/80 bg-muted/35 p-4 md:rounded-2xl">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="font-bold text-foreground">{review.authorName || UI_COPY.places.detail.reviews.anonymous}</p>
-                        <p className="text-xs text-foreground/56">
-                          {formatReviewDate(review.publishTime) || UI_COPY.places.detail.reviews.missingDate}
-                        </p>
-                      </div>
-                      {typeof review.rating === "number" ? (
-                        <div
-                          className={cn(
-                            "inline-flex items-center gap-1 rounded-full bg-card px-2.5 font-bold text-foreground shadow-soft",
-                            BADGE_HEIGHT_CLASS.small,
-                            BADGE_TEXT_CLASS.small
-                          )}
-                        >
-                          <Star fill="currentColor" className="h-3.5 w-3.5 text-star" />
-                          {review.rating.toFixed(1)}
-                        </div>
-                      ) : null}
-                    </div>
-                    <p className="mt-3 text-sm leading-6 text-foreground/76">
-                      {truncateReviewText(review.text) || UI_COPY.places.detail.reviews.missingText}
-                    </p>
-                  </article>
-                ))}
-              </div>
-            ) : (
-              <div className="rounded-2xl border border-dashed border-border-strong bg-muted/24 px-4 py-5 text-sm text-foreground/60">
-                {UI_COPY.places.detail.reviews.empty}
               </div>
             )}
           </Card>
