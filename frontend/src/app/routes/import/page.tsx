@@ -29,6 +29,7 @@ import {
   PLACE_LIST_NAME_MAX_LENGTH
 } from "@/lib/forms/input-schemas";
 import { importPlaceFromGoogleLink, importPlaceListFromCrawler } from "@/lib/graphql/api";
+import { resolveImportErrorMessage } from "@/lib/graphql/import-errors";
 import { queryKeys } from "@/lib/query-keys";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import { useUiStore } from "@/stores/ui-store";
@@ -84,8 +85,9 @@ export default function ImportRoutePage() {
     },
     onError: (error: Error) => {
       console.error(error);
-      crawlerForm.setError("root", { type: "server", message: UI_COPY.routes.import.toast.importListError });
-      pushToast({ kind: "error", message: UI_COPY.routes.import.toast.importListError });
+      const message = resolveImportErrorMessage(error, UI_COPY.routes.import.toast.importListError);
+      crawlerForm.setError("root", { type: "server", message });
+      pushToast({ kind: "error", message });
     }
   });
 
@@ -99,8 +101,9 @@ export default function ImportRoutePage() {
     },
     onError: (error: Error) => {
       console.error(error);
-      googleForm.setError("root", { type: "server", message: UI_COPY.routes.import.toast.importPlacesError });
-      pushToast({ kind: "error", message: UI_COPY.routes.import.toast.importPlacesError });
+      const message = resolveImportErrorMessage(error, UI_COPY.routes.import.toast.importPlacesError);
+      googleForm.setError("root", { type: "server", message });
+      pushToast({ kind: "error", message });
     }
   });
 
@@ -149,7 +152,7 @@ export default function ImportRoutePage() {
         />
         <form id={crawlerFormId} noValidate onSubmit={onSubmitCrawlerImport} className="space-y-4">
           {crawlerForm.formState.errors.root?.message ? (
-            <p className="rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-xs text-danger">
+            <p className="whitespace-pre-line rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-xs text-danger">
               {crawlerForm.formState.errors.root.message}
             </p>
           ) : null}

@@ -29,6 +29,8 @@ import {
   saveScheduleEdits,
   updateScheduleStopNote
 } from "@/lib/graphql/api";
+import { AppGraphQLError } from "@/lib/graphql/client";
+import { resolveImportErrorMessage } from "@/lib/graphql/import-errors";
 import {
   addRouteEditGooglePlace,
   addRouteEditPlace,
@@ -288,6 +290,16 @@ export default function RouteDetailPage() {
       console.error(error);
       if (error.message === "이미 일정이나 저장 리스트에 있는 장소예요") {
         pushToast({ kind: "info", message: error.message });
+        return;
+      }
+      if (
+        error instanceof AppGraphQLError &&
+        (error.code === "BAD_USER_INPUT" ||
+          error.code === "NOT_FOUND" ||
+          error.code === "IMPORT_LIST_QUOTA_EXCEEDED" ||
+          error.code === "IMPORT_PLACE_QUOTA_EXCEEDED")
+      ) {
+        pushToast({ kind: "error", message: resolveImportErrorMessage(error, "Google 장소를 추가하지 못했어요") });
         return;
       }
 

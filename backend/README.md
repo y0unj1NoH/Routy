@@ -41,6 +41,8 @@ Legacy fallback:
 실행 파일:
 
 - `supabase/sql/001_init_requirements.sql`
+- `supabase/sql/002_usage_events.sql` (기존 DB에 import/AI 사용량 추적 테이블을 추가하거나 컬럼명을 최신 상태로 맞출 때)
+- `supabase/sql/003_drop_unused_place_fields.sql` (기존 DB에서 더 이상 쓰지 않는 `places` 컬럼 `primary_type_display_name/reviews/phone`을 제거할 때)
 
 주의:
 
@@ -51,6 +53,8 @@ Legacy fallback:
 - `places` (공용 장소 원본)
 - `place_lists` (유저 리스트 헤더, 출력 언어 포함)
 - `place_list_items` (리스트별 장소 + 메모/우선순위)
+- `import_usage_events` (Google import 월간 사용량 이벤트 로그)
+- `ai_usage_events` (AI 일정 생성 사용량 이벤트 로그)
 - `schedules` (생성 시점 출력 언어 스냅샷 포함)
 - `schedule_days`
 - `schedule_stops` (`reason` + `visit_tip` 저장)

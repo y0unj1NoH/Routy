@@ -11,7 +11,11 @@ export const UI_COPY = {
       // Generic fallback when technical server details should stay out of the UI.
       serviceUnavailableTitle: "서비스를 불러오지 못했어요",
       serviceUnavailableDescription: "잠시 후 다시 시도해 주세요",
-      invalidInput: "입력값을 확인해 주세요"
+      invalidInput: "입력값을 확인해 주세요",
+      importRequestQuotaExceeded: "이번 달 가져오기 할당량이 모두 소진됐어요\n다음 달에 다시 이용해 주세요",
+      importPlaceQuotaExceeded: "이번 달 가져올 수 있는 장소 할당량이 모두 소진됐어요\n다음 달에 다시 이용해 주세요",
+      aiDailyQuotaExceeded: "오늘 AI 일정 생성 할당량이 모두 소진됐어요\n내일 다시 이용해 주세요",
+      aiMonthlyQuotaExceeded: "이번 달 AI 일정 생성 할당량이 모두 소진됐어요\n다음 달에 다시 이용해 주세요"
     },
     action: {
       // Common CTA labels reused by dialogs and error states.
@@ -315,6 +319,10 @@ export const UI_COPY = {
         success: "일정을 만들었어요",
         error: "일정을 만들지 못했어요",
         missingSelection: "리스트와 여행 날짜를 먼저 선택해 주세요",
+        mustVisitLimitExceeded: (dayCount: number, limit: number) => ({
+          title: `${dayCount}일 여행에서는 Must Visit를 최대 ${limit}개까지 반영할 수 있어요`,
+          description: "여행 기간을 늘리거나 Must Visit를 줄여 주세요"
+        }),
         importedListSelected: (listName: string) => `${listName} 리스트를 불러왔어요`,
         addedStaySuccess: (placeName: string) => `${placeName}를 숙소로 추가했어요`,
         addedStayTypeError: "숙소로 분류된 Google 장소를 확인해 주세요",
@@ -380,6 +388,7 @@ export const UI_COPY = {
       styleStep: {
         title: "어떤 여행을 원하시나요?",
         description: "취향에 맞는 여행 코스를 추천해 드려요",
+        aiQuotaHint: "AI 일정 생성은 하루 최대 5번까지 가능해요",
         paceLabel: "여행 페이스",
         required: "* 필수",
         themeLabel: "이번 여행에서 가장 기대하는 건?",
@@ -540,7 +549,7 @@ export const UI_COPY = {
       reviewCount: (count: number) => `리뷰 ${new Intl.NumberFormat("ko-KR").format(count)}개`,
       priceUnknown: "가격 정보 없음",
       free: "무료",
-      priceLabels: ["", "저렴", "보통", "비싼 편", "프리미엄"],
+      priceLabels: ["", "저렴한 편", "보통", "조금 비싼 편", "프리미엄"],
       overviewCategoryFallback: "여행 장소",
       overviewRating: (rating: string, reviewCount: string) => `평점 ${rating} · 리뷰 ${reviewCount}`,
       overviewRatingFallback: "아직 리뷰가 충분하지 않아요",
@@ -548,8 +557,6 @@ export const UI_COPY = {
       actions: {
         directions: "길찾기",
         directionsSub: "Google Maps",
-        moreReviews: "리뷰 더 보기",
-        phone: "전화",
         website: "웹사이트",
         websiteSub: "공식 링크"
       },
@@ -571,13 +578,6 @@ export const UI_COPY = {
         description: "방문 가능 시간을 확인해 보세요",
         empty: "영업시간 정보가 없어요. Google Maps에서 확인해 보세요"
       },
-      reviews: {
-        title: "리뷰 요약",
-        anonymous: "익명 사용자",
-        missingDate: "작성일 정보 없음",
-        missingText: "리뷰 내용이 없어요",
-        empty: "리뷰가 아직 없어요"
-      },
       map: {
         title: "위치 확인",
         openInGoogleMaps: "Google Maps에서 열기",
@@ -587,11 +587,9 @@ export const UI_COPY = {
         eyebrow: "정보",
         title: "빠른 정보",
         address: "주소",
-        phone: "전화",
         website: "웹사이트",
         priceLevel: "가격대",
         updatedAt: "최근 업데이트",
-        phoneFallback: "전화번호 없음",
         websiteAction: "공식 링크 열기",
         websiteFallback: "웹사이트 정보 없음"
       }

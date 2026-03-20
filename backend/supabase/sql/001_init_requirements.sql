@@ -11,6 +11,8 @@ $$ language plpgsql;
 drop table if exists public.schedule_stops cascade;
 drop table if exists public.schedule_days cascade;
 drop table if exists public.schedules cascade;
+drop table if exists public.ai_usage_events cascade;
+drop table if exists public.import_usage_events cascade;
 drop table if exists public.place_list_items cascade;
 drop table if exists public.place_lists cascade;
 drop table if exists public.places cascade;
@@ -27,14 +29,11 @@ create table public.places (
   price_level smallint check (price_level between 0 and 4),
   types_raw jsonb not null default '[]'::jsonb,
   primary_type text,
-  primary_type_display_name text,
   business_status text,
   address_components jsonb not null default '[]'::jsonb,
   categories text[] not null default '{}',
   opening_hours jsonb,
   photos jsonb not null default '[]'::jsonb,
-  reviews jsonb not null default '[]'::jsonb,
-  phone text,
   website text,
   google_maps_url text,
   created_at timestamptz not null default now(),
@@ -63,6 +62,26 @@ create table public.place_list_items (
   unique (list_id, place_id)
 );
 
+create table public.import_usage_events (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete set null,
+  usage_month text not null,
+  source text not null,
+  import_request_count integer not null default 0 check (import_request_count >= 0),
+  import_place_count integer not null default 0 check (import_place_count >= 0),
+  created_at timestamptz not null default now(),
+  constraint import_usage_events_nonzero_check check (import_request_count > 0 or import_place_count > 0)
+);
+
+create table public.ai_usage_events (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete set null,
+  usage_date text not null,
+  usage_month text not null,
+  source text not null,
+  created_at timestamptz not null default now()
+);
+
 create table public.schedules (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
@@ -78,7 +97,7 @@ create table public.schedules (
   themes jsonb not null default '[]'::jsonb,
   output_language text not null default 'ko' check (output_language in ('ko', 'en')),
   generation_input jsonb not null default '{}'::jsonb,
-  generation_version text not null default 'mvp_v3_deterministic_budget',
+  generation_version text not null default 'mvp_v4_ai_route_v1_5',
   is_manual_modified boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
@@ -116,6 +135,11 @@ create index place_lists_user_idx on public.place_lists(user_id);
 create index place_list_items_list_idx on public.place_list_items(list_id);
 create index place_list_items_list_sort_idx on public.place_list_items(list_id, sort_order);
 create index place_list_items_place_idx on public.place_list_items(place_id);
+create index import_usage_events_usage_month_idx on public.import_usage_events(usage_month);
+create index import_usage_events_created_idx on public.import_usage_events(created_at);
+create index ai_usage_events_user_usage_date_idx on public.ai_usage_events(user_id, usage_date);
+create index ai_usage_events_usage_month_idx on public.ai_usage_events(usage_month);
+create index ai_usage_events_created_idx on public.ai_usage_events(created_at);
 create index schedules_user_idx on public.schedules(user_id);
 create index schedules_place_list_idx on public.schedules(place_list_id);
 create index schedule_days_schedule_idx on public.schedule_days(schedule_id);
@@ -143,6 +167,8 @@ execute function public.set_updated_at();
 alter table public.places enable row level security;
 alter table public.place_lists enable row level security;
 alter table public.place_list_items enable row level security;
+alter table public.import_usage_events enable row level security;
+alter table public.ai_usage_events enable row level security;
 alter table public.schedules enable row level security;
 alter table public.schedule_days enable row level security;
 alter table public.schedule_stops enable row level security;

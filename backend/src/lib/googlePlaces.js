@@ -213,7 +213,7 @@ async function searchPlacesByText(textQuery, maxResultCount = 5) {
       "Content-Type": "application/json",
       "X-Goog-Api-Key": apiKey,
       "X-Goog-FieldMask":
-        "places.id,places.displayName,places.formattedAddress,places.location,places.rating,places.userRatingCount,places.googleMapsUri"
+        "places.id,places.formattedAddress"
     },
     body: JSON.stringify(body)
   });
@@ -231,12 +231,12 @@ async function fetchPlaceDetailsById(placeId) {
     headers: {
       "X-Goog-Api-Key": apiKey,
       "X-Goog-FieldMask":
-        "id,displayName,formattedAddress,addressComponents,location,rating,userRatingCount,priceLevel,types,primaryType,primaryTypeDisplayName,businessStatus,regularOpeningHours,photos,reviews,nationalPhoneNumber,websiteUri,googleMapsUri"
+        "id,displayName,formattedAddress,addressComponents,location,rating,userRatingCount,priceLevel,types,primaryType,businessStatus,regularOpeningHours,photos,websiteUri,googleMapsUri"
     }
   });
 }
 
-async function resolveGoogleMapsLink(rawUrl) {
+async function resolveGoogleMapsLink(rawUrl, options = {}) {
   const nestedUrl = extractNestedGoogleMapsUrl(rawUrl);
   const expandedUrl = await expandGoogleMapsUrl(rawUrl);
   const expandedNestedUrl = nestedUrl ? await expandGoogleMapsUrl(nestedUrl) : null;

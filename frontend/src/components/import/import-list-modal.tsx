@@ -19,6 +19,7 @@ import {
   PLACE_LIST_NAME_MAX_LENGTH
 } from "@/lib/forms/input-schemas";
 import { importPlaceListFromCrawler } from "@/lib/graphql/api";
+import { resolveImportErrorMessage } from "@/lib/graphql/import-errors";
 import { queryKeys } from "@/lib/query-keys";
 import { useUiStore } from "@/stores/ui-store";
 
@@ -74,8 +75,9 @@ export function ImportListModal({ isOpen, accessToken, onClose, onImported }: Im
     },
     onError: (error: Error) => {
       console.error(error);
-      form.setError("root", { type: "server", message: UI_COPY.importListModal.error });
-      pushToast({ kind: "error", message: UI_COPY.importListModal.error });
+      const message = resolveImportErrorMessage(error, UI_COPY.importListModal.error);
+      form.setError("root", { type: "server", message });
+      pushToast({ kind: "error", message });
     }
   });
 
@@ -138,7 +140,7 @@ export function ImportListModal({ isOpen, accessToken, onClose, onImported }: Im
     >
       <form id={formId} noValidate onSubmit={onSubmit} className="space-y-4">
         {form.formState.errors.root?.message ? (
-          <p className="rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-xs text-danger">
+          <p className="whitespace-pre-line rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-xs text-danger">
             {form.formState.errors.root.message}
           </p>
         ) : null}

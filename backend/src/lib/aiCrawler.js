@@ -94,8 +94,7 @@ async function scrapeList(url) {
                 if (nameEl) {
                     results.push({
                         name: nameEl.innerText.trim(),
-                        note: noteEl ? noteEl.innerText.trim() : null,
-                        originalQuery: nameEl.innerText.trim() 
+                        note: noteEl ? noteEl.innerText.trim() : null
                     });
                 }
             });

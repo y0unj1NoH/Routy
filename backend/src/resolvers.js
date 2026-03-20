@@ -2,10 +2,17 @@ const { GraphQLError } = require("graphql");
 const { createHash } = require("node:crypto");
 const GraphQLJSON = require("graphql-type-json");
 const { createSupabaseAdminClient, extractBearerToken } = require("./lib/supabase");
-const { buildSchedulePlan, recomputeStopTransports } = require("./lib/scheduleEngine");
+const {
+  buildSchedulePlan,
+  inferPlanningMode,
+  recomputeStopTransports,
+  resolveDayBudgetMinutes,
+  selectCandidatesForAiPlanning
+} = require("./lib/scheduleEngine");
 const { sanitizeScheduledDayStops } = require("./lib/scheduleStopSanitizer");
 const { buildStayRecommendation } = require("./lib/stayRecommendation");
 const { scrapeList } = require("./lib/aiCrawler");
+const { buildAiSchedulePlan } = require("./lib/geminiOptimizer");
 const {
   hasGooglePlacesApiKey,
   resolveGoogleMapsLink,
@@ -23,6 +30,8 @@ const TABLES = {
   places: "places",
   placeLists: "place_lists",
   placeListItems: "place_list_items",
+  importUsageEvents: "import_usage_events",
+  aiUsageEvents: "ai_usage_events",
   schedules: "schedules",
   scheduleDays: "schedule_days",
   scheduleStops: "schedule_stops"
@@ -30,9 +39,22 @@ const TABLES = {
 const MAX_SCHEDULE_DAY_COUNT = 7;
 const MAX_PLACE_LIST_NAME_LENGTH = 12;
 const MAX_PLACE_LIST_CITY_LENGTH = 12;
+const MAX_PLACE_LIST_ITEMS = 50;
+const MONTHLY_IMPORT_REQUEST_LIMIT = 100;
+const MONTHLY_IMPORT_PLACE_LIMIT = 1000;
+const DAILY_AI_GENERATION_LIMIT = 5;
+const MONTHLY_AI_GENERATION_LIMIT = 500;
+const PLACE_DETAILS_FRESHNESS_WINDOW_MS = 14 * 24 * 60 * 60 * 1000;
+const MAX_AI_CANDIDATES = 70;
 const DEFAULT_OUTPUT_LANGUAGE = "ko";
 const SUPPORTED_APP_LANGUAGES = new Set(["ko", "en"]);
-const GENERATION_VERSION = "mvp_v3_deterministic_budget";
+const GENERATION_VERSION = "mvp_v4_ai_route_v1_5";
+const DATE_STEP_MUST_VISIT_PER_DAY_LIMIT = 7;
+const FINAL_MUST_VISIT_MULTIPLIER_BY_PACE = {
+  RELAXED: 5,
+  MODERATE: 6,
+  INTENSE: 7
+};
 const CITY_ALIAS_GROUPS = [
   ["bangkok", "방콕", "krung thep", "krungthep", "กรุงเทพ", "กรุงเทพมหานคร", "bkk"],
   ["osaka", "오사카", "大阪"],
@@ -48,7 +70,16 @@ const CITY_ALIAS_GROUPS = [
   ["london", "런던", "倫敦"],
   ["new york", "뉴욕", "newyork"]
 ];
+const GOOGLE_PLACE_MEDIA_PATTERN = /\/v1\/(places\/[^/]+\/photos\/[^/?#]+)\/media/i;
 const LODGING_TYPE_PATTERN = /hotel|lodging|hostel|motel|guest|inn|resort|ryokan|accommodation/i;
+const IMPORT_USAGE_SOURCES = {
+  googleMapsList: "GOOGLE_MAPS_LIST",
+  googleMapsLink: "GOOGLE_MAPS_LINK"
+};
+const AI_USAGE_SOURCES = {
+  createSchedule: "CREATE_SCHEDULE",
+  regenerateSchedule: "REGENERATE_SCHEDULE"
+};
 
 function fail(message, code = "INTERNAL_SERVER_ERROR", details = null) {
   throw new GraphQLError(message, { extensions: { code, details } });
@@ -290,6 +321,47 @@ function buildTripDays(startDate, dayCount) {
   });
 }
 
+function normalizePace(value, fallback = "MODERATE") {
+  const normalized = String(value || fallback)
+    .trim()
+    .toUpperCase();
+  if (normalized === "RELAXED" || normalized === "MODERATE" || normalized === "INTENSE") {
+    return normalized;
+  }
+  return fallback;
+}
+
+function resolveFinalMustVisitLimit(dayCount, pace) {
+  const normalizedPace = normalizePace(pace, "MODERATE");
+  return Math.max(1, Number(dayCount) || 1) * (FINAL_MUST_VISIT_MULTIPLIER_BY_PACE[normalizedPace] || 6);
+}
+
+function countSchedulableMustVisitCandidates(candidates) {
+  return (candidates || []).reduce((count, candidate) => count + (candidate?.isMustVisit ? 1 : 0), 0);
+}
+
+function buildMustVisitLimitDetails(dayCount, mustVisitCount, limit) {
+  return {
+    kind: "MUST_VISIT_LIMIT_EXCEEDED",
+    dayCount,
+    mustVisitCount,
+    limit
+  };
+}
+
+function assertMustVisitLimit({ candidates, dayCount, limit }) {
+  const mustVisitCount = countSchedulableMustVisitCandidates(candidates);
+  if (mustVisitCount > limit) {
+    fail(
+      `${dayCount}일 여행에서는 Must Visit를 최대 ${limit}개까지 반영할 수 있어요`,
+      "BAD_USER_INPUT",
+      buildMustVisitLimitDetails(dayCount, mustVisitCount, limit)
+    );
+  }
+
+  return mustVisitCount;
+}
+
 function mapUser(user) {
   if (!user) return null;
   return { id: user.id, email: user.email || null };
@@ -323,13 +395,11 @@ function mapPlace(row) {
     priceLevel: normalizedRow.price_level,
     typesRaw: Array.isArray(normalizedRow.types_raw) ? normalizedRow.types_raw : [],
     primaryType: normalizedRow.primary_type || null,
-    primaryTypeDisplayName: normalizedRow.primary_type_display_name || null,
     businessStatus: normalizedRow.business_status || null,
     categories: Array.isArray(normalizedRow.categories) ? normalizedRow.categories : [],
     openingHours: normalizedRow.opening_hours,
     photos: Array.isArray(normalizedRow.photos) ? normalizedRow.photos : [],
-    reviews: Array.isArray(normalizedRow.reviews) ? normalizedRow.reviews : [],
-    phone: normalizedRow.phone,
+    coverPhoto: Array.isArray(normalizedRow.photos) && normalizedRow.photos.length > 0 ? normalizedRow.photos[0] : null,
     website: normalizedRow.website,
     googleMapsUrl: normalizedRow.google_maps_url,
     createdAt: normalizedRow.created_at,
@@ -865,12 +935,94 @@ function buildGenerationInput(payload) {
     themes: normalizeThemes(payload.themes),
     placeListId: payload.placeListId,
     stayPlaceId: payload.stayPlaceId || null,
+    planningMode: payload.planningMode || null,
+    dayBudgetMinutes: Number(payload.dayBudgetMinutes) || resolveDayBudgetMinutes({ pace: payload.pace }),
+    candidateTrim:
+      payload.candidateTrim && typeof payload.candidateTrim === "object"
+        ? payload.candidateTrim
+        : null,
+    aiFallback:
+      payload.aiFallback && typeof payload.aiFallback === "object"
+        ? payload.aiFallback
+        : null,
     outputLanguage: normalizeLanguage(payload.outputLanguage, DEFAULT_OUTPUT_LANGUAGE),
     candidatePreprocess:
       payload.candidatePreprocess && typeof payload.candidatePreprocess === "object"
         ? payload.candidatePreprocess
         : null,
     tripDays: buildTripDays(payload.startDate, payload.dayCount)
+  };
+}
+
+async function resolveSchedulePlanDays({
+  candidates,
+  dayCount,
+  stayPlace,
+  placeById,
+  generationInput,
+  outputLanguage
+}) {
+  let planDays = null;
+
+  try {
+    planDays = await buildAiSchedulePlan({
+      candidates,
+      dayCount,
+      startDate: generationInput.startDate,
+      stayPlace,
+      generationInput
+    });
+  } catch (error) {
+    console.error("AI schedule planning failed. Falling back to deterministic planner.", error);
+    generationInput.aiFallback = {
+      provider: "deterministic",
+      reason: error?.message || "unknown"
+    };
+    planDays = buildSchedulePlan({
+      candidates,
+      dayCount,
+      stayPlace,
+      generationInput
+    });
+  }
+
+  return sanitizePlanDaysForPersistence({
+    planDays,
+    placeById,
+    outputLanguage,
+    tripDays: generationInput.tripDays
+  });
+}
+
+function resolvePlanningPreparation({ candidates, dayCount, generationInputBase, stayPlace }) {
+  const planningMode = inferPlanningMode(candidates, generationInputBase);
+  let planningSelection = null;
+
+  try {
+    planningSelection = selectCandidatesForAiPlanning(
+      candidates,
+      dayCount,
+      {
+        ...generationInputBase,
+        planningMode
+      },
+      stayPlace
+    );
+  } catch (error) {
+    if (error?.code === "AI_CANDIDATE_LIMIT_EXCEEDED") {
+      fail(
+        `AI 일정 생성에는 최대 ${MAX_AI_CANDIDATES}개 장소까지 사용할 수 있어요.`,
+        "BAD_USER_INPUT",
+        error.details || null
+      );
+    }
+    throw error;
+  }
+
+  return {
+    planningMode,
+    planningCandidates: planningSelection.candidates,
+    candidateTrim: planningSelection.metadata
   };
 }
 
@@ -1013,18 +1165,39 @@ const resolvers = {
 
       // 1. Scrape the list using Puppeteer
       const scrapedPlaces = await scrapeList(url);
-      if (!scrapedPlaces || scrapedPlaces.length === 0) {
+      const normalizedScrapedPlaces = (scrapedPlaces || [])
+        .map((placeData) => ({
+          ...placeData,
+          name: normalizeImportPlaceName(placeData?.name),
+          note: typeof placeData?.note === "string" ? placeData.note.trim() || null : null
+        }))
+        .filter((placeData) => placeData.name);
+
+      if (normalizedScrapedPlaces.length === 0) {
         fail("No places found at the provided URL", "BAD_USER_INPUT");
       }
+      if (normalizedScrapedPlaces.length > MAX_PLACE_LIST_ITEMS) {
+        fail(
+          `Google Maps 리스트는 최대 ${MAX_PLACE_LIST_ITEMS}개 장소까지 가져올 수 있어요.`,
+          "BAD_USER_INPUT"
+        );
+      }
+      const importUsageTracker = createMonthlyImportUsageTracker(user.id, IMPORT_USAGE_SOURCES.googleMapsList);
+      await importUsageTracker.ensurePlaceCapacity(normalizedScrapedPlaces.length);
 
       // 2. Import places first. If none succeed, do not create list.
       const apiKeyExists = hasGooglePlacesApiKey();
       const importedItems = [];
+      const searchCache = new Map();
+      const placeDetailsCache = new Map();
+      const storedPlaceCache = new Map();
 
-      for (const placeData of scrapedPlaces) {
+      for (const placeData of normalizedScrapedPlaces) {
         try {
           const searchQuery = `${placeData.name} ${city}`.trim();
-          const searchResults = await searchPlacesByText(searchQuery, 5);
+          const searchResults = await fetchCachedSearchPlacesByText(searchCache, searchQuery, 5, {
+            onMiss: () => importUsageTracker.recordSearchMiss()
+          });
           const cityTokens = buildCityTokens(city);
           const cityMatched = (searchResults || []).find((place) =>
             includesCityToken(place?.formattedAddress, cityTokens)
@@ -1035,24 +1208,53 @@ const resolvers = {
             continue;
           }
 
+          const existingPlace = await fetchCachedPlaceByGooglePlaceId(context.supabase, storedPlaceCache, resolvedPlaceId);
+          if (existingPlace && isPlaceDetailsFresh(existingPlace)) {
+            if (isImportBlockedBusinessStatus(existingPlace.business_status)) {
+              console.warn(`Skipping non-importable place ${placeData.name}`, {
+                businessStatus: existingPlace.business_status
+              });
+              continue;
+            }
+
+            importedItems.push({
+              place_id: existingPlace.id,
+              note: placeData.note ?? null,
+              is_must_visit: false
+            });
+            continue;
+          }
+
           let placePayload = {
             google_place_id: resolvedPlaceId,
-            name: placeData.name || null
+            name: placeData.name || existingPlace?.name || null,
+            google_maps_url: cityMatched?.googleMapsUri || searchResults[0]?.googleMapsUri || existingPlace?.google_maps_url || null
           };
+          let placeRow = existingPlace;
           if (apiKeyExists) {
-            const details = await fetchPlaceDetailsById(resolvedPlaceId);
-            placePayload = normalizePlacePayload(details, { googlePlaceId: resolvedPlaceId, name: placeData.name || null });
+            const details = await fetchCachedPlaceDetails(placeDetailsCache, resolvedPlaceId, {
+              onMiss: () => importUsageTracker.recordPlaceDetailsMiss()
+            });
+            placePayload = normalizePlacePayload(details, {
+              googlePlaceId: resolvedPlaceId,
+              name: placeData.name || existingPlace?.name || null,
+              googleMapsUrl: cityMatched?.googleMapsUri || searchResults[0]?.googleMapsUri || existingPlace?.google_maps_url || null
+            });
             if (isImportBlockedBusinessStatus(placePayload.business_status)) {
               console.warn(`Skipping non-importable place ${placeData.name}`, {
                 businessStatus: placePayload.business_status
               });
               continue;
             }
+            placeRow = await upsertSharedPlace(context.supabase, placePayload);
+            storedPlaceCache.set(resolvedPlaceId, Promise.resolve(placeRow));
+          } else if (!placeRow) {
+            placeRow = await upsertSharedPlace(context.supabase, placePayload);
+            storedPlaceCache.set(resolvedPlaceId, Promise.resolve(placeRow));
           }
 
-          const row = await upsertSharedPlace(context.supabase, placePayload);
           importedItems.push({
-            place_id: row.id,
+            place_id: placeRow.id,
             note: placeData.note ?? null,
             is_must_visit: false
           });
@@ -1079,6 +1281,13 @@ const resolvers = {
           existingItem.note = item.note;
         }
         existingItem.is_must_visit = existingItem.is_must_visit || item.is_must_visit;
+      }
+
+      if (dedupedImportedItems.length > MAX_PLACE_LIST_ITEMS) {
+        fail(
+          `리스트에는 최대 ${MAX_PLACE_LIST_ITEMS}개까지 담을 수 있어요.`,
+          "BAD_USER_INPUT"
+        );
       }
 
       // 3. Create list only after we have at least one imported place.
@@ -1178,8 +1387,6 @@ const resolvers = {
         }),
         opening_hours: input.openingHours ?? null,
         photos: Array.isArray(input.photos) ? input.photos : [],
-        reviews: Array.isArray(input.reviews) ? input.reviews : [],
-        phone: input.phone ?? null,
         website: input.website ?? null,
         google_maps_url: input.googleMapsUrl ?? null
       };

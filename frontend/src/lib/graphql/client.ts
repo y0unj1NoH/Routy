@@ -7,6 +7,10 @@ import { publicEnv } from "@/lib/env";
 export type AppGraphQLErrorCode =
   | "UNAUTHENTICATED"
   | "BAD_USER_INPUT"
+  | "IMPORT_LIST_QUOTA_EXCEEDED"
+  | "IMPORT_PLACE_QUOTA_EXCEEDED"
+  | "AI_DAILY_QUOTA_EXCEEDED"
+  | "AI_SYSTEM_MONTHLY_QUOTA_EXCEEDED"
   | "NOT_FOUND"
   | "INTERNAL_SERVER_ERROR"
   | "NETWORK_ERROR"
@@ -29,6 +33,10 @@ function normalizeCode(code: string | undefined): AppGraphQLErrorCode {
   if (!code) return "UNKNOWN";
   if (code === "UNAUTHENTICATED") return "UNAUTHENTICATED";
   if (code === "BAD_USER_INPUT") return "BAD_USER_INPUT";
+  if (code === "IMPORT_LIST_QUOTA_EXCEEDED") return "IMPORT_LIST_QUOTA_EXCEEDED";
+  if (code === "IMPORT_PLACE_QUOTA_EXCEEDED") return "IMPORT_PLACE_QUOTA_EXCEEDED";
+  if (code === "AI_DAILY_QUOTA_EXCEEDED") return "AI_DAILY_QUOTA_EXCEEDED";
+  if (code === "AI_SYSTEM_MONTHLY_QUOTA_EXCEEDED") return "AI_SYSTEM_MONTHLY_QUOTA_EXCEEDED";
   if (code === "NOT_FOUND") return "NOT_FOUND";
   if (code === "INTERNAL_SERVER_ERROR") return "INTERNAL_SERVER_ERROR";
   return "UNKNOWN";

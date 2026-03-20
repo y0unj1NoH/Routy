@@ -65,7 +65,7 @@ export function ToastCard({ kind, message, role, action, className }: ToastCardP
         </div>
 
         <div className="min-w-0 flex-1 pr-1">
-          <p className="break-keep text-[13px] font-semibold leading-[1.45] text-foreground/82 md:text-sm md:leading-[1.45]">
+          <p className="break-keep whitespace-pre-line text-[13px] font-semibold leading-[1.45] text-foreground/82 md:text-sm md:leading-[1.45]">
             {message}
           </p>
         </div>

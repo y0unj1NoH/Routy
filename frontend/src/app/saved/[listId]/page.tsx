@@ -38,6 +38,7 @@ import {
   updatePlaceList,
   updatePlaceListItem
 } from "@/lib/graphql/api";
+import { resolveImportErrorMessage } from "@/lib/graphql/import-errors";
 import { queryKeys } from "@/lib/query-keys";
 import { useUiStore } from "@/stores/ui-store";
 import type { PlaceList, PlaceListItem } from "@/types/domain";
@@ -302,16 +303,14 @@ export default function SavedListDetailPage() {
         throw new Error(UI_COPY.saved.detail.addPlaceNotFound);
       }
 
-      await Promise.all(
-        places.map((place) =>
-          addPlaceListItem(accessToken ?? "", {
-            listId,
-            placeId: place.id,
-            note: null,
-            isMustVisit: false
-          })
-        )
-      );
+      for (const place of places) {
+        await addPlaceListItem(accessToken ?? "", {
+          listId,
+          placeId: place.id,
+          note: null,
+          isMustVisit: false
+        });
+      }
 
       return {
         importedCount: places.length,
@@ -330,7 +329,10 @@ export default function SavedListDetailPage() {
     },
     onError: (error: Error) => {
       console.error(error);
-      const message = error.message === UI_COPY.saved.detail.addPlaceNotFound ? error.message : UI_COPY.saved.detail.addPlaceError;
+      const message =
+        error.message === UI_COPY.saved.detail.addPlaceNotFound
+          ? error.message
+          : resolveImportErrorMessage(error, UI_COPY.saved.detail.addPlaceError);
       addPlaceForm.setError("root", { type: "server", message });
       pushToast({ kind: "error", message });
     }
