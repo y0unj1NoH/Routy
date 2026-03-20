@@ -2,6 +2,8 @@
 
 import { AppErrorScreen } from "@/components/layout/app-error-screen";
 
+import "./globals.css";
+
 export default function GlobalErrorPage({
   error,
   reset
@@ -9,5 +11,11 @@ export default function GlobalErrorPage({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  return <AppErrorScreen error={error} reset={reset} />;
+  return (
+    <html lang="ko">
+      <body className="antialiased">
+        <AppErrorScreen error={error} reset={reset} />
+      </body>
+    </html>
+  );
 }

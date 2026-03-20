@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { Session } from "@supabase/supabase-js";
+import * as Sentry from "@sentry/nextjs";
 
 import { isSupabaseEnvConfigured } from "@/lib/env";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
@@ -53,6 +54,18 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
       subscription.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    if (!session?.user) {
+      Sentry.setUser(null);
+      return;
+    }
+
+    Sentry.setUser({
+      id: session.user.id,
+      email: session.user.email ?? undefined
+    });
+  }, [session]);
 
   return <AuthSessionContext.Provider value={{ session, isLoading }}>{children}</AuthSessionContext.Provider>;
 }
