@@ -29,6 +29,8 @@ const DAY_BUDGET_MINUTES_BY_PACE = {
   MODERATE: 510,
   INTENSE: 630
 };
+const AI_MAX_CANDIDATES = 70;
+const AI_RECOMMEND_TRIM_SEQUENCE = ["MEAL", "VISIT", "MEAL", "VISIT", "NIGHT", "DESSERT"];
 const LABEL_LOAD_MINUTES = {
   MORNING: 95,
   LUNCH: 110,
@@ -53,6 +55,141 @@ const PROMPT_DAY_SLOT_CODES = {
   DINNER: "D",
   NIGHT: "N"
 };
+const CATEGORY_DURATION_MINUTES = {
+  RESTAURANT: 90,
+  CAFE: 50,
+  DESSERT: 45,
+  SNACK: 35,
+  BAR: 80,
+  NIGHTLIFE: 100,
+  SHOP: 60,
+  MARKET: 90,
+  CULTURE: 90,
+  LANDMARK: 70,
+  NATURE: 90,
+  ACTIVITY: 110
+};
+const PRIMARY_TYPE_DURATION_MINUTES = {
+  shopping_mall: 120,
+  department_store: 120,
+  hypermarket: 120,
+  warehouse_store: 120,
+  discount_store: 60,
+  home_goods_store: 60,
+  electronics_store: 60,
+  sporting_goods_store: 60,
+  book_store: 60,
+  clothing_store: 45,
+  shoe_store: 45,
+  jewelry_store: 45,
+  gift_shop: 45,
+  cosmetics_store: 45,
+  toy_store: 45,
+  convenience_store: 20,
+  liquor_store: 20,
+  tea_store: 20,
+  market: 90,
+  farmers_market: 90,
+  flea_market: 90,
+  museum: 120,
+  art_museum: 120,
+  history_museum: 120,
+  art_gallery: 75,
+  art_studio: 75,
+  cultural_center: 75,
+  church: 60,
+  shinto_shrine: 60,
+  buddhist_temple: 60,
+  mosque: 60,
+  synagogue: 60,
+  castle: 90,
+  historical_place: 90,
+  historical_landmark: 90,
+  planetarium: 90,
+  performing_arts_theater: 130,
+  opera_house: 130,
+  concert_hall: 130,
+  philharmonic_hall: 130,
+  observation_deck: 60,
+  monument: 45,
+  plaza: 45,
+  fountain: 45,
+  visitor_center: 45,
+  tourist_attraction: 75,
+  park: 75,
+  city_park: 75,
+  garden: 75,
+  botanical_garden: 120,
+  national_park: 120,
+  beach: 120,
+  island: 120,
+  lake: 120,
+  river: 120,
+  mountain_peak: 120,
+  scenic_spot: 120,
+  amusement_park: 150,
+  water_park: 150,
+  zoo: 150,
+  wildlife_park: 150,
+  aquarium: 150,
+  karaoke: 90,
+  bowling_alley: 90,
+  video_arcade: 90,
+  movie_theater: 90,
+  comedy_club: 90,
+  live_music_venue: 90,
+  go_karting_venue: 110,
+  miniature_golf_course: 110,
+  cycling_park: 110,
+  skateboard_park: 110,
+  restaurant: 90,
+  breakfast_restaurant: 75,
+  brunch_restaurant: 75,
+  fine_dining_restaurant: 100,
+  steak_house: 100,
+  japanese_izakaya_restaurant: 100,
+  bar_and_grill: 100,
+  oyster_bar_restaurant: 100,
+  cafe: 50,
+  coffee_shop: 50,
+  tea_house: 50,
+  coffee_roastery: 70,
+  cat_cafe: 70,
+  dog_cafe: 70,
+  bakery: 35,
+  cake_shop: 35,
+  donut_shop: 35,
+  pastry_shop: 35,
+  ice_cream_shop: 35,
+  dessert_shop: 35,
+  chocolate_shop: 35,
+  confectionery: 35,
+  dessert_restaurant: 60,
+  food_court: 40,
+  fast_food_restaurant: 40,
+  sandwich_shop: 40,
+  deli: 40,
+  hot_dog_stand: 40,
+  snack_bar: 40,
+  meal_takeaway: 40,
+  bar: 80,
+  pub: 80,
+  cocktail_bar: 80,
+  wine_bar: 80,
+  beer_garden: 80,
+  brewpub: 80,
+  sports_bar: 80,
+  night_club: 120
+};
+const CLUSTER_COMPONENT_TYPES = [
+  "neighborhood",
+  "sublocality_level_1",
+  "sublocality",
+  "locality",
+  "postal_town",
+  "administrative_area_level_2",
+  "route"
+];
 
 function haversineKm(lat1, lng1, lat2, lng2) {
   const toRad = (value) => (value * Math.PI) / 180;
@@ -274,6 +411,74 @@ function getCandidateOpeningHours(candidate) {
   return candidate?.place?.opening_hours ?? candidate?.place?.openingHours ?? null;
 }
 
+function getCandidateAddressComponents(candidate) {
+  const components = candidate?.place?.address_components ?? candidate?.place?.addressComponents;
+  return Array.isArray(components) ? components : [];
+}
+
+function getCandidatePrimaryType(candidate) {
+  return String(candidate?.place?.primary_type || candidate?.place?.primaryType || "")
+    .trim()
+    .toLowerCase();
+}
+
+function resolveCategoryDurationMinutes(categories = []) {
+  for (const category of Array.isArray(categories) ? categories : []) {
+    const normalized = String(category || "").trim().toUpperCase();
+    if (CATEGORY_DURATION_MINUTES[normalized]) {
+      return CATEGORY_DURATION_MINUTES[normalized];
+    }
+  }
+  return 75;
+}
+
+function resolveCandidateBaseDurationMinutes(candidate) {
+  const primaryType = getCandidatePrimaryType(candidate);
+  if (primaryType && PRIMARY_TYPE_DURATION_MINUTES[primaryType]) {
+    return PRIMARY_TYPE_DURATION_MINUTES[primaryType];
+  }
+
+  const categories = Array.isArray(candidate?.place?.categories) ? candidate.place.categories : [];
+  return resolveCategoryDurationMinutes(categories);
+}
+
+function slugClusterHint(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s/]+/g, "_")
+    .replace(/[^a-z0-9가-힣_]+/g, "")
+    .slice(0, 40);
+}
+
+function resolveCandidateClusterHint(candidate) {
+  const components = getCandidateAddressComponents(candidate);
+  for (const targetType of CLUSTER_COMPONENT_TYPES) {
+    for (const component of components) {
+      const types = Array.isArray(component?.types) ? component.types : [];
+      if (!types.includes(targetType)) continue;
+
+      const rawLabel =
+        component.longText ||
+        component.long_text ||
+        component.shortText ||
+        component.short_text ||
+        component.name ||
+        null;
+      const normalized = slugClusterHint(rawLabel);
+      if (normalized) return normalized;
+    }
+  }
+
+  const lat = Number(candidate?.place?.lat);
+  const lng = Number(candidate?.place?.lng);
+  if (Number.isFinite(lat) && Number.isFinite(lng)) {
+    return `${lat.toFixed(2)},${lng.toFixed(2)}`;
+  }
+
+  return "unknown";
+}
+
 function isLodgingCandidate(candidate) {
   const place = candidate?.place || {};
   const semantics = analyzePlaceSignals({
@@ -493,26 +698,7 @@ function getCandidateTraits(candidate) {
         : LIGHT_ACTIVITY_PATTERN.test(searchableMeta)
           ? 0.45
           : 0.7;
-  const baseVisitDurationMinutes =
-    isActivity
-      ? activityLoad >= 0.9
-        ? 150
-        : activityLoad >= 0.65
-          ? 110
-          : 80
-      : isMeal
-        ? isDinnerPreferred
-          ? 110
-          : 90
-        : isCafe || isSnack
-          ? 60
-          : LONG_VISIT_PATTERN.test(searchableMeta)
-            ? 120
-            : SHORT_VISIT_PATTERN.test(searchableMeta)
-              ? 70
-              : isVisitCandidate
-                ? 95
-                : 75;
+  const baseVisitDurationMinutes = resolveCandidateBaseDurationMinutes(candidate);
   const visitAffinity = clamp01(
     (isVisitCandidate ? 0.42 : 0) +
       (isLandmark ? 0.18 : 0) +
@@ -730,6 +916,101 @@ function buildPromptDaySlotSummary(candidate, tripDays = [], pace) {
   return summary.every(Boolean) ? summary : null;
 }
 
+function formatOpenIntervalMinute(totalMinutes, isEnd = false) {
+  const numeric = Number(totalMinutes);
+  if (!Number.isFinite(numeric)) return null;
+  const minuteOfDay = Math.max(0, numeric);
+  if (isEnd && minuteOfDay >= MINUTES_PER_DAY) {
+    return "24:00";
+  }
+  return minutesToTime(minuteOfDay % MINUTES_PER_DAY);
+}
+
+function buildPromptOpeningSummary(candidate, tripDays = []) {
+  const openingHours = getCandidateOpeningHours(candidate);
+  if (!openingHours || !Array.isArray(tripDays) || tripDays.length === 0) {
+    return null;
+  }
+
+  const intervals = extractOpeningIntervals(openingHours);
+  if (intervals.length === 0) {
+    return null;
+  }
+
+  const summary = {};
+  for (const tripDay of tripDays) {
+    const dayNumber = String(tripDay?.day || "");
+    if (!dayNumber) continue;
+
+    const dayIntervals = getOpenIntervalsForDate(openingHours, tripDay?.date);
+    if (dayIntervals.length === 0) {
+      summary[dayNumber] = null;
+      continue;
+    }
+
+    summary[dayNumber] = dayIntervals
+      .map((interval) => {
+        const startMinute = interval.start % MINUTES_PER_DAY;
+        const endMinute = interval.end - Math.floor(interval.end / MINUTES_PER_DAY) * MINUTES_PER_DAY;
+        const formattedStart = formatOpenIntervalMinute(startMinute, false);
+        const formattedEnd = formatOpenIntervalMinute(
+          endMinute === 0 && interval.end > interval.start ? MINUTES_PER_DAY : endMinute,
+          true
+        );
+        return formattedStart && formattedEnd ? `${formattedStart}-${formattedEnd}` : null;
+      })
+      .filter(Boolean)
+      .join(" / ");
+
+    if (!summary[dayNumber]) {
+      summary[dayNumber] = null;
+    }
+  }
+
+  return Object.keys(summary).length > 0 ? summary : null;
+}
+
+function countCandidateOpenTripDays(candidate, generationInput = {}) {
+  const openingSummary = buildPromptOpeningSummary(candidate, generationInput.tripDays || []);
+  if (!openingSummary || typeof openingSummary !== "object") {
+    return 0;
+  }
+
+  return Object.values(openingSummary).filter((value) => typeof value === "string" && value.trim()).length;
+}
+
+function resolveCandidateSlotFit(candidate) {
+  const traits = getCandidateTraits(candidate);
+  const slotFit = new Set();
+
+  if (traits.isBrunch || traits.isCafe || traits.isSnack || traits.isMorningFriendly) {
+    slotFit.add("MORNING");
+  }
+
+  if (traits.isMeal) {
+    if (traits.isDinnerPreferred) {
+      slotFit.add("DINNER");
+    } else {
+      slotFit.add("LUNCH");
+      slotFit.add("DINNER");
+    }
+  }
+
+  if (traits.isVisitCandidate) {
+    slotFit.add("VISIT");
+  }
+
+  if (traits.isCafe || traits.isSnack) {
+    slotFit.add("DESSERT");
+  }
+
+  if (traits.isNight) {
+    slotFit.add("NIGHT");
+  }
+
+  return [...slotFit];
+}
+
 function isCandidateCompatibleWithLabel(label, traits) {
   if (label === "MORNING") {
     return traits.isBrunch || traits.isCafe || traits.isSnack || traits.isVisitCandidate;
@@ -910,8 +1191,237 @@ function selectCandidatesForTrip(candidates, dayCount, generationInput = {}) {
   return normalizeCandidates(candidates);
 }
 
-function selectCandidatesForAiPlanning(candidates, dayCount, generationInput = {}) {
-  return normalizeCandidates(candidates);
+function inferPlanningMode(candidates = [], generationInput = {}) {
+  const requestedMode = String(generationInput.planningMode || generationInput.planning_mode || "")
+    .trim()
+    .toUpperCase();
+  if (requestedMode === "RECOMMEND" || requestedMode === "OPTIMIZE_ALL") {
+    return requestedMode;
+  }
+
+  const normalizedCandidates = normalizeCandidates(candidates);
+  return normalizedCandidates.length > 0 && normalizedCandidates.every((candidate) => candidate.isMustVisit)
+    ? "OPTIMIZE_ALL"
+    : "RECOMMEND";
+}
+
+function resolveDistanceFromStayMeters(candidate, stayPlace = null) {
+  if (!stayPlace || stayPlace.lat == null || stayPlace.lng == null) {
+    return null;
+  }
+
+  if (candidate?.place?.lat == null || candidate?.place?.lng == null) {
+    return null;
+  }
+
+  const distanceKm = haversineKm(stayPlace.lat, stayPlace.lng, candidate.place.lat, candidate.place.lng);
+  return Number.isFinite(distanceKm) ? Math.round(distanceKm * 1000) : null;
+}
+
+function decorateAiPlanningCandidate(candidate, index, generationInput = {}, stayPlace = null) {
+  const traits = getCandidateTraits(candidate);
+  return {
+    candidate,
+    index,
+    slotFit: resolveCandidateSlotFit(candidate),
+    clusterHint: resolveCandidateClusterHint(candidate),
+    userNoteScore: candidate.note ? 1 : 0,
+    fameScore: traits.fameScore || 0,
+    reviewCount: traits.reviewCount || 0,
+    rating: traits.rating || 0,
+    openTripDayCount: countCandidateOpenTripDays(candidate, generationInput),
+    distanceFromStayMeters: resolveDistanceFromStayMeters(candidate, stayPlace)
+  };
+}
+
+function compareAiPlanningEntries(left, right) {
+  if (right.userNoteScore !== left.userNoteScore) return right.userNoteScore - left.userNoteScore;
+  if (right.fameScore !== left.fameScore) return right.fameScore - left.fameScore;
+  if (right.reviewCount !== left.reviewCount) return right.reviewCount - left.reviewCount;
+  if (right.rating !== left.rating) return right.rating - left.rating;
+  if (right.openTripDayCount !== left.openTripDayCount) return right.openTripDayCount - left.openTripDayCount;
+
+  const leftDistance = Number.isFinite(left.distanceFromStayMeters) ? left.distanceFromStayMeters : Number.POSITIVE_INFINITY;
+  const rightDistance = Number.isFinite(right.distanceFromStayMeters)
+    ? right.distanceFromStayMeters
+    : Number.POSITIVE_INFINITY;
+  if (leftDistance !== rightDistance) return leftDistance - rightDistance;
+
+  return left.index - right.index;
+}
+
+function buildClusterRoundRobinQueue(entries) {
+  const grouped = new Map();
+  for (const entry of entries || []) {
+    const clusterKey = entry.clusterHint || "unknown";
+    const current = grouped.get(clusterKey) || [];
+    current.push(entry);
+    grouped.set(clusterKey, current);
+  }
+
+  const clusterGroups = [...grouped.values()]
+    .map((group) => [...group].sort(compareAiPlanningEntries))
+    .sort((left, right) => compareAiPlanningEntries(left[0], right[0]));
+
+  const queue = [];
+  let hasRemaining = true;
+
+  while (hasRemaining) {
+    hasRemaining = false;
+    for (const group of clusterGroups) {
+      if (group.length === 0) continue;
+      queue.push(group.shift());
+      hasRemaining = true;
+    }
+  }
+
+  return queue;
+}
+
+function buildFamilyQueues(entries) {
+  const queues = {
+    MEAL: [],
+    VISIT: [],
+    NIGHT: [],
+    DESSERT: []
+  };
+
+  for (const entry of entries || []) {
+    const slotFit = new Set(entry.slotFit);
+    if (slotFit.has("LUNCH") || slotFit.has("DINNER")) {
+      queues.MEAL.push(entry);
+    }
+    if (slotFit.has("VISIT") || slotFit.has("MORNING")) {
+      queues.VISIT.push(entry);
+    }
+    if (slotFit.has("NIGHT")) {
+      queues.NIGHT.push(entry);
+    }
+    if (slotFit.has("DESSERT")) {
+      queues.DESSERT.push(entry);
+    }
+  }
+
+  return {
+    MEAL: buildClusterRoundRobinQueue(queues.MEAL),
+    VISIT: buildClusterRoundRobinQueue(queues.VISIT),
+    NIGHT: buildClusterRoundRobinQueue(queues.NIGHT),
+    DESSERT: buildClusterRoundRobinQueue(queues.DESSERT)
+  };
+}
+
+function takeNextUnselectedEntry(queue, selectedPlaceIds) {
+  while (queue.length > 0) {
+    const entry = queue.shift();
+    const placeId = entry?.candidate?.place?.id;
+    if (!placeId || selectedPlaceIds.has(placeId)) continue;
+    return entry;
+  }
+
+  return null;
+}
+
+function selectCandidatesForAiPlanning(candidates, dayCount, generationInput = {}, stayPlace = null) {
+  const normalizedCandidates = normalizeCandidates(candidates);
+  const planningMode = inferPlanningMode(normalizedCandidates, generationInput);
+
+  if (planningMode === "OPTIMIZE_ALL") {
+    if (normalizedCandidates.length > AI_MAX_CANDIDATES) {
+      const error = new Error(`OPTIMIZE_ALL candidate count exceeds ${AI_MAX_CANDIDATES}`);
+      error.code = "AI_CANDIDATE_LIMIT_EXCEEDED";
+      error.details = {
+        planningMode,
+        candidateCount: normalizedCandidates.length,
+        limit: AI_MAX_CANDIDATES
+      };
+      throw error;
+    }
+
+    return {
+      candidates: normalizedCandidates,
+      planningMode,
+      metadata: null
+    };
+  }
+
+  if (normalizedCandidates.length <= AI_MAX_CANDIDATES) {
+    return {
+      candidates: normalizedCandidates,
+      planningMode,
+      metadata: null
+    };
+  }
+
+  const decoratedEntries = normalizedCandidates.map((candidate, index) =>
+    decorateAiPlanningCandidate(candidate, index, generationInput, stayPlace)
+  );
+  const mustVisitEntries = decoratedEntries.filter((entry) => entry.candidate.isMustVisit);
+  if (mustVisitEntries.length > AI_MAX_CANDIDATES) {
+    const error = new Error(`Must-visit candidate count exceeds ${AI_MAX_CANDIDATES}`);
+    error.code = "AI_CANDIDATE_LIMIT_EXCEEDED";
+    error.details = {
+      planningMode,
+      mustVisitCount: mustVisitEntries.length,
+      limit: AI_MAX_CANDIDATES
+    };
+    throw error;
+  }
+
+  const selectedPlaceIds = new Set(mustVisitEntries.map((entry) => entry.candidate.place.id));
+  const selectedEntries = [...mustVisitEntries];
+  const queueFamilies = buildFamilyQueues(decoratedEntries.filter((entry) => !entry.candidate.isMustVisit));
+
+  while (selectedEntries.length < AI_MAX_CANDIDATES) {
+    let progressed = false;
+
+    for (const family of AI_RECOMMEND_TRIM_SEQUENCE) {
+      const nextEntry = takeNextUnselectedEntry(queueFamilies[family], selectedPlaceIds);
+      if (!nextEntry) continue;
+      selectedEntries.push(nextEntry);
+      selectedPlaceIds.add(nextEntry.candidate.place.id);
+      progressed = true;
+
+      if (selectedEntries.length >= AI_MAX_CANDIDATES) {
+        break;
+      }
+    }
+
+    if (!progressed) {
+      break;
+    }
+  }
+
+  if (selectedEntries.length < AI_MAX_CANDIDATES) {
+    const overallQueue = buildClusterRoundRobinQueue(
+      decoratedEntries.filter((entry) => !selectedPlaceIds.has(entry.candidate.place.id))
+    );
+    while (selectedEntries.length < AI_MAX_CANDIDATES) {
+      const nextEntry = takeNextUnselectedEntry(overallQueue, selectedPlaceIds);
+      if (!nextEntry) break;
+      selectedEntries.push(nextEntry);
+      selectedPlaceIds.add(nextEntry.candidate.place.id);
+    }
+  }
+
+  const selectedCandidates = selectedEntries
+    .sort((left, right) => left.index - right.index)
+    .map((entry) => entry.candidate);
+  const trimmedCandidateIds = normalizedCandidates
+    .filter((candidate) => !selectedPlaceIds.has(candidate.place.id))
+    .map((candidate) => candidate.place.id);
+
+  return {
+    candidates: selectedCandidates,
+    planningMode,
+    metadata: trimmedCandidateIds.length
+      ? {
+          trimReason: "RECOMMEND_OVERFLOW",
+          trimmedCandidateIds,
+          trimmedFromCount: normalizedCandidates.length,
+          trimmedToCount: selectedCandidates.length
+        }
+      : null
+  };
 }
 
 function resolveIsMustVisit(candidate) {
@@ -1541,13 +2051,13 @@ function resolveLabelAnchorMinutes(label, pace, occurrenceIndex = 0) {
 
 function resolveStopDurationMinutes(label, candidate) {
   const traits = getCandidateTraits(candidate);
+  const baseDuration = Math.max(20, Math.round(traits.baseVisitDurationMinutes || 75));
 
-  if (label === "NIGHT") return traits.isViewSpot ? 80 : traits.isNightlife ? 110 : 100;
-  if (label === "DESSERT") return 60;
-  if (label === "DINNER") return traits.priceLevel != null && traits.priceLevel >= 3 ? 120 : 100;
-  if (label === "LUNCH") return 80;
-  if (label === "MORNING") return 75;
-  return candidate.isMustVisit ? Math.max(120, traits.baseVisitDurationMinutes) : traits.baseVisitDurationMinutes;
+  if (label === "DESSERT") {
+    return Math.min(baseDuration, 60);
+  }
+
+  return baseDuration;
 }
 
 function resolveLabelLoadMinutes(label, candidate = null) {
@@ -2126,6 +2636,7 @@ function buildSchedulePlan({ candidates, dayCount, stayPlace, generationInput = 
 
 module.exports = {
   buildReason,
+  buildPromptOpeningSummary,
   buildSchedulePlan,
   buildVisitTip,
   buildPromptDaySlotSummary,
@@ -2134,8 +2645,12 @@ module.exports = {
   filterNonLodgingCandidates,
   getCandidateTraits,
   isLodgingCandidate,
+  inferPlanningMode,
+  resolveCandidateClusterHint,
+  resolveCandidateSlotFit,
   resolveLabelAnchorMinutes,
   resolveDailyStopTarget,
+  resolveDayBudgetMinutes,
   resolveStopDurationMinutes,
   selectCandidatesForAiPlanning,
   __internals: {
