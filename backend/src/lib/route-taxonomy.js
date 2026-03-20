@@ -1,4 +1,4 @@
-const routeTaxonomy = require("../../../shared/route-taxonomy.json");
+const routeTaxonomy = require("./route-taxonomy.json");
 
 const MUST_VISIT_BADGE = routeTaxonomy.mustVisitBadge;
 const ROUTE_STOP_LABEL_FALLBACK = routeTaxonomy.routeStopLabels.fallback;

@@ -1,4 +1,4 @@
-import routeTaxonomy from "../../../shared/route-taxonomy.json";
+import routeTaxonomy from "./route-taxonomy.json";
 
 export type MustVisitBadgeValue = "MUSTVISIT";
 export type CanonicalRouteStopLabel = "MORNING" | "LUNCH" | "VISIT" | "DESSERT" | "DINNER" | "NIGHT";
