@@ -181,7 +181,7 @@ async function expandGoogleMapsUrl(rawUrl) {
       method: "GET",
       redirect: "follow",
       headers: {
-        "User-Agent": "Mozilla/5.0 (compatible; myRoute/1.0)"
+        "User-Agent": "Mozilla/5.0 (compatible; Routy/1.0)"
       }
     });
 

@@ -9,10 +9,10 @@ let browserClient: SupabaseClient | null = null;
 
 export type BrowserSessionPersistence = "session" | "local";
 
-const AUTH_STORAGE_KEY = "myroute.auth.token";
+const AUTH_STORAGE_KEY = "routy.auth.token";
 const AUTH_CODE_VERIFIER_STORAGE_KEY = `${AUTH_STORAGE_KEY}-code-verifier`;
-const AUTH_PERSISTENCE_MARKER_KEY = "myroute.auth.persistence";
-const AUTH_OAUTH_RETURN_PERSISTENCE_KEY = "myroute.auth.oauth.return.persistence";
+const AUTH_PERSISTENCE_MARKER_KEY = "routy.auth.persistence";
+const AUTH_OAUTH_RETURN_PERSISTENCE_KEY = "routy.auth.oauth.return.persistence";
 const LEGACY_AUTH_STORAGE_KEY = getLegacyProjectAuthStorageKey();
 const LEGACY_CODE_VERIFIER_STORAGE_KEY = LEGACY_AUTH_STORAGE_KEY ? `${LEGACY_AUTH_STORAGE_KEY}-code-verifier` : null;
 

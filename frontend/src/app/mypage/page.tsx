@@ -873,7 +873,7 @@ export default function MyPage() {
               autoCapitalize="none"
               autoCorrect="off"
               autoFocus
-              placeholder={deleteAccountEmail || "hello@myroute.app"}
+              placeholder={deleteAccountEmail || "hello@routy.app"}
               aria-invalid={Boolean(deleteAccountForm.formState.errors.email)}
               {...deleteAccountForm.register("email")}
             />

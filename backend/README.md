@@ -1,4 +1,4 @@
-# myRoute Backend (Final MVP Schema)
+# Routy Backend (Final MVP Schema)
 
 README(루트)의 최종 설계 문서를 기준으로 백엔드를 정렬한 버전입니다.
 
@@ -115,7 +115,7 @@ Legacy fallback:
 
 ## 6) 고도화 (Future Enhancements)
 
-나중에 마이루트 백엔드 서비스를 고도화할 때 체크해볼 만한 항목들입니다. (작업 재개 시 참고용)
+나중에 Routy 백엔드 서비스를 고도화할 때 체크해볼 만한 항목들입니다. (작업 재개 시 참고용)
 
 - **AI 백그라운드 워커 분리 (Microservice):** 현재 `crawler.js`와 `geminiOptimizer.js`가 Node.js 메인 서버에 일체형으로 통합되어 있습니다 (MVP 적합). 추후 LLM 응답 대기 시간이 길어져 병목 현상(Blocking)이 발생하면 Python 워커(혹은 Node.js `BullMQ` + `Redis`)를 도입하여 비동기로 처리하는 이벤트 소싱 구조로 분리하는 것이 좋습니다.
 - **일정 부분 편집 및 커스텀 장소 기능:** 현재는 일정 전체 생성 및 `moveScheduleStop`을 통한 순서 변경만 지원됩니다. 개별 장소를 새로 끼워넣거나(커스텀 장소), 삭제하는 기능을 GraphQL Mutation으로 확장해야 합니다.
