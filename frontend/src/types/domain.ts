@@ -5,6 +5,12 @@ export type AuthSession = {
   email: string | null;
 };
 
+export type PlacePhoto = {
+  name: string;
+  displayName: string | null;
+  uri: string | null;
+};
+
 export type Place = {
   id: string;
   googlePlaceId: string;
@@ -17,18 +23,11 @@ export type Place = {
   priceLevel: number | null;
   typesRaw: string[];
   primaryType: string | null;
-  primaryTypeDisplayName: string | null;
   categories: string[];
   googleMapsUrl: string | null;
   openingHours: unknown;
-  photos: string[];
-  reviews: Array<{
-    authorName?: string | null;
-    publishTime?: string | null;
-    rating?: number | null;
-    text?: string | null;
-  }>;
-  phone: string | null;
+  coverPhoto: PlacePhoto | null;
+  photos?: PlacePhoto[];
   website: string | null;
   createdAt: string;
   updatedAt: string;

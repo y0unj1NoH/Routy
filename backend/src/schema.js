@@ -26,6 +26,12 @@ const typeDefs = /* GraphQL */ `
     query: String
   }
 
+  type Photo {
+    name: String!
+    displayName: String
+    uri: String
+  }
+
   type Place {
     id: ID!
     googlePlaceId: String!
@@ -38,13 +44,11 @@ const typeDefs = /* GraphQL */ `
     priceLevel: Int
     typesRaw: JSON
     primaryType: String
-    primaryTypeDisplayName: String
     categories: [String!]!
     googleMapsUrl: String
     openingHours: JSON
-    photos: JSON
-    reviews: JSON
-    phone: String
+    coverPhoto: Photo
+    photos: [Photo!]!
     website: String
     createdAt: String!
     updatedAt: String!
@@ -126,12 +130,9 @@ const typeDefs = /* GraphQL */ `
     priceLevel: Int
     typesRaw: JSON
     primaryType: String
-    primaryTypeDisplayName: String
     googleMapsUrl: String
     openingHours: JSON
     photos: JSON
-    reviews: JSON
-    phone: String
     website: String
   }
 

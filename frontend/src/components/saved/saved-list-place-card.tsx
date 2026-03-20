@@ -401,7 +401,7 @@ export function SavedListPlaceCard({
           <div className="relative overflow-hidden border-b border-border/60">
             <PlacePhoto
               name={item.place.name}
-              photos={item.place.photos}
+              coverPhoto={item.place.coverPhoto}
               className="h-[184px] w-full rounded-none"
               imageClassName="object-cover"
               sizes="100vw"
@@ -483,7 +483,7 @@ export function SavedListPlaceCard({
             <div className="grid gap-4 md:grid-cols-[120px_minmax(0,1fr)] md:items-start">
               <PlacePhoto
                 name={item.place.name}
-                photos={item.place.photos}
+                coverPhoto={item.place.coverPhoto}
                 className="h-[120px] w-[120px] shrink-0 rounded-2xl"
                 sizes="120px"
               />
@@ -583,7 +583,7 @@ export function SavedListPlaceCard({
       <div className="grid gap-4 md:grid-cols-[120px_minmax(0,1fr)] md:items-start">
         <PlacePhoto
           name={item.place.name}
-          photos={item.place.photos}
+          coverPhoto={item.place.coverPhoto}
           className="h-[104px] w-[104px] shrink-0 rounded-xl md:h-[120px] md:w-[120px] md:rounded-2xl"
           sizes="120px"
         />

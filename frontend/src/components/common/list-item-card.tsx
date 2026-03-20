@@ -5,11 +5,12 @@ import type { ReactNode } from "react";
 import { PlacePhoto } from "@/components/common/place-photo";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/cn";
+import type { PlacePhoto as PlacePhotoAsset } from "@/types/domain";
 
 type ListItemCardPreviewPlace = {
   id: string;
   name: string | null;
-  photos: string[] | null | undefined;
+  coverPhoto: PlacePhotoAsset | null;
 };
 
 type ListItemCardProps = {
@@ -45,7 +46,7 @@ export function ListItemCard({
                   <PlacePhoto
                     key={place.id}
                     name={place.name}
-                    photos={place.photos}
+                    coverPhoto={place.coverPhoto}
                     className="aspect-square w-full rounded-lg border border-border/85 bg-muted/78 md:rounded-xl"
                     imageClassName="transition-transform duration-300 group-hover:scale-[1.03]"
                     sizes="(min-width: 1280px) 240px, (min-width: 1024px) 23vw, (min-width: 768px) 30vw, 42vw"

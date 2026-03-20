@@ -25,7 +25,7 @@ import { gqlRequest } from "@/lib/graphql/client";
 import type { Place, PlaceList, Schedule } from "@/types/domain";
 
 type PlaceListPreview = Pick<PlaceList, "id" | "userId" | "name" | "city" | "language" | "description" | "itemCount" | "createdAt" | "updatedAt"> & {
-  previewPlaces: Array<Pick<Place, "id" | "name" | "photos">>;
+  previewPlaces: Array<Pick<Place, "id" | "name" | "coverPhoto">>;
 };
 
 export async function fetchMyPlaceLists(accessToken: string) {

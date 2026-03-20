@@ -155,7 +155,6 @@ async function resolvePlaceFromScrapedItem(item, city) {
       price_level: payload.price_level,
       types_raw: payload.types_raw,
       primary_type: payload.primary_type,
-      primary_type_display_name: payload.primary_type_display_name,
       business_status: payload.business_status,
       categories: payload.categories,
       google_maps_url: payload.google_maps_url,

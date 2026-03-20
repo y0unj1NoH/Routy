@@ -4,11 +4,12 @@ import { useState } from "react";
 import Image from "next/image";
 
 import { cn } from "@/lib/cn";
-import { resolvePlacePhotoUrl } from "@/lib/photos";
+import { resolvePlacePhotoUrl, type ResolvablePlacePhoto } from "@/lib/photos";
 
 type PlacePhotoProps = {
   name: string | null;
-  photos: string[] | null | undefined;
+  coverPhoto?: ResolvablePlacePhoto;
+  photos?: ResolvablePlacePhoto[] | null | undefined;
   className?: string;
   imageClassName?: string;
   sizes?: string;
@@ -17,6 +18,7 @@ type PlacePhotoProps = {
 
 export function PlacePhoto({
   name,
+  coverPhoto,
   photos,
   className,
   imageClassName,
@@ -24,8 +26,10 @@ export function PlacePhoto({
   fallbackEmoji = "📍"
 }: PlacePhotoProps) {
   const [isBroken, setIsBroken] = useState(false);
-  const rawSrc = Array.isArray(photos) && photos.length > 0 ? photos[0] : "";
-  const src = resolvePlacePhotoUrl(rawSrc, 1280);
+  const selectedPhoto =
+    coverPhoto ??
+    (Array.isArray(photos) && photos.length > 0 ? photos[0] : null);
+  const src = resolvePlacePhotoUrl(selectedPhoto, 960);
 
   if (!src || isBroken) {
     return (

@@ -24,6 +24,7 @@ import { Card } from "@/components/ui/card";
 import { UI_COPY } from "@/constants/ui-copy";
 import { cn } from "@/lib/cn";
 import { buildPlaceOpeningHint } from "@/lib/place-opening";
+import type { PlacePhoto as PlacePhotoAsset } from "@/types/domain";
 
 type RouteStopPlace = {
   id: string;
@@ -36,7 +37,7 @@ type RouteStopPlace = {
   priceLevel?: number | null;
   typesRaw?: string[] | null;
   googleMapsUrl?: string | null;
-  photos?: string[] | null;
+  coverPhoto?: PlacePhotoAsset | null;
 };
 
 export type RouteStopCardData = {
@@ -285,7 +286,7 @@ export function RouteStopCard({
           <div className="relative shrink-0">
             <PlacePhoto
               name={stop.place.name}
-              photos={stop.place.photos}
+              coverPhoto={stop.place.coverPhoto}
               className="h-[76px] w-[76px] rounded-lg"
               sizes="76px"
             />
@@ -446,7 +447,7 @@ export function RouteStopCard({
 
           <PlacePhoto
             name={stop.place.name}
-            photos={stop.place.photos}
+            coverPhoto={stop.place.coverPhoto}
             className="h-20 w-20 shrink-0 rounded-lg md:h-[92px] md:w-[92px] md:rounded-xl"
             sizes="(min-width: 640px) 92px, 84px"
           />

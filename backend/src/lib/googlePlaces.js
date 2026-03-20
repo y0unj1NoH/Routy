@@ -264,6 +264,9 @@ async function resolveGoogleMapsLink(rawUrl, options = {}) {
   const query =
     candidates.map((candidate) => extractSearchTextFromGoogleUrl(candidate)).find(Boolean) || null;
   if (query && hasGooglePlacesApiKey()) {
+    if (typeof options.onSearchByText === "function") {
+      await options.onSearchByText({ query });
+    }
     const places = await searchPlacesByText(query, 3);
     const resolvedPlaceIds = toUniqueList((places || []).map((place) => place?.id));
     if (resolvedPlaceIds.length > 0) {
@@ -304,7 +307,6 @@ function normalizePlacePayload(googlePlace, fallback = {}) {
     price_level: normalizePriceLevel(googlePlace.priceLevel, fallback.priceLevel),
     types_raw: types,
     primary_type: primaryType,
-    primary_type_display_name: googlePlace.primaryTypeDisplayName?.text || fallback.primaryTypeDisplayName || null,
     business_status: normalizeBusinessStatus(googlePlace.businessStatus || fallback.businessStatus || fallback.business_status),
     address_components: normalizeAddressComponents(
       googlePlace.addressComponents,
@@ -312,10 +314,8 @@ function normalizePlacePayload(googlePlace, fallback = {}) {
     ),
     categories,
     photos: normalizePhotos(googlePlace.photos, fallback.photos),
-    reviews: normalizeReviews(googlePlace.reviews, fallback.reviews),
     google_maps_url: googlePlace.googleMapsUri || fallback.googleMapsUrl || null,
     opening_hours: googlePlace.regularOpeningHours || fallback.openingHours || null,
-    phone: googlePlace.nationalPhoneNumber || fallback.phone || null,
     website: googlePlace.websiteUri || fallback.website || null
   };
 }
@@ -324,25 +324,23 @@ function normalizePhotos(rawPhotos, fallbackPhotos) {
   if (Array.isArray(rawPhotos) && rawPhotos.length > 0) {
     return rawPhotos
       .slice(0, 5)
-      .map((photo) => photo?.name)
-      .filter(Boolean)
-      .map((name) => `https://places.googleapis.com/v1/${name}/media?maxWidthPx=800`);
+      .map((photo) => {
+        const name = typeof photo?.name === "string" ? photo.name.trim() : "";
+        if (!name) return null;
+        const attribution = Array.isArray(photo?.authorAttributions) ? photo.authorAttributions[0] || null : null;
+        return {
+          name,
+          displayName:
+            typeof attribution?.displayName === "string" && attribution.displayName.trim()
+              ? attribution.displayName.trim()
+              : null,
+          uri: typeof attribution?.uri === "string" && attribution.uri.trim() ? attribution.uri.trim() : null
+        };
+      })
+      .filter(Boolean);
   }
 
   return Array.isArray(fallbackPhotos) ? fallbackPhotos : [];
-}
-
-function normalizeReviews(rawReviews, fallbackReviews) {
-  if (Array.isArray(rawReviews) && rawReviews.length > 0) {
-    return rawReviews.slice(0, 3).map((review) => ({
-      authorName: review.authorAttribution?.displayName || null,
-      publishTime: review.publishTime ? String(review.publishTime).slice(0, 10) : null,
-      rating: review.rating ?? null,
-      text: (review.text?.text || "").slice(0, 120)
-    }));
-  }
-
-  return Array.isArray(fallbackReviews) ? fallbackReviews : [];
 }
 
 function normalizeAddressComponents(rawAddressComponents, fallbackAddressComponents) {

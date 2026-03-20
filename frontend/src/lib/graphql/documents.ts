@@ -1,4 +1,10 @@
-export const PLACE_FIELDS = /* GraphQL */ `
+export const PHOTO_FIELDS = /* GraphQL */ `
+  name
+  displayName
+  uri
+`;
+
+export const PLACE_BASE_FIELDS = /* GraphQL */ `
   id
   googlePlaceId
   name
@@ -10,22 +16,34 @@ export const PLACE_FIELDS = /* GraphQL */ `
   priceLevel
   typesRaw
   primaryType
-  primaryTypeDisplayName
   categories
   googleMapsUrl
   openingHours
-  photos
-  reviews
-  phone
   website
   createdAt
   updatedAt
 `;
 
+export const PLACE_CARD_FIELDS = /* GraphQL */ `
+  ${PLACE_BASE_FIELDS}
+  coverPhoto {
+    ${PHOTO_FIELDS}
+  }
+`;
+
+export const PLACE_DETAIL_FIELDS = /* GraphQL */ `
+  ${PLACE_CARD_FIELDS}
+  photos {
+    ${PHOTO_FIELDS}
+  }
+`;
+
 export const PLACE_PREVIEW_FIELDS = /* GraphQL */ `
   id
   name
-  photos
+  coverPhoto {
+    ${PHOTO_FIELDS}
+  }
 `;
 
 export const PLACE_LIST_CARD_FIELDS = /* GraphQL */ `
@@ -48,7 +66,7 @@ export const PLACE_LIST_DETAIL_FIELDS = /* GraphQL */ `
     isMustVisit
     createdAt
     place {
-      ${PLACE_FIELDS}
+      ${PLACE_CARD_FIELDS}
     }
   }
 `;
@@ -75,7 +93,7 @@ export const PLACE_LIST_DETAIL_QUERY = /* GraphQL */ `
 export const PLACE_DETAIL_QUERY = /* GraphQL */ `
   query PlaceDetail($id: ID!) {
     place(id: $id) {
-      ${PLACE_FIELDS}
+      ${PLACE_DETAIL_FIELDS}
     }
   }
 `;
@@ -124,7 +142,7 @@ export const SCHEDULE_DETAIL_QUERY = /* GraphQL */ `
         ${PLACE_LIST_DETAIL_FIELDS}
       }
       stayPlace {
-        ${PLACE_FIELDS}
+        ${PLACE_CARD_FIELDS}
       }
       stayRecommendation
       days {
@@ -142,7 +160,7 @@ export const SCHEDULE_DETAIL_QUERY = /* GraphQL */ `
           transportToNext
           isUserModified
           place {
-            ${PLACE_FIELDS}
+            ${PLACE_CARD_FIELDS}
           }
         }
       }
@@ -200,7 +218,7 @@ export const IMPORT_PLACE_LIST_FROM_CRAWLER_MUTATION = /* GraphQL */ `
 export const IMPORT_PLACE_FROM_GOOGLE_LINK_MUTATION = /* GraphQL */ `
   mutation ImportPlaceFromGoogleLink($url: String!) {
     importPlaceFromGoogleLink(url: $url) {
-      ${PLACE_FIELDS}
+      ${PLACE_CARD_FIELDS}
     }
   }
 `;
@@ -267,7 +285,7 @@ export const SAVE_SCHEDULE_EDITS_MUTATION = /* GraphQL */ `
         ${PLACE_LIST_DETAIL_FIELDS}
       }
       stayPlace {
-        ${PLACE_FIELDS}
+        ${PLACE_CARD_FIELDS}
       }
       stayRecommendation
       days {
@@ -285,7 +303,7 @@ export const SAVE_SCHEDULE_EDITS_MUTATION = /* GraphQL */ `
           transportToNext
           isUserModified
           place {
-            ${PLACE_FIELDS}
+            ${PLACE_CARD_FIELDS}
           }
         }
       }

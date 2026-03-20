@@ -227,7 +227,7 @@ export default function ImportRoutePage() {
         />
         <form id={googleFormId} noValidate onSubmit={onSubmitGoogleImport} className="space-y-4">
           {googleForm.formState.errors.root?.message ? (
-            <p className="rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-xs text-danger">
+            <p className="whitespace-pre-line rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-xs text-danger">
               {googleForm.formState.errors.root.message}
             </p>
           ) : null}
@@ -264,7 +264,7 @@ export default function ImportRoutePage() {
               >
                 <PlacePhoto
                   name={place.name}
-                  photos={place.photos}
+                  coverPhoto={place.coverPhoto}
                   className="h-28 w-full shrink-0 rounded-xl md:h-24 md:w-28 md:rounded-2xl"
                   sizes="(max-width: 767px) 100vw, 112px"
                 />

@@ -109,7 +109,7 @@ export function RoutePlacePickerDialog({
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="장소 이름, 주소, 메모 검색"
-            className="pl-9"
+            className="pl-9 md:pl-10"
           />
         </div>
 
@@ -136,7 +136,7 @@ export function RoutePlacePickerDialog({
                 <div className="flex items-start gap-2.5">
                   <PlacePhoto
                     name={item.place.name}
-                    photos={item.place.photos}
+                    coverPhoto={item.place.coverPhoto}
                     className="h-16 w-16 shrink-0 rounded-lg md:h-20 md:w-20 md:rounded-xl"
                     sizes="(min-width: 640px) 80px, 64px"
                   />

@@ -52,7 +52,10 @@ import { type ThemeValue } from "@/constants/route-taxonomy";
 import { UI_COPY } from "@/constants/ui-copy";
 import { useRequireAuth } from "@/hooks/use-require-auth";
 import { cn } from "@/lib/cn";
+import { AppGraphQLError } from "@/lib/graphql/client";
+import { resolveAiScheduleQuotaMessage } from "@/lib/graphql/ai-schedule-errors";
 import { addPlaceListItem, createSchedule, fetchMyPlaceLists, fetchPlaceListDetail, importPlaceFromGoogleLink } from "@/lib/graphql/api";
+import { resolveImportErrorMessage } from "@/lib/graphql/import-errors";
 import { queryKeys } from "@/lib/query-keys";
 import { useCreateScheduleStore } from "@/stores/create-schedule-store";
 import { useUiStore } from "@/stores/ui-store";
@@ -80,6 +83,12 @@ const STEP_INDEX: Record<FunnelQueryStep, number> = {
   style: 5
 };
 const MAX_SCHEDULE_DAYS = 7;
+const DATE_STEP_MUST_VISIT_PER_DAY_LIMIT = 7;
+const FINAL_MUST_VISIT_MULTIPLIER_BY_PACE: Record<string, number> = {
+  RELAXED: 5,
+  MODERATE: 6,
+  INTENSE: 7
+};
 
 const COMPANION_ICONS: Record<string, LucideIcon> = {
   SOLO: UserRound,
@@ -170,6 +179,33 @@ function addDaysToIsoDate(dateIso: string, days: number) {
   const parsed = parseIsoDate(dateIso);
   if (!parsed) return "";
   return toIsoDate(addDays(parsed, days));
+}
+
+function countSchedulableMustVisits(items: PlaceListItem[] | undefined) {
+  return (items || []).reduce((count, item) => {
+    if (!item.isMustVisit) return count;
+    if (item.place.categories.includes("STAY")) return count;
+    return count + 1;
+  }, 0);
+}
+
+function resolveFinalMustVisitLimit(dayCount: number | null, pace: string | null | undefined) {
+  if (!dayCount) return null;
+  const multiplier = FINAL_MUST_VISIT_MULTIPLIER_BY_PACE[String(pace || "").trim().toUpperCase()] || null;
+  if (!multiplier) return null;
+  return dayCount * multiplier;
+}
+
+function isMustVisitLimitExceededError(error: unknown): error is AppGraphQLError & {
+  details: { kind: "MUST_VISIT_LIMIT_EXCEEDED"; dayCount: number; mustVisitCount: number; limit: number };
+} {
+  return (
+    error instanceof AppGraphQLError &&
+    error.code === "BAD_USER_INPUT" &&
+    typeof error.details === "object" &&
+    error.details !== null &&
+    (error.details as { kind?: unknown }).kind === "MUST_VISIT_LIMIT_EXCEEDED"
+  );
 }
 
 function normalizeDateRange(startDate: string | undefined, endDate: string | undefined, minSelectableDate: string) {
@@ -305,7 +341,7 @@ function StayOptionCard({
       <div className="flex items-start gap-2.5">
         <PlacePhoto
           name={item.place.name}
-          photos={item.place.photos}
+          coverPhoto={item.place.coverPhoto}
           className="h-16 w-16 shrink-0 rounded-lg md:h-20 md:w-20 md:rounded-xl"
           sizes="(min-width: 640px) 80px, 64px"
         />
@@ -520,6 +556,8 @@ export default function NewRoutePage() {
   const [googleStayUrlError, setGoogleStayUrlError] = useState<string | null>(null);
   const [newlyAddedStayPlaceIds, setNewlyAddedStayPlaceIds] = useState<string[]>([]);
   const [isTransitioningToRecommendation, setIsTransitioningToRecommendation] = useState(false);
+  const [isDateStepMustVisitBlocked, setIsDateStepMustVisitBlocked] = useState(false);
+  const [isStyleStepMustVisitBlocked, setIsStyleStepMustVisitBlocked] = useState(false);
 
   const { session, isLoading: isAuthLoading, isAuthed } = useRequireAuth();
   const accessToken = session?.access_token;
@@ -552,12 +590,34 @@ export default function NewRoutePage() {
       setIsTransitioningToRecommendation(true);
     },
     onSuccess: (data) => {
+      setIsTransitioningToRecommendation(false);
       pushToast({ kind: "success", message: UI_COPY.routes.new.toast.success });
       resetStoreValues();
       router.push(`/routes/recommendation?scheduleId=${encodeURIComponent(data.id)}&status=success`);
     },
     onError: (error: Error) => {
+      setIsTransitioningToRecommendation(false);
       console.error(error);
+      const aiQuotaMessage = resolveAiScheduleQuotaMessage(error);
+      if (aiQuotaMessage) {
+        pushToast({ kind: "error", message: aiQuotaMessage });
+        return;
+      }
+      if (isMustVisitLimitExceededError(error)) {
+        const copy = UI_COPY.routes.new.toast.mustVisitLimitExceeded(error.details.dayCount, error.details.limit);
+        setIsStyleStepMustVisitBlocked(true);
+        pushToast({
+          kind: "error",
+          message: (
+            <>
+              <span>{copy.title}</span>
+              <br />
+              <span>{copy.description}</span>
+            </>
+          )
+        });
+        return;
+      }
       pushToast({ kind: "error", message: UI_COPY.routes.new.toast.error });
       router.push("/routes/recommendation?status=error");
     }
@@ -579,16 +639,14 @@ export default function NewRoutePage() {
         throw new Error(UI_COPY.routes.new.toast.addedStayTypeError);
       }
 
-      await Promise.all(
-        stayPlaces.map((place) =>
-          addPlaceListItem(accessToken ?? "", {
-            listId: context.placeListId as string,
-            placeId: place.id,
-            note: null,
-            isMustVisit: false
-          })
-        )
-      );
+      for (const place of stayPlaces) {
+        await addPlaceListItem(accessToken ?? "", {
+          listId: context.placeListId as string,
+          placeId: place.id,
+          note: null,
+          isMustVisit: false
+        });
+      }
 
       return stayPlaces;
     },
@@ -619,10 +677,9 @@ export default function NewRoutePage() {
     onError: (error: Error) => {
       console.error(error);
       const message =
-        error.message === UI_COPY.saved.detail.addPlaceNotFound ||
-        error.message === UI_COPY.routes.new.toast.addedStayTypeError
+        error.message === UI_COPY.saved.detail.addPlaceNotFound || error.message === UI_COPY.routes.new.toast.addedStayTypeError
           ? error.message
-          : UI_COPY.routes.new.toast.addedStayError;
+          : resolveImportErrorMessage(error, UI_COPY.routes.new.toast.addedStayError);
       setGoogleStayUrlError(message);
       pushToast({ kind: "error", message });
     }
@@ -764,7 +821,39 @@ export default function NewRoutePage() {
     applyDateRange(currentStart, selectedIsoDate);
   };
 
+  const lists = placeListsQuery.data || [];
+  const hasLists = lists.length > 0;
+  const selectedList = lists.find((list) => list.id === context.placeListId);
+  const selectedListDetail = selectedListDetailQuery.data;
   const selectedDayCount = getInclusiveDayCount(context.startDate, context.endDate);
+  const mustVisitCount = countSchedulableMustVisits(selectedListDetail?.items);
+  const dateStepMustVisitLimit = selectedDayCount ? selectedDayCount * DATE_STEP_MUST_VISIT_PER_DAY_LIMIT : null;
+  const finalMustVisitLimit = resolveFinalMustVisitLimit(selectedDayCount, context.pace);
+  const isDateStepMustVisitOverflow = Boolean(dateStepMustVisitLimit && mustVisitCount > dateStepMustVisitLimit);
+  const isStyleStepMustVisitOverflow = Boolean(finalMustVisitLimit && mustVisitCount > finalMustVisitLimit);
+
+  useEffect(() => {
+    setIsDateStepMustVisitBlocked(false);
+  }, [context.placeListId, context.startDate, context.endDate, mustVisitCount]);
+
+  useEffect(() => {
+    setIsStyleStepMustVisitBlocked(false);
+  }, [context.placeListId, context.startDate, context.endDate, context.pace, mustVisitCount]);
+
+  const pushMustVisitLimitToast = (dayCount: number, limit: number) => {
+    const copy = UI_COPY.routes.new.toast.mustVisitLimitExceeded(dayCount, limit);
+    pushToast({
+      kind: "error",
+      message: (
+        <>
+          <span>{copy.title}</span>
+          <br />
+          <span>{copy.description}</span>
+        </>
+      )
+    });
+  };
+
   const isCreateFlowBusy = createMutation.isPending || isTransitioningToRecommendation;
   const hasInvalidDateRange = Boolean(
     context.startDate && context.endDate && context.endDate < context.startDate
@@ -797,11 +886,6 @@ export default function NewRoutePage() {
       </PageContainer>
     );
   }
-
-  const lists = placeListsQuery.data || [];
-  const hasLists = lists.length > 0;
-  const selectedList = lists.find((list) => list.id === context.placeListId);
-  const selectedListDetail = selectedListDetailQuery.data;
 
   if (currentStep === "List" && !hasLists) {
     return (
@@ -972,8 +1056,20 @@ export default function NewRoutePage() {
               </Button>
               <Button
                 size="large"
-                disabled={!context.startDate || !context.endDate || hasBlockedDateSelection}
-                onClick={() => moveStep("Stay")}
+                disabled={
+                  !context.startDate ||
+                  !context.endDate ||
+                  hasBlockedDateSelection ||
+                  (isDateStepMustVisitOverflow && isDateStepMustVisitBlocked)
+                }
+                onClick={() => {
+                  if (isDateStepMustVisitOverflow && selectedDayCount && dateStepMustVisitLimit) {
+                    setIsDateStepMustVisitBlocked(true);
+                    pushMustVisitLimitToast(selectedDayCount, dateStepMustVisitLimit);
+                    return;
+                  }
+                  moveStep("Stay");
+                }}
               >
                 {UI_COPY.routes.new.dateStep.next}
               </Button>
@@ -1223,11 +1319,17 @@ export default function NewRoutePage() {
                       !context.placeListId ||
                       !context.startDate ||
                       !context.endDate ||
-                      hasBlockedDateSelection
+                      hasBlockedDateSelection ||
+                      (isStyleStepMustVisitOverflow && isStyleStepMustVisitBlocked)
                     }
                     onClick={() => {
                       if (!context.placeListId || !context.startDate || !context.endDate || hasBlockedDateSelection) {
                         pushToast({ kind: "error", message: UI_COPY.routes.new.toast.missingSelection });
+                        return;
+                      }
+                      if (isStyleStepMustVisitOverflow && selectedDayCount && finalMustVisitLimit) {
+                        setIsStyleStepMustVisitBlocked(true);
+                        pushMustVisitLimitToast(selectedDayCount, finalMustVisitLimit);
                         return;
                       }
                       createMutation.mutate({
@@ -1245,6 +1347,9 @@ export default function NewRoutePage() {
                     {UI_COPY.routes.new.styleStep.submit}
                   </Button>
                 </div>
+                <p className="text-center text-xs font-medium text-foreground/58">
+                  {UI_COPY.routes.new.styleStep.aiQuotaHint}
+                </p>
               </>
             )}
           </FunnelContent>
