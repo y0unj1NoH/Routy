@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { UI_COPY } from "@/constants/ui-copy";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageTitle } from "@/components/common/page-title";
+import { AuthPageBrand } from "@/components/auth/auth-page-brand";
 import { safeZodResolver } from "@/lib/forms/safe-zod-resolver";
 import { mapSupabaseAuthError } from "@/lib/supabase/auth-errors";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
@@ -77,7 +78,10 @@ export default function SignupPage() {
   return (
     <PageContainer className="grid min-h-dvh place-items-center pt-0 pb-0 md:pb-0">
       <section className="w-full max-w-sm space-y-5 rounded-xl border border-border bg-card p-5 shadow-surface md:rounded-2xl md:p-6">
-        <PageTitle title={UI_COPY.auth.signup.title} />
+        <div className="space-y-3 md:space-y-4">
+          <AuthPageBrand />
+          <PageTitle title={UI_COPY.auth.signup.title} className="text-center" />
+        </div>
 
         <form onSubmit={onSubmit} className="space-y-4">
           {form.formState.errors.root?.message ? (

@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { UI_COPY } from "@/constants/ui-copy";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageTitle } from "@/components/common/page-title";
+import { AuthPageBrand } from "@/components/auth/auth-page-brand";
 import { isSupabaseEnvConfigured, publicEnv } from "@/lib/env";
 import { safeZodResolver } from "@/lib/forms/safe-zod-resolver";
 import { mapGoogleOAuthInitError, mapSupabaseAuthError } from "@/lib/supabase/auth-errors";
@@ -188,7 +189,10 @@ export default function LoginPage() {
   return (
     <PageContainer className="grid min-h-dvh place-items-center pt-0 pb-0 md:pb-0">
       <section className="w-full max-w-sm space-y-5 rounded-xl border border-border bg-card p-5 shadow-surface md:rounded-2xl md:p-6">
-        <PageTitle title={UI_COPY.auth.login.title} />
+        <div className="space-y-3 md:space-y-4">
+          <AuthPageBrand />
+          <PageTitle title={UI_COPY.auth.login.title} className="text-center" />
+        </div>
 
         <form onSubmit={onSubmit} className="space-y-4" aria-busy={isAuthBusy}>
           {form.formState.errors.root?.message ? (
