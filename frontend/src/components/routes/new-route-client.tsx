@@ -590,8 +590,6 @@ export default function NewRoutePage() {
       setIsTransitioningToRecommendation(true);
     },
     onSuccess: (data) => {
-      setIsTransitioningToRecommendation(false);
-      pushToast({ kind: "success", message: UI_COPY.routes.new.toast.success });
       resetStoreValues();
       router.push(`/routes/recommendation?scheduleId=${encodeURIComponent(data.id)}&status=success`);
     },
