@@ -2,6 +2,7 @@ const { GraphQLError } = require("graphql");
 const { createHash } = require("node:crypto");
 const GraphQLJSON = require("graphql-type-json");
 const { createSupabaseAdminClient, extractBearerToken } = require("./lib/supabase");
+const { captureBackendException, setSentryUser } = require("./lib/sentry");
 const {
   buildSchedulePlan,
   inferPlanningMode,
@@ -607,6 +608,7 @@ async function getOptionalUser(context) {
   const token = extractBearerToken(context.authHeader);
   if (!token) {
     context.cachedUser = null;
+    setSentryUser(null);
     return null;
   }
 
@@ -616,6 +618,7 @@ async function getOptionalUser(context) {
   }
 
   context.cachedUser = data.user || null;
+  setSentryUser(context.cachedUser);
   return context.cachedUser;
 }
 
@@ -1293,6 +1296,16 @@ async function resolveSchedulePlanDays({
     });
   } catch (error) {
     console.error("AI schedule planning failed. Falling back to deterministic planner.", error);
+    captureBackendException(error, {
+      source: "ai-schedule-fallback",
+      tags: {
+        "ai.fallback": "deterministic"
+      },
+      extras: {
+        dayCount,
+        candidateCount: Array.isArray(candidates) ? candidates.length : 0
+      }
+    });
     generationInput.aiFallback = {
       provider: "deterministic",
       reason: error?.message || "unknown"

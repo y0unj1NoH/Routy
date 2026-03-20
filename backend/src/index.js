@@ -1,12 +1,20 @@
 require("dotenv").config();
 
 const { createServer } = require("node:http");
-const { createSchema, createYoga } = require("graphql-yoga");
+const { createSchema, createYoga, maskError } = require("graphql-yoga");
 const { typeDefs } = require("./schema");
 const { resolvers } = require("./resolvers");
 const { createSupabaseClient, createSupabasePublicClient } = require("./lib/supabase");
+const {
+  initSentry,
+  captureBackendException,
+  setGraphqlRequestScope,
+  withSentryRequestIsolation
+} = require("./lib/sentry");
 
 const port = Number(process.env.PORT || 4000);
+
+initSentry();
 
 const yoga = createYoga({
   schema: createSchema({
@@ -14,8 +22,17 @@ const yoga = createYoga({
     resolvers
   }),
   graphiql: process.env.NODE_ENV !== "production",
-  context: ({ request }) => {
+  maskedErrors: {
+    maskError: (error, message, isDev) => {
+      captureBackendException(error, {
+        source: "graphql-yoga"
+      });
+      return maskError(error, message, isDev);
+    }
+  },
+  context: ({ request, params }) => {
     const authHeader = request.headers.get("authorization");
+    setGraphqlRequestScope(request, params);
 
     return {
       supabase: createSupabaseClient(authHeader),
@@ -92,6 +109,12 @@ async function handlePlacePhotoProxy(req, res, requestUrl) {
       }
     });
   } catch (error) {
+    captureBackendException(error, {
+      source: "place-photo-proxy",
+      tags: {
+        "http.route": "/place-photo"
+      }
+    });
     res.statusCode = 502;
     res.setHeader("Content-Type", "application/json; charset=utf-8");
     res.end(JSON.stringify({ error: "Failed to fetch Google place photo", details: String(error?.message || error) }));
@@ -162,6 +185,12 @@ async function handleRouteMapProxy(req, res, requestUrl) {
   try {
     upstreamResponse = await fetch(upstreamUrl, { method: "GET" });
   } catch (error) {
+    captureBackendException(error, {
+      source: "route-map-proxy",
+      tags: {
+        "http.route": "/route-map"
+      }
+    });
     res.statusCode = 502;
     res.setHeader("Content-Type", "application/json; charset=utf-8");
     res.end(JSON.stringify({ error: "Failed to fetch Google route map", details: String(error?.message || error) }));
@@ -194,17 +223,43 @@ async function handleRouteMapProxy(req, res, requestUrl) {
 const server = createServer(async (req, res) => {
   const url = new URL(req.url || "/", `http://${req.headers.host || "localhost"}`);
 
-  if (req.method === "GET" && url.pathname === "/place-photo") {
-    await handlePlacePhotoProxy(req, res, url);
-    return;
-  }
+  return withSentryRequestIsolation(
+    {
+      method: req.method || "UNKNOWN",
+      pathname: url.pathname,
+      search: url.search
+    },
+    async () => {
+      try {
+        if (req.method === "GET" && url.pathname === "/place-photo") {
+          await handlePlacePhotoProxy(req, res, url);
+          return;
+        }
 
-  if (req.method === "GET" && url.pathname === "/route-map") {
-    await handleRouteMapProxy(req, res, url);
-    return;
-  }
+        if (req.method === "GET" && url.pathname === "/route-map") {
+          await handleRouteMapProxy(req, res, url);
+          return;
+        }
 
-  return yoga(req, res);
+        return yoga(req, res);
+      } catch (error) {
+        captureBackendException(error, {
+          source: "http-server",
+          tags: {
+            "http.route": url.pathname
+          }
+        });
+
+        if (!res.headersSent) {
+          res.statusCode = 500;
+          res.setHeader("Content-Type", "application/json; charset=utf-8");
+          res.end(JSON.stringify({ error: "Internal server error" }));
+        } else {
+          res.end();
+        }
+      }
+    }
+  );
 });
 
 server.listen(port, () => {
