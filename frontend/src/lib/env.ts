@@ -4,6 +4,8 @@ const rawSupabasePublishableKey =
 const rawAuthCallbackUrl = process.env.NEXT_PUBLIC_AUTH_CALLBACK_URL?.trim() || "";
 const rawSentryDsn = process.env.NEXT_PUBLIC_SENTRY_DSN?.trim() || "";
 const rawSentryEnvironment = process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT?.trim() || process.env.NODE_ENV || "development";
+const rawPosthogKey = process.env.NEXT_PUBLIC_POSTHOG_KEY?.trim() || "";
+const rawPosthogHost = process.env.NEXT_PUBLIC_POSTHOG_HOST?.trim() || "https://us.i.posthog.com";
 
 export const publicEnv = {
   supabaseUrl: rawSupabaseUrl,
@@ -13,7 +15,9 @@ export const publicEnv = {
   googleMapsEmbedBase: process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_BASE || "https://www.google.com/maps",
   googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
   sentryDsn: rawSentryDsn,
-  sentryEnvironment: rawSentryEnvironment
+  sentryEnvironment: rawSentryEnvironment,
+  posthogKey: rawPosthogKey,
+  posthogHost: rawPosthogHost
 };
 
 export const isSupabaseEnvConfigured = Boolean(rawSupabaseUrl && rawSupabasePublishableKey);

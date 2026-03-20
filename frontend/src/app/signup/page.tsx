@@ -11,6 +11,7 @@ import { UI_COPY } from "@/constants/ui-copy";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageTitle } from "@/components/common/page-title";
 import { AuthPageBrand } from "@/components/auth/auth-page-brand";
+import { captureAnalyticsEvent } from "@/lib/analytics";
 import { safeZodResolver } from "@/lib/forms/safe-zod-resolver";
 import { mapSupabaseAuthError } from "@/lib/supabase/auth-errors";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
@@ -45,6 +46,9 @@ export default function SignupPage() {
   });
 
   const onSubmit = form.handleSubmit(async (values) => {
+    captureAnalyticsEvent("auth_signup_submitted", {
+      method: "password"
+    });
     form.clearErrors("root");
 
     try {
@@ -65,6 +69,9 @@ export default function SignupPage() {
         return;
       }
 
+      captureAnalyticsEvent("auth_signup_succeeded", {
+        method: "password"
+      });
       pushToast({ kind: "success", message: UI_COPY.auth.signup.success });
       router.replace("/login");
     } catch (error) {

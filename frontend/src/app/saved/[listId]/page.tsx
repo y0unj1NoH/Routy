@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { UI_COPY } from "@/constants/ui-copy";
 import { useRequireAuth } from "@/hooks/use-require-auth";
+import { captureAnalyticsEvent, getAnalyticsErrorCode } from "@/lib/analytics";
 import { cn } from "@/lib/cn";
 import {
   googleMapsImportFormSchema,
@@ -318,6 +319,10 @@ export default function SavedListDetailPage() {
       };
     },
     onSuccess: (result) => {
+      captureAnalyticsEvent("google_place_import_succeeded", {
+        source: "saved_list_detail",
+        imported_count: result.importedCount
+      });
       queryClient.invalidateQueries({ queryKey: detailQueryKey });
       queryClient.invalidateQueries({ queryKey: queryKeys.myPlaceLists });
       addPlaceForm.reset();
@@ -329,6 +334,10 @@ export default function SavedListDetailPage() {
     },
     onError: (error: Error) => {
       console.error(error);
+      captureAnalyticsEvent("google_place_import_failed", {
+        source: "saved_list_detail",
+        error_code: getAnalyticsErrorCode(error)
+      });
       const message =
         error.message === UI_COPY.saved.detail.addPlaceNotFound
           ? error.message
@@ -340,6 +349,7 @@ export default function SavedListDetailPage() {
 
   const onSubmitAddPlaceByLink = addPlaceForm.handleSubmit((values) => {
     addPlaceForm.clearErrors("root");
+    captureAnalyticsEvent("google_place_import_started", { source: "saved_list_detail" });
     addPlaceByLinkMutation.mutate(values.googleUrl.trim());
   });
 

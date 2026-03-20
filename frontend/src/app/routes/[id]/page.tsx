@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Sparkles } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { ConfirmDialog } from "@/components/common/confirm-dialog";
 import { DialogFieldHint, DialogFieldLabel } from "@/components/common/dialog-field";
@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { UI_COPY } from "@/constants/ui-copy";
 import { useRequireAuth } from "@/hooks/use-require-auth";
+import { captureAnalyticsEvent, getAnalyticsErrorCode } from "@/lib/analytics";
 import { googleMapsUrlInputSchema } from "@/lib/forms/input-schemas";
 import {
   addPlaceListItem,
@@ -56,6 +57,54 @@ function compactDateMoveCount(placeCount: number) {
   return placeCount > 0 ? `${placeCount}개 장소` : "비어 있음";
 }
 
+type RouteEditAnalyticsSummary = {
+  addedExistingPlaceCount: number;
+  addedGooglePlaceCount: number;
+  reorderedStopCount: number;
+  movedDayCount: number;
+  deletedStopCount: number;
+  restoredStopCount: number;
+};
+
+function createEmptyRouteEditAnalyticsSummary(): RouteEditAnalyticsSummary {
+  return {
+    addedExistingPlaceCount: 0,
+    addedGooglePlaceCount: 0,
+    reorderedStopCount: 0,
+    movedDayCount: 0,
+    deletedStopCount: 0,
+    restoredStopCount: 0
+  };
+}
+
+function getChangedDayCount(baselineSchedule: Schedule, draftSchedule: Schedule) {
+  const baselineDays = buildSaveScheduleEditsInput(baselineSchedule).days;
+  const draftDays = buildSaveScheduleEditsInput(draftSchedule).days;
+
+  return draftDays.reduce((count, draftDay, index) => {
+    const baselineDay = baselineDays[index];
+    return JSON.stringify(baselineDay?.stops ?? []) === JSON.stringify(draftDay.stops) ? count : count + 1;
+  }, 0);
+}
+
+function buildRouteEditAnalyticsPayload(
+  scheduleId: string,
+  baselineSchedule: Schedule,
+  draftSchedule: Schedule,
+  summary: RouteEditAnalyticsSummary
+) {
+  return {
+    schedule_id: scheduleId,
+    changed_day_count: getChangedDayCount(baselineSchedule, draftSchedule),
+    added_existing_place_count: summary.addedExistingPlaceCount,
+    added_google_place_count: summary.addedGooglePlaceCount,
+    reordered_stop_count: summary.reorderedStopCount,
+    moved_day_count: summary.movedDayCount,
+    deleted_stop_count: summary.deletedStopCount,
+    restored_stop_count: summary.restoredStopCount
+  };
+}
+
 export default function RouteDetailPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
@@ -82,6 +131,7 @@ export default function RouteDetailPage() {
   const [placePickerDayNumber, setPlacePickerDayNumber] = useState<number | null>(null);
   const [isGooglePlaceDialogOpen, setIsGooglePlaceDialogOpen] = useState(false);
   const [googlePlaceDraftUrl, setGooglePlaceDraftUrl] = useState("");
+  const editAnalyticsRef = useRef<RouteEditAnalyticsSummary>(createEmptyRouteEditAnalyticsSummary());
 
   const currentSchedule = editSession?.draftSchedule ?? schedule ?? null;
   const isEditMode = Boolean(editSession);
@@ -145,6 +195,17 @@ export default function RouteDetailPage() {
     setPlacePickerDayNumber(null);
     setIsGooglePlaceDialogOpen(false);
     setGooglePlaceDraftUrl("");
+  }, []);
+
+  const resetEditAnalytics = useCallback(() => {
+    editAnalyticsRef.current = createEmptyRouteEditAnalyticsSummary();
+  }, []);
+
+  const incrementEditAnalytics = useCallback((key: keyof RouteEditAnalyticsSummary) => {
+    editAnalyticsRef.current = {
+      ...editAnalyticsRef.current,
+      [key]: editAnalyticsRef.current[key] + 1
+    };
   }, []);
 
   useEffect(() => {
@@ -222,8 +283,18 @@ export default function RouteDetailPage() {
   const saveEditMutation = useMutation({
     mutationFn: (draftSchedule: Schedule) => saveScheduleEdits(accessToken ?? "", id, buildSaveScheduleEditsInput(draftSchedule)),
     onSuccess: (updatedSchedule) => {
+      captureAnalyticsEvent(
+        "route_edit_saved",
+        buildRouteEditAnalyticsPayload(
+          id,
+          schedule ?? updatedSchedule,
+          editSession?.draftSchedule ?? updatedSchedule,
+          editAnalyticsRef.current
+        )
+      );
       queryClient.setQueryData(queryKeys.scheduleDetail(id), updatedSchedule);
       setEditSession(null);
+      resetEditAnalytics();
       clearEditTransientUi();
       pushToast({ kind: "success", message: "변경 내용을 저장했어요" });
       queryClient.invalidateQueries({ queryKey: queryKeys.scheduleDetail(id) });
@@ -272,6 +343,11 @@ export default function RouteDetailPage() {
       };
     },
     onSuccess: ({ importedPlace, listId, targetDayNumber }) => {
+      incrementEditAnalytics("addedGooglePlaceCount");
+      captureAnalyticsEvent("google_place_import_succeeded", {
+        source: "route_detail_edit",
+        imported_count: 1
+      });
       const importedItem = createDraftPlaceListItem(importedPlace);
 
       queryClient.setQueryData<Schedule | null>(queryKeys.scheduleDetail(id), (current) => {
@@ -288,6 +364,10 @@ export default function RouteDetailPage() {
     },
     onError: (error: Error) => {
       console.error(error);
+      captureAnalyticsEvent("google_place_import_failed", {
+        source: "route_detail_edit",
+        error_code: getAnalyticsErrorCode(error)
+      });
       if (error.message === "이미 일정이나 저장 리스트에 있는 장소예요") {
         pushToast({ kind: "info", message: error.message });
         return;
@@ -324,12 +404,13 @@ export default function RouteDetailPage() {
   }, []);
 
   const handleDeleteStop = useCallback((stop: ScheduleStop, dayNumber: number, stopIndex: number) => {
+    incrementEditAnalytics("deletedStopCount");
     setEditSession((current) => (current ? deleteRouteEditStop(current, stop.id) : current));
     setPendingDeletedStops((current) => [
       { stop, dayNumber, stopIndex },
       ...current.filter((item) => item.stop.id !== stop.id)
     ]);
-  }, []);
+  }, [incrementEditAnalytics]);
 
   if (isAuthLoading || !isAuthed) {
     return (
@@ -410,11 +491,23 @@ export default function RouteDetailPage() {
         onSaveStopNote={saveStopNote}
         isEditMode={isEditMode}
         onEnterEdit={() => {
+          resetEditAnalytics();
+          captureAnalyticsEvent("route_edit_started", {
+            schedule_id: id,
+            day_count: schedule.dayCount
+          });
           setEditSession(createRouteEditSession(schedule));
           clearEditTransientUi();
         }}
         onCancelEdit={() => {
+          if (editSession) {
+            captureAnalyticsEvent("route_edit_cancelled", {
+              ...buildRouteEditAnalyticsPayload(id, schedule, editSession.draftSchedule, editAnalyticsRef.current),
+              had_changes: isEditDirty
+            });
+          }
           setEditSession(null);
+          resetEditAnalytics();
           clearEditTransientUi();
         }}
         onCommitEdit={() => {
@@ -431,8 +524,14 @@ export default function RouteDetailPage() {
         editedDayNumbers={editedDayNumbers}
         onAddPlace={openPlacePicker}
         getStopEditActions={(stop, day) => ({
-          onMoveUp: () => setEditSession((current) => (current ? moveRouteEditStop(current, stop.id, "up") : current)),
-          onMoveDown: () => setEditSession((current) => (current ? moveRouteEditStop(current, stop.id, "down") : current)),
+          onMoveUp: () => {
+            incrementEditAnalytics("reorderedStopCount");
+            setEditSession((current) => (current ? moveRouteEditStop(current, stop.id, "up") : current));
+          },
+          onMoveDown: () => {
+            incrementEditAnalytics("reorderedStopCount");
+            setEditSession((current) => (current ? moveRouteEditStop(current, stop.id, "down") : current));
+          },
           onMoveDay: () => setPendingMoveStopId(stop.id),
           onDelete: () => {
             const stopIndex = day.stops.findIndex((dayStop) => dayStop.id === stop.id);
@@ -462,6 +561,7 @@ export default function RouteDetailPage() {
           const targetDayNumber = placePickerDayNumber;
           if (!targetDayNumber) return;
 
+          incrementEditAnalytics("addedExistingPlaceCount");
           setEditSession((current) => (current ? addRouteEditPlace(current, item, targetDayNumber) : current));
           setIsPlacePickerOpen(false);
           setPlacePickerDayNumber(null);
@@ -510,6 +610,9 @@ export default function RouteDetailPage() {
               className="min-w-[116px]"
               onClick={() => {
                 if (!placePickerDayNumber || !googlePlaceDraftValidation.success || !currentSchedule) return;
+                captureAnalyticsEvent("google_place_import_started", {
+                  source: "route_detail_edit"
+                });
                 googlePlaceMutation.mutate({
                   targetDayNumber: placePickerDayNumber,
                   url: googlePlaceDraftValidation.data,
@@ -586,6 +689,7 @@ export default function RouteDetailPage() {
                 disabled={disabled}
                 onClick={() => {
                   if (!movingStop) return;
+                  incrementEditAnalytics("movedDayCount");
                   setEditSession((current) => (current ? moveRouteEditStopToDay(current, movingStop.id, day.dayNumber) : current));
                   setPendingMoveStopId(null);
                 }}
@@ -612,6 +716,7 @@ export default function RouteDetailPage() {
                 <button
                   type="button"
                   onClick={() => {
+                    incrementEditAnalytics("restoredStopCount");
                     setEditSession((current) => (current ? restoreRouteEditStop(current, item) : current));
                     setPendingDeletedStops((current) => current.filter((currentItem) => currentItem.stop.id !== item.stop.id));
                   }}

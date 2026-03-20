@@ -24,7 +24,7 @@ import {
   type LucideIcon
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { DialogFieldHint, DialogFieldLabel } from "@/components/common/dialog-field";
 import { DialogShell } from "@/components/common/dialog-shell";
@@ -51,6 +51,12 @@ import {
 import { type ThemeValue } from "@/constants/route-taxonomy";
 import { UI_COPY } from "@/constants/ui-copy";
 import { useRequireAuth } from "@/hooks/use-require-auth";
+import {
+  captureAnalyticsEvent,
+  getAnalyticsErrorCode,
+  startAnalyticsReplay,
+  type RouteCreateStep
+} from "@/lib/analytics";
 import { cn } from "@/lib/cn";
 import { AppGraphQLError } from "@/lib/graphql/client";
 import { resolveAiScheduleQuotaMessage } from "@/lib/graphql/ai-schedule-errors";
@@ -88,6 +94,20 @@ const FINAL_MUST_VISIT_MULTIPLIER_BY_PACE: Record<string, number> = {
   RELAXED: 5,
   MODERATE: 6,
   INTENSE: 7
+};
+const ROUTE_CREATE_STEP_BY_RENDER_STEP: Record<RenderStep, RouteCreateStep> = {
+  List: "list",
+  Date: "date",
+  Stay: "stay",
+  Companions: "companions",
+  Style: "style"
+};
+const RENDER_STEP_ORDER: Record<RenderStep, number> = {
+  List: 1,
+  Date: 2,
+  Stay: 3,
+  Companions: 4,
+  Style: 5
 };
 
 const COMPANION_ICONS: Record<string, LucideIcon> = {
@@ -206,6 +226,21 @@ function isMustVisitLimitExceededError(error: unknown): error is AppGraphQLError
     error.details !== null &&
     (error.details as { kind?: unknown }).kind === "MUST_VISIT_LIMIT_EXCEEDED"
   );
+}
+
+function buildRouteCreateAnalyticsPayload(
+  context: FunnelContext,
+  selectedDayCount: number | null,
+  mustVisitCount: number
+) {
+  return {
+    day_count: selectedDayCount ?? undefined,
+    stay_mode: context.stayMode ?? null,
+    companions: context.companions ?? null,
+    pace: context.pace ?? null,
+    theme_count: context.themes?.length ?? 0,
+    must_visit_count: mustVisitCount
+  };
 }
 
 function normalizeDateRange(startDate: string | undefined, endDate: string | undefined, minSelectableDate: string) {
@@ -558,6 +593,8 @@ export default function NewRoutePage() {
   const [isTransitioningToRecommendation, setIsTransitioningToRecommendation] = useState(false);
   const [isDateStepMustVisitBlocked, setIsDateStepMustVisitBlocked] = useState(false);
   const [isStyleStepMustVisitBlocked, setIsStyleStepMustVisitBlocked] = useState(false);
+  const viewedRouteCreateStepsRef = useRef(new Set<RouteCreateStep>());
+  const noListsBlockedRef = useRef(false);
 
   const { session, isLoading: isAuthLoading, isAuthed } = useRequireAuth();
   const accessToken = session?.access_token;
@@ -587,13 +624,26 @@ export default function NewRoutePage() {
     }) =>
       createSchedule(accessToken ?? "", input),
     onMutate: () => {
+      captureAnalyticsEvent(
+        "route_create_started",
+        buildRouteCreateAnalyticsPayload(context, selectedDayCount, mustVisitCount)
+      );
+      startAnalyticsReplay();
       setIsTransitioningToRecommendation(true);
     },
     onSuccess: (data) => {
+      captureAnalyticsEvent(
+        "route_create_succeeded",
+        buildRouteCreateAnalyticsPayload(context, selectedDayCount, mustVisitCount)
+      );
       resetStoreValues();
       router.push(`/routes/recommendation?scheduleId=${encodeURIComponent(data.id)}&status=success`);
     },
     onError: (error: Error) => {
+      captureAnalyticsEvent("route_create_failed", {
+        ...buildRouteCreateAnalyticsPayload(context, selectedDayCount, mustVisitCount),
+        error_code: getAnalyticsErrorCode(error)
+      });
       setIsTransitioningToRecommendation(false);
       console.error(error);
       const aiQuotaMessage = resolveAiScheduleQuotaMessage(error);
@@ -649,6 +699,10 @@ export default function NewRoutePage() {
       return stayPlaces;
     },
     onSuccess: (places) => {
+      captureAnalyticsEvent("google_place_import_succeeded", {
+        source: "route_new_stay",
+        imported_count: places.length
+      });
       const primaryPlace = places[0];
       selectedListDetailQuery.refetch();
       placeListsQuery.refetch();
@@ -674,6 +728,10 @@ export default function NewRoutePage() {
     },
     onError: (error: Error) => {
       console.error(error);
+      captureAnalyticsEvent("google_place_import_failed", {
+        source: "route_new_stay",
+        error_code: getAnalyticsErrorCode(error)
+      });
       const message =
         error.message === UI_COPY.saved.detail.addPlaceNotFound || error.message === UI_COPY.routes.new.toast.addedStayTypeError
           ? error.message
@@ -750,10 +808,23 @@ export default function NewRoutePage() {
     }
 
     setGoogleStayUrlError(null);
+    captureAnalyticsEvent("google_place_import_started", { source: "route_new_stay" });
     addStayByLinkMutation.mutate(trimmedUrl);
   };
 
   const moveStep = (step: RenderStep, nextContext: FunnelContext = context) => {
+    if (RENDER_STEP_ORDER[step] > RENDER_STEP_ORDER[currentStep]) {
+      captureAnalyticsEvent("route_create_step_completed", {
+        step: ROUTE_CREATE_STEP_BY_RENDER_STEP[currentStep],
+        next_step: ROUTE_CREATE_STEP_BY_RENDER_STEP[step],
+        ...buildRouteCreateAnalyticsPayload(
+          nextContext,
+          getInclusiveDayCount(nextContext.startDate, nextContext.endDate),
+          mustVisitCount
+        )
+      });
+    }
+
     setContext(nextContext);
     setCurrentStep(step);
     const nextQueryStep = mapRenderToQueryStep(step);
@@ -838,6 +909,30 @@ export default function NewRoutePage() {
     setIsStyleStepMustVisitBlocked(false);
   }, [context.placeListId, context.startDate, context.endDate, context.pace, mustVisitCount]);
 
+  useEffect(() => {
+    if (placeListsQuery.isLoading) {
+      return;
+    }
+
+    const step = ROUTE_CREATE_STEP_BY_RENDER_STEP[currentStep];
+    if (!viewedRouteCreateStepsRef.current.has(step)) {
+      viewedRouteCreateStepsRef.current.add(step);
+      captureAnalyticsEvent("route_create_step_viewed", {
+        step,
+        ...buildRouteCreateAnalyticsPayload(context, selectedDayCount, mustVisitCount)
+      });
+    }
+
+    if (step === "list" && !hasLists && !noListsBlockedRef.current) {
+      noListsBlockedRef.current = true;
+      captureAnalyticsEvent("route_create_blocked", {
+        step,
+        reason: "no_lists",
+        ...buildRouteCreateAnalyticsPayload(context, selectedDayCount, mustVisitCount)
+      });
+    }
+  }, [context, currentStep, hasLists, mustVisitCount, placeListsQuery.isLoading, selectedDayCount]);
+
   const pushMustVisitLimitToast = (dayCount: number, limit: number) => {
     const copy = UI_COPY.routes.new.toast.mustVisitLimitExceeded(dayCount, limit);
     pushToast({
@@ -916,6 +1011,7 @@ export default function NewRoutePage() {
         <ImportListModal
           isOpen={isImportModalOpen}
           accessToken={accessToken ?? ""}
+          source="route_new_empty_state"
           onClose={() => setIsImportModalOpen(false)}
           onImported={(list) => {
             applySelectedList(list.id, list.name);
@@ -1062,6 +1158,11 @@ export default function NewRoutePage() {
                 }
                 onClick={() => {
                   if (isDateStepMustVisitOverflow && selectedDayCount && dateStepMustVisitLimit) {
+                    captureAnalyticsEvent("route_create_blocked", {
+                      step: "date",
+                      reason: "must_visit_limit_exceeded",
+                      ...buildRouteCreateAnalyticsPayload(context, selectedDayCount, mustVisitCount)
+                    });
                     setIsDateStepMustVisitBlocked(true);
                     pushMustVisitLimitToast(selectedDayCount, dateStepMustVisitLimit);
                     return;
@@ -1322,10 +1423,20 @@ export default function NewRoutePage() {
                     }
                     onClick={() => {
                       if (!context.placeListId || !context.startDate || !context.endDate || hasBlockedDateSelection) {
+                        captureAnalyticsEvent("route_create_blocked", {
+                          step: "style",
+                          reason: "missing_selection",
+                          ...buildRouteCreateAnalyticsPayload(context, selectedDayCount, mustVisitCount)
+                        });
                         pushToast({ kind: "error", message: UI_COPY.routes.new.toast.missingSelection });
                         return;
                       }
                       if (isStyleStepMustVisitOverflow && selectedDayCount && finalMustVisitLimit) {
+                        captureAnalyticsEvent("route_create_blocked", {
+                          step: "style",
+                          reason: "must_visit_limit_exceeded",
+                          ...buildRouteCreateAnalyticsPayload(context, selectedDayCount, mustVisitCount)
+                        });
                         setIsStyleStepMustVisitBlocked(true);
                         pushMustVisitLimitToast(selectedDayCount, finalMustVisitLimit);
                         return;
@@ -1357,6 +1468,7 @@ export default function NewRoutePage() {
       <ImportListModal
         isOpen={isImportModalOpen}
         accessToken={accessToken ?? ""}
+        source="route_new_list_step"
         onClose={() => setIsImportModalOpen(false)}
         onImported={(list) => {
           applySelectedList(list.id, list.name);

@@ -3,7 +3,7 @@
 import { ChevronDown, ChevronUp, X } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   CelebrationConfetti,
@@ -24,6 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { UI_COPY } from "@/constants/ui-copy";
 import { useRequireAuth } from "@/hooks/use-require-auth";
+import { captureAnalyticsEvent } from "@/lib/analytics";
 import { useRouteStopInteractions } from "@/hooks/use-route-stop-interactions";
 import { cn } from "@/lib/cn";
 import { fetchScheduleDetail, regenerateSchedule } from "@/lib/graphql/api";
@@ -61,6 +62,12 @@ function formatShortDateRange(startDate: string, endDate: string) {
   return `${start.getMonth() + 1}/${start.getDate()}~${end.getMonth() + 1}/${end.getDate()}`;
 }
 
+function resolveRecommendationStayMode(schedule: Schedule | null | undefined) {
+  if (schedule?.stayPlace) return "booked" as const;
+  if (schedule?.stayRecommendation) return "recommended" as const;
+  return "none" as const;
+}
+
 export default function RecommendationPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -75,6 +82,7 @@ export default function RecommendationPage() {
   const [viewMode, setViewMode] = useState<RouteViewMode>("split");
   const [isMobileHeroCollapsed, setIsMobileHeroCollapsed] = useState(false);
   const [isStayOverlayVisible, setIsStayOverlayVisible] = useState(true);
+  const viewedScheduleIdsRef = useRef(new Set<string>());
 
   useEffect(() => {
     const currentParams = new URLSearchParams(window.location.search);
@@ -92,6 +100,9 @@ export default function RecommendationPage() {
   const regenerateMutation = useMutation({
     mutationFn: () => regenerateSchedule(accessToken || "", scheduleId || ""),
     onSuccess: (regeneratedSchedule) => {
+      captureAnalyticsEvent("route_recommendation_regenerated", {
+        schedule_id: regeneratedSchedule?.id || scheduleId || ""
+      });
       const nextScheduleId = regeneratedSchedule?.id || scheduleId || "";
       pushToast({ kind: "success", message: UI_COPY.routes.recommendation.toast.regenerateSuccess });
       queryClient.invalidateQueries({ queryKey: queryKeys.scheduleDetail(nextScheduleId) });
@@ -165,6 +176,11 @@ export default function RecommendationPage() {
 
   const handleConfirmRoute = () => {
     if (!scheduleId) return;
+    captureAnalyticsEvent("route_recommendation_confirmed", {
+      schedule_id: scheduleId,
+      day_count: schedule?.dayCount ?? 0,
+      stay_mode: resolveRecommendationStayMode(schedule)
+    });
     router.push(`/routes/${scheduleId}`);
   };
 
@@ -175,6 +191,19 @@ export default function RecommendationPage() {
   useEffect(() => {
     setIsMobileHeroCollapsed(false);
   }, [scheduleId]);
+
+  useEffect(() => {
+    if (!schedule?.id || viewedScheduleIdsRef.current.has(schedule.id)) {
+      return;
+    }
+
+    viewedScheduleIdsRef.current.add(schedule.id);
+    captureAnalyticsEvent("route_recommendation_viewed", {
+      schedule_id: schedule.id,
+      day_count: schedule.dayCount,
+      stay_mode: resolveRecommendationStayMode(schedule)
+    });
+  }, [schedule]);
 
   const renderPreviewHero = (className?: string, mobileCollapsible = false) => (
     <section

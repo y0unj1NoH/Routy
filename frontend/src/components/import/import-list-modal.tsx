@@ -1,6 +1,6 @@
 "use client";
 
-import { useId } from "react";
+import { useEffect, useId } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -12,6 +12,7 @@ import { LoadingPanel } from "@/components/common/loading-panel";
 import { UI_COPY } from "@/constants/ui-copy";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { captureAnalyticsEvent, getAnalyticsErrorCode } from "@/lib/analytics";
 import { safeZodResolver } from "@/lib/forms/safe-zod-resolver";
 import {
   crawlerImportFormSchema,
@@ -32,13 +33,14 @@ type ImportedList = {
 type ImportListModalProps = {
   isOpen: boolean;
   accessToken: string;
+  source: string;
   onClose: () => void;
   onImported?: (list: ImportedList) => void;
 };
 
 type ImportListModalValues = z.infer<typeof crawlerImportFormSchema>;
 
-export function ImportListModal({ isOpen, accessToken, onClose, onImported }: ImportListModalProps) {
+export function ImportListModal({ isOpen, accessToken, source, onClose, onImported }: ImportListModalProps) {
   const formId = useId();
   const crawlerUrlFieldId = `${formId}-crawler-url`;
   const listNameFieldId = `${formId}-list-name`;
@@ -59,6 +61,11 @@ export function ImportListModal({ isOpen, accessToken, onClose, onImported }: Im
   const crawlerUrl = form.watch("crawlerUrl");
   const city = form.watch("city");
 
+  useEffect(() => {
+    if (!isOpen) return;
+    captureAnalyticsEvent("list_import_modal_opened", { source });
+  }, [isOpen, source]);
+
   const handleClose = () => {
     form.clearErrors();
     onClose();
@@ -67,6 +74,10 @@ export function ImportListModal({ isOpen, accessToken, onClose, onImported }: Im
   const crawlerMutation = useMutation({
     mutationFn: (values: { url: string; listName: string; city: string }) => importPlaceListFromCrawler(accessToken, values),
     onSuccess: (data) => {
+      captureAnalyticsEvent("list_import_succeeded", {
+        source,
+        imported_count: data.itemCount
+      });
       queryClient.invalidateQueries({ queryKey: queryKeys.myPlaceLists });
       pushToast({ kind: "success", message: UI_COPY.importListModal.success });
       form.reset();
@@ -75,6 +86,10 @@ export function ImportListModal({ isOpen, accessToken, onClose, onImported }: Im
     },
     onError: (error: Error) => {
       console.error(error);
+      captureAnalyticsEvent("list_import_failed", {
+        source,
+        error_code: getAnalyticsErrorCode(error)
+      });
       const message = resolveImportErrorMessage(error, UI_COPY.importListModal.error);
       form.setError("root", { type: "server", message });
       pushToast({ kind: "error", message });
@@ -83,6 +98,7 @@ export function ImportListModal({ isOpen, accessToken, onClose, onImported }: Im
 
   const onSubmit = form.handleSubmit((values) => {
     form.clearErrors("root");
+    captureAnalyticsEvent("list_import_started", { source });
     const resolvedCity = values.city.trim();
 
     crawlerMutation.mutate({

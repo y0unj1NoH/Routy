@@ -35,6 +35,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useRequireAuth } from "@/hooks/use-require-auth";
+import { captureAnalyticsEvent, resetAnalyticsUser } from "@/lib/analytics";
 import type { BadgeIconName } from "@/lib/badge-theme";
 import { COMPANION_BADGE_MAP, PACE_BADGE_MAP, THEME_BADGE_MAP } from "@/lib/badge-theme";
 import { BADGE_HEIGHT_CLASS, BADGE_TEXT_CLASS } from "@/lib/badge-size";
@@ -440,6 +441,7 @@ export default function MyPage() {
 
       await queryClient.cancelQueries();
       queryClient.clear();
+      resetAnalyticsUser();
       deleteAccountForm.reset();
       setIsDeleteAccountDialogOpen(false);
       pushToast({ kind: "success", message: UI_COPY.mypage.deleteAccount.success });
@@ -462,6 +464,7 @@ export default function MyPage() {
   const handleSignOut = async () => {
     if (isSigningOut) return;
 
+    captureAnalyticsEvent("auth_logout_clicked", { source: "mypage" });
     setIsAuthRedirectPaused(true);
     setIsSigningOut(true);
 
@@ -473,6 +476,8 @@ export default function MyPage() {
       }
       clearSupabaseBrowserAuthStorage();
       queryClient.clear();
+      captureAnalyticsEvent("auth_logout_succeeded", { source: "mypage" });
+      resetAnalyticsUser();
       pushToast({ kind: "success", message: UI_COPY.mypage.logout.success });
       startTransition(() => {
         router.replace("/login");

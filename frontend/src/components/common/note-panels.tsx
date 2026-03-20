@@ -27,7 +27,11 @@ type NoteDisplayPanelProps = {
 
 export function NoteDisplayPanel({ note, isBusy = false, onEdit, onDelete, className }: NoteDisplayPanelProps) {
   return (
-    <div className={cn("relative z-20 rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-subtle md:rounded-xl", className)} onClick={stopPanelClick}>
+    <div
+      data-ph-mask
+      className={cn("relative z-20 rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-subtle md:rounded-xl", className)}
+      onClick={stopPanelClick}
+    >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex items-center gap-2">
           <NotebookPen className="h-4 w-4 text-slate-400" />
@@ -97,6 +101,7 @@ export function NoteEditorPanel({
 
   return (
     <div
+      data-ph-mask
       className={cn("relative z-20 rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-subtle md:rounded-xl", className)}
       onClick={stopPanelClick}
     >

@@ -4,6 +4,7 @@ import { useState, type ReactNode } from "react";
 import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
+import { AppAnalyticsRuntime } from "@/components/analytics/app-analytics-runtime";
 import { AuthSessionProvider } from "@/components/auth/auth-session-provider";
 import { captureReactQueryError } from "@/lib/sentry-react-query";
 
@@ -43,6 +44,7 @@ export function Providers({ children }: ProvidersProps) {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <AppAnalyticsRuntime />
       <AuthSessionProvider>{children}</AuthSessionProvider>
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { LoadingPanel } from "@/components/common/loading-panel";
 import { UI_COPY } from "@/constants/ui-copy";
 import { PageContainer } from "@/components/layout/page-container";
+import { captureAnalyticsEvent } from "@/lib/analytics";
 import { mapOAuthCallbackError } from "@/lib/supabase/auth-errors";
 import {
   cancelSupabaseBrowserOAuthRedirectPersistence,
@@ -67,6 +68,10 @@ export default function AuthCallbackPage() {
         }
 
         finalizeSupabaseBrowserOAuthRedirectPersistence();
+        captureAnalyticsEvent("auth_login_succeeded", {
+          method: "google",
+          destination_path: next
+        });
         router.replace(next);
       } catch (error) {
         cancelSupabaseBrowserOAuthRedirectPersistence();

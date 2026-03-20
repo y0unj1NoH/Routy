@@ -1,9 +1,10 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import type { Session } from "@supabase/supabase-js";
 import * as Sentry from "@sentry/nextjs";
 
+import { identifyAnalyticsUser, resetAnalyticsUser } from "@/lib/analytics";
 import { isSupabaseEnvConfigured } from "@/lib/env";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 
@@ -17,6 +18,7 @@ const AuthSessionContext = createContext<AuthSessionContextValue | null>(null);
 export function AuthSessionProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const lastIdentifiedUserIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!isSupabaseEnvConfigured) {
@@ -58,6 +60,10 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!session?.user) {
       Sentry.setUser(null);
+      if (lastIdentifiedUserIdRef.current) {
+        resetAnalyticsUser();
+        lastIdentifiedUserIdRef.current = null;
+      }
       return;
     }
 
@@ -65,6 +71,10 @@ export function AuthSessionProvider({ children }: { children: ReactNode }) {
       id: session.user.id,
       email: session.user.email ?? undefined
     });
+    if (lastIdentifiedUserIdRef.current !== session.user.id) {
+      identifyAnalyticsUser(session.user.id);
+      lastIdentifiedUserIdRef.current = session.user.id;
+    }
   }, [session]);
 
   return <AuthSessionContext.Provider value={{ session, isLoading }}>{children}</AuthSessionContext.Provider>;

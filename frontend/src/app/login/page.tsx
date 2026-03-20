@@ -13,6 +13,7 @@ import { UI_COPY } from "@/constants/ui-copy";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageTitle } from "@/components/common/page-title";
 import { AuthPageBrand } from "@/components/auth/auth-page-brand";
+import { captureAnalyticsEvent } from "@/lib/analytics";
 import { isSupabaseEnvConfigured, publicEnv } from "@/lib/env";
 import { safeZodResolver } from "@/lib/forms/safe-zod-resolver";
 import { mapGoogleOAuthInitError, mapSupabaseAuthError } from "@/lib/supabase/auth-errors";
@@ -110,6 +111,10 @@ export default function LoginPage() {
       return;
     }
 
+    captureAnalyticsEvent("auth_login_submitted", {
+      method: "password",
+      destination_path: nextPath
+    });
     form.clearErrors("root");
 
     try {
@@ -133,6 +138,10 @@ export default function LoginPage() {
         return;
       }
 
+      captureAnalyticsEvent("auth_login_succeeded", {
+        method: "password",
+        destination_path: nextPath
+      });
       pushToast({ kind: "success", message: UI_COPY.auth.login.success });
       router.replace(nextPath);
     } catch (error) {
@@ -150,6 +159,10 @@ export default function LoginPage() {
       return;
     }
 
+    captureAnalyticsEvent("auth_login_submitted", {
+      method: "google",
+      destination_path: nextPath
+    });
     form.clearErrors("root");
 
     try {

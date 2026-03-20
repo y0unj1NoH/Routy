@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { buttonStyles } from "@/components/ui/button-styles";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { captureAnalyticsEvent, getAnalyticsErrorCode } from "@/lib/analytics";
 import { safeZodResolver } from "@/lib/forms/safe-zod-resolver";
 import {
   crawlerImportFormSchema,
@@ -78,6 +79,10 @@ export default function ImportRoutePage() {
   const crawlerMutation = useMutation({
     mutationFn: (values: { url: string; listName: string; city: string }) => importPlaceListFromCrawler(accessToken ?? "", values),
     onSuccess: (data) => {
+      captureAnalyticsEvent("list_import_succeeded", {
+        source: "route_import_page",
+        imported_count: data.itemCount
+      });
       setImportedListId(data.id);
       pushToast({ kind: "success", message: UI_COPY.routes.import.toast.importListSuccess });
       queryClient.invalidateQueries({ queryKey: queryKeys.myPlaceLists });
@@ -85,6 +90,10 @@ export default function ImportRoutePage() {
     },
     onError: (error: Error) => {
       console.error(error);
+      captureAnalyticsEvent("list_import_failed", {
+        source: "route_import_page",
+        error_code: getAnalyticsErrorCode(error)
+      });
       const message = resolveImportErrorMessage(error, UI_COPY.routes.import.toast.importListError);
       crawlerForm.setError("root", { type: "server", message });
       pushToast({ kind: "error", message });
@@ -94,6 +103,10 @@ export default function ImportRoutePage() {
   const googleMutation = useMutation({
     mutationFn: (url: string) => importPlaceFromGoogleLink(accessToken ?? "", url),
     onSuccess: (places) => {
+      captureAnalyticsEvent("google_place_import_succeeded", {
+        source: "route_import_page",
+        imported_count: places.length
+      });
       setImportedCount(places.length);
       setImportedPlaces(places);
       pushToast({ kind: "success", message: UI_COPY.routes.import.toast.importPlacesSuccess(places.length) });
@@ -101,6 +114,10 @@ export default function ImportRoutePage() {
     },
     onError: (error: Error) => {
       console.error(error);
+      captureAnalyticsEvent("google_place_import_failed", {
+        source: "route_import_page",
+        error_code: getAnalyticsErrorCode(error)
+      });
       const message = resolveImportErrorMessage(error, UI_COPY.routes.import.toast.importPlacesError);
       googleForm.setError("root", { type: "server", message });
       pushToast({ kind: "error", message });
@@ -109,6 +126,7 @@ export default function ImportRoutePage() {
 
   const onSubmitCrawlerImport = crawlerForm.handleSubmit((values) => {
     crawlerForm.clearErrors("root");
+    captureAnalyticsEvent("list_import_started", { source: "route_import_page" });
     const resolvedCity = values.city.trim();
 
     crawlerMutation.mutate({
@@ -120,6 +138,7 @@ export default function ImportRoutePage() {
 
   const onSubmitGoogleImport = googleForm.handleSubmit((values) => {
     googleForm.clearErrors("root");
+    captureAnalyticsEvent("google_place_import_started", { source: "route_import_page" });
     googleMutation.mutate(values.googleUrl.trim());
   });
 

@@ -70,6 +70,7 @@ export default function SavedPage() {
         <ImportListModal
           isOpen={isImportModalOpen}
           accessToken={accessToken ?? ""}
+          source="saved_index_empty_state"
           onClose={() => setIsImportModalOpen(false)}
         />
       </PageContainer>
@@ -100,6 +101,7 @@ export default function SavedPage() {
       <ImportListModal
         isOpen={isImportModalOpen}
         accessToken={accessToken ?? ""}
+        source="saved_index_header"
         onClose={() => setIsImportModalOpen(false)}
       />
     </PageContainer>
