@@ -126,6 +126,67 @@ function compactText(value) {
   return normalizeText(value).replace(/[\s\W_]+/g, "");
 }
 
+function normalizeImportPlaceName(value) {
+  return String(value || "").replace(/\s+/g, " ").trim();
+}
+
+function getKstMonthKey(date = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit"
+  }).formatToParts(date);
+  const year = parts.find((part) => part.type === "year")?.value || "0000";
+  const month = parts.find((part) => part.type === "month")?.value || "01";
+  return `${year}-${month}`;
+}
+
+function getKstDateKey(date = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).formatToParts(date);
+  const year = parts.find((part) => part.type === "year")?.value || "0000";
+  const month = parts.find((part) => part.type === "month")?.value || "01";
+  const day = parts.find((part) => part.type === "day")?.value || "01";
+  return `${year}-${month}-${day}`;
+}
+
+function failMonthlyImportRequestLimitExceeded() {
+  fail("Monthly import request quota exceeded", "IMPORT_LIST_QUOTA_EXCEEDED", {
+    kind: "MONTHLY_IMPORT_REQUEST_QUOTA_EXCEEDED",
+    limit: MONTHLY_IMPORT_REQUEST_LIMIT
+  });
+}
+
+function failMonthlyImportPlaceLimitExceeded() {
+  fail("Monthly import place quota exceeded", "IMPORT_PLACE_QUOTA_EXCEEDED", {
+    kind: "MONTHLY_IMPORT_PLACE_QUOTA_EXCEEDED",
+    limit: MONTHLY_IMPORT_PLACE_LIMIT
+  });
+}
+
+function failDailyAiGenerationLimitExceeded() {
+  fail("Daily AI generation quota exceeded", "AI_DAILY_QUOTA_EXCEEDED", {
+    kind: "DAILY_AI_GENERATION_QUOTA_EXCEEDED",
+    limit: DAILY_AI_GENERATION_LIMIT
+  });
+}
+
+function failMonthlyAiGenerationLimitExceeded() {
+  fail("Monthly AI generation quota exceeded", "AI_SYSTEM_MONTHLY_QUOTA_EXCEEDED", {
+    kind: "MONTHLY_SYSTEM_AI_GENERATION_QUOTA_EXCEEDED",
+    limit: MONTHLY_AI_GENERATION_LIMIT
+  });
+}
+
+function isPlaceDetailsFresh(placeRow, now = Date.now()) {
+  const updatedAtMs = Date.parse(placeRow?.updated_at || "");
+  return Number.isFinite(updatedAtMs) && now - updatedAtMs <= PLACE_DETAILS_FRESHNESS_WINDOW_MS;
+}
+
 function isBangkokCity(cityName) {
   const city = normalizeText(cityName);
   return (
@@ -199,6 +260,58 @@ function isLodgingPlace(place) {
   return types.some((type) => LODGING_TYPE_PATTERN.test(String(type || "")));
 }
 
+function extractPhotoResourceName(value) {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  if (/^places\/[^/]+\/photos\/[^/?#]+$/i.test(trimmed)) {
+    return trimmed;
+  }
+  return trimmed.match(GOOGLE_PLACE_MEDIA_PATTERN)?.[1] || null;
+}
+
+function normalizePhotoAttribution(value) {
+  if (!value || typeof value !== "object") return { displayName: null, uri: null };
+  return {
+    displayName: typeof value.displayName === "string" && value.displayName.trim() ? value.displayName.trim() : null,
+    uri: typeof value.uri === "string" && value.uri.trim() ? value.uri.trim() : null
+  };
+}
+
+function normalizeStoredPhotos(rawPhotos) {
+  if (!Array.isArray(rawPhotos)) return [];
+
+  return rawPhotos
+    .map((photo) => {
+      if (typeof photo === "string") {
+        const name = extractPhotoResourceName(photo);
+        if (!name) return null;
+        return { name, displayName: null, uri: null };
+      }
+
+      if (!photo || typeof photo !== "object") {
+        return null;
+      }
+
+      const name = extractPhotoResourceName(photo.name);
+      if (!name) return null;
+
+      const attribution =
+        photo.attribution && typeof photo.attribution === "object"
+          ? normalizePhotoAttribution(photo.attribution)
+          : Array.isArray(photo.authorAttributions) && photo.authorAttributions.length > 0
+            ? normalizePhotoAttribution(photo.authorAttributions[0])
+            : normalizePhotoAttribution(photo);
+
+      return {
+        name,
+        displayName: attribution.displayName,
+        uri: attribution.uri
+      };
+    })
+    .filter(Boolean);
+}
+
 function normalizeStoredPlaceRow(row) {
   if (!row) return row;
 
@@ -220,13 +333,13 @@ function normalizeStoredPlaceRow(row) {
     ...row,
     types_raw: typesRaw,
     primary_type: primaryType,
-    primary_type_display_name: row.primary_type_display_name || row.primaryTypeDisplayName || null,
     business_status: normalizeBusinessStatus(row.business_status || row.businessStatus),
     address_components: Array.isArray(row.address_components)
       ? row.address_components
       : Array.isArray(row.addressComponents)
         ? row.addressComponents
         : [],
+    photos: normalizeStoredPhotos(row.photos),
     categories
   };
 }
@@ -528,6 +641,196 @@ async function fetchPlaceByGooglePlaceId(supabase, googlePlaceId) {
   return normalizeStoredPlaceRow(data || null);
 }
 
+async function fetchCachedPlaceByGooglePlaceId(supabase, cache, googlePlaceId) {
+  const cacheKey = String(googlePlaceId || "").trim();
+  if (!cacheKey) return null;
+  if (!cache.has(cacheKey)) {
+    cache.set(cacheKey, fetchPlaceByGooglePlaceId(supabase, cacheKey));
+  }
+  return cache.get(cacheKey);
+}
+
+async function fetchCachedSearchPlacesByText(cache, textQuery, maxResultCount = 5, options = {}) {
+  const cacheKey = `${maxResultCount}:${normalizeText(textQuery)}`;
+  if (!cache.has(cacheKey)) {
+    if (typeof options.onMiss === "function") {
+      await options.onMiss({ textQuery, maxResultCount });
+    }
+    cache.set(cacheKey, searchPlacesByText(textQuery, maxResultCount));
+  }
+  return cache.get(cacheKey);
+}
+
+async function fetchCachedPlaceDetails(cache, placeId, options = {}) {
+  const cacheKey = String(placeId || "").trim();
+  if (!cacheKey) return null;
+  if (!cache.has(cacheKey)) {
+    if (typeof options.onMiss === "function") {
+      await options.onMiss({ placeId: cacheKey });
+    }
+    cache.set(cacheKey, fetchPlaceDetailsById(cacheKey));
+  }
+  return cache.get(cacheKey);
+}
+
+async function fetchMonthlyImportUsage(adminClient, usageMonth) {
+  const { data, error } = await adminClient
+    .from(TABLES.importUsageEvents)
+    .select("import_request_count,import_place_count")
+    .eq("usage_month", usageMonth);
+  assertSupabase(error, "Failed to fetch monthly import usage");
+
+  const rows = data || [];
+  return rows.reduce(
+    (acc, row) => ({
+      requestCount: acc.requestCount + Number(row.import_request_count || 0),
+      placeCount: acc.placeCount + Number(row.import_place_count || 0)
+    }),
+    { requestCount: 0, placeCount: 0 }
+  );
+}
+
+async function insertImportUsageEvent(adminClient, payload) {
+  const { error } = await adminClient.from(TABLES.importUsageEvents).insert(payload);
+  assertSupabase(error, "Failed to record import usage");
+}
+
+async function fetchAiUsageSnapshot(adminClient, userId, usageDate, usageMonth) {
+  const [dailyResult, monthlyResult] = await Promise.all([
+    adminClient
+      .from(TABLES.aiUsageEvents)
+      .select("id", { head: true, count: "exact" })
+      .eq("user_id", userId)
+      .eq("usage_date", usageDate),
+    adminClient
+      .from(TABLES.aiUsageEvents)
+      .select("id", { head: true, count: "exact" })
+      .eq("usage_month", usageMonth)
+  ]);
+
+  assertSupabase(dailyResult.error, "Failed to fetch daily AI usage");
+  assertSupabase(monthlyResult.error, "Failed to fetch monthly AI usage");
+
+  return {
+    dailyUserCount: dailyResult.count || 0,
+    monthlySystemCount: monthlyResult.count || 0
+  };
+}
+
+async function insertAiUsageEvent(adminClient, payload) {
+  const { error } = await adminClient.from(TABLES.aiUsageEvents).insert(payload);
+  assertSupabase(error, "Failed to record AI usage");
+}
+
+function createAiUsageTracker(userId, source) {
+  const adminClient = createSupabaseAdminClient();
+  const usageDate = getKstDateKey();
+  const usageMonth = getKstMonthKey();
+  let snapshotPromise = null;
+  let recorded = false;
+
+  async function getSnapshot() {
+    if (!snapshotPromise) {
+      snapshotPromise = fetchAiUsageSnapshot(adminClient, userId, usageDate, usageMonth);
+    }
+    return snapshotPromise;
+  }
+
+  return {
+    async recordUsage() {
+      if (recorded) return;
+
+      const usage = await getSnapshot();
+      if (usage.monthlySystemCount + 1 > MONTHLY_AI_GENERATION_LIMIT) {
+        failMonthlyAiGenerationLimitExceeded();
+      }
+      if (usage.dailyUserCount + 1 > DAILY_AI_GENERATION_LIMIT) {
+        failDailyAiGenerationLimitExceeded();
+      }
+
+      await insertAiUsageEvent(adminClient, {
+        user_id: userId,
+        usage_date: usageDate,
+        usage_month: usageMonth,
+        source
+      });
+
+      usage.dailyUserCount += 1;
+      usage.monthlySystemCount += 1;
+      recorded = true;
+    }
+  };
+}
+
+function createMonthlyImportUsageTracker(userId, source) {
+  const adminClient = createSupabaseAdminClient();
+  const usageMonth = getKstMonthKey();
+  let snapshotPromise = null;
+  let requestRecorded = false;
+
+  async function getSnapshot() {
+    if (!snapshotPromise) {
+      snapshotPromise = fetchMonthlyImportUsage(adminClient, usageMonth);
+    }
+    return snapshotPromise;
+  }
+
+  async function recordImportRequestIfNeeded() {
+    if (requestRecorded) return;
+    const usage = await getSnapshot();
+    if (usage.requestCount + 1 > MONTHLY_IMPORT_REQUEST_LIMIT) {
+      failMonthlyImportRequestLimitExceeded();
+    }
+
+    await insertImportUsageEvent(adminClient, {
+      user_id: userId,
+      usage_month: usageMonth,
+      source,
+      import_request_count: 1,
+      import_place_count: 0
+    });
+    usage.requestCount += 1;
+    requestRecorded = true;
+  }
+
+  return {
+    async ensurePlaceCapacity(placeUnits = 0) {
+      const normalizedPlaceUnits = Number(placeUnits);
+      if (!Number.isFinite(normalizedPlaceUnits) || normalizedPlaceUnits <= 0) return;
+
+      const usage = await getSnapshot();
+      if (usage.placeCount + normalizedPlaceUnits > MONTHLY_IMPORT_PLACE_LIMIT) {
+        failMonthlyImportPlaceLimitExceeded();
+      }
+    },
+
+    async recordSearchMiss() {
+      await recordImportRequestIfNeeded();
+    },
+
+    async recordPlaceDetailsMiss(placeUnits = 1) {
+      const normalizedPlaceUnits = Number(placeUnits);
+      if (!Number.isFinite(normalizedPlaceUnits) || normalizedPlaceUnits <= 0) return;
+
+      await recordImportRequestIfNeeded();
+
+      const usage = await getSnapshot();
+      if (usage.placeCount + normalizedPlaceUnits > MONTHLY_IMPORT_PLACE_LIMIT) {
+        failMonthlyImportPlaceLimitExceeded();
+      }
+
+      await insertImportUsageEvent(adminClient, {
+        user_id: userId,
+        usage_month: usageMonth,
+        source,
+        import_request_count: 0,
+        import_place_count: normalizedPlaceUnits
+      });
+      usage.placeCount += normalizedPlaceUnits;
+    }
+  };
+}
+
 async function fetchPlacesByIds(supabase, ids) {
   const deduped = [...new Set(ids || [])];
   if (deduped.length === 0) return [];
@@ -595,6 +898,15 @@ async function fetchPlaceListItemByListAndPlaceId(supabase, listId, placeId) {
     .maybeSingle();
   assertSupabase(error, "Failed to fetch place list item by list/place");
   return data || null;
+}
+
+async function fetchPlaceListItemCount(supabase, listId) {
+  const { count, error } = await supabase
+    .from(TABLES.placeListItems)
+    .select("id", { count: "exact", head: true })
+    .eq("list_id", listId);
+  assertSupabase(error, "Failed to fetch place list item count");
+  return Number(count || 0);
 }
 
 async function fetchNextPlaceListSortOrder(supabase, listId) {
@@ -914,6 +1226,13 @@ function sanitizePlanDaysForPersistence({ planDays, placeById, outputLanguage, t
       })
     ).map((stop) => {
       const { corrected, place, ...persistedStop } = stop;
+      if (corrected) {
+        return {
+          ...persistedStop,
+          reason: null,
+          visitTip: null
+        };
+      }
       return persistedStop;
     });
 
@@ -1322,8 +1641,13 @@ const resolvers = {
     },
 
     async importPlaceFromGoogleLink(_, { url }, context) {
-      await requireUser(context);
-      const resolved = await resolveGoogleMapsLink(url);
+      const user = await requireUser(context);
+      const importUsageTracker = createMonthlyImportUsageTracker(user.id, IMPORT_USAGE_SOURCES.googleMapsLink);
+      const resolved = await resolveGoogleMapsLink(url, {
+        onSearchByText: () => importUsageTracker.recordSearchMiss()
+      });
+      const placeDetailsCache = new Map();
+      const storedPlaceCache = new Map();
 
       const rows = [];
       if (resolved.placeIds.length === 0) {
@@ -1338,24 +1662,46 @@ const resolvers = {
       }
 
       for (const placeId of resolved.placeIds) {
+        const existingPlace = await fetchCachedPlaceByGooglePlaceId(context.supabase, storedPlaceCache, placeId);
+        if (existingPlace && isPlaceDetailsFresh(existingPlace)) {
+          if (isImportBlockedBusinessStatus(existingPlace.business_status)) {
+            continue;
+          }
+          rows.push(existingPlace);
+          continue;
+        }
+
         let payload = {
           google_place_id: placeId,
           google_maps_url: url
         };
+        let row = existingPlace;
 
         if (hasGooglePlacesApiKey()) {
           try {
-            const details = await fetchPlaceDetailsById(placeId);
+            const details = await fetchCachedPlaceDetails(placeDetailsCache, placeId, {
+              onMiss: () => importUsageTracker.recordPlaceDetailsMiss()
+            });
             payload = normalizePlacePayload(details, { googlePlaceId: placeId, googleMapsUrl: url });
             if (isImportBlockedBusinessStatus(payload.business_status)) {
               continue;
             }
+            row = await upsertSharedPlace(context.supabase, payload);
+            storedPlaceCache.set(placeId, Promise.resolve(row));
           } catch {
+            if (row && !isImportBlockedBusinessStatus(row.business_status)) {
+              rows.push(row);
+              continue;
+            }
             payload = { ...payload, name: `Imported ${placeId}` };
           }
         }
 
-        rows.push(await upsertSharedPlace(context.supabase, payload));
+        if (!row) {
+          row = await upsertSharedPlace(context.supabase, payload);
+          storedPlaceCache.set(placeId, Promise.resolve(row));
+        }
+        rows.push(row);
       }
 
       if (rows.length === 0) {
@@ -1379,7 +1725,6 @@ const resolvers = {
         price_level: input.priceLevel ?? null,
         types_raw: Array.isArray(input.typesRaw) ? input.typesRaw : [],
         primary_type: input.primaryType ?? null,
-        primary_type_display_name: input.primaryTypeDisplayName ?? null,
         business_status: null,
         categories: derivePlaceCategories({
           types: Array.isArray(input.typesRaw) ? input.typesRaw : [],
@@ -1414,12 +1759,9 @@ const resolvers = {
         priceLevel: existing.price_level,
         typesRaw: existing.types_raw,
         primaryType: existing.primary_type,
-        primaryTypeDisplayName: existing.primary_type_display_name,
         businessStatus: existing.business_status,
         openingHours: existing.opening_hours,
         photos: existing.photos,
-        reviews: existing.reviews,
-        phone: existing.phone,
         website: existing.website,
         googleMapsUrl: existing.google_maps_url
       });
@@ -1507,6 +1849,13 @@ const resolvers = {
           .eq("id", existing.id);
         assertSupabase(error, "Failed to update existing place list item");
       } else {
+        const itemCount = await fetchPlaceListItemCount(context.supabase, input.listId);
+        if (itemCount >= MAX_PLACE_LIST_ITEMS) {
+          fail(
+            `리스트에는 최대 ${MAX_PLACE_LIST_ITEMS}개까지 담을 수 있어요.`,
+            "BAD_USER_INPUT"
+          );
+        }
         const sortOrder = await fetchNextPlaceListSortOrder(context.supabase, input.listId);
         const { error } = await context.supabase.from(TABLES.placeListItems).insert({
           list_id: input.listId,
@@ -1584,6 +1933,12 @@ const resolvers = {
         fail("리스트 전처리 후 일정 후보가 남지 않았어요. 장소를 다시 확인해 주세요.", "BAD_USER_INPUT");
       }
 
+      assertMustVisitLimit({
+        candidates: candidatePreprocess.candidates,
+        dayCount,
+        limit: resolveFinalMustVisitLimit(dayCount, input.pace)
+      });
+
       const stayPlaceId = input.stayPlaceId || null;
       const stayListItem = stayPlaceId ? items.find((item) => item.place_id === stayPlaceId) || null : null;
       if (stayPlaceId && !stayListItem) {
@@ -1599,12 +1954,12 @@ const resolvers = {
         normalizeLanguage(list.language, DEFAULT_OUTPUT_LANGUAGE)
       );
 
-      const generationInput = buildGenerationInput({
+      const generationInputBase = buildGenerationInput({
         startDate,
         endDate,
         city: list.city,
         companions: input.companions,
-        pace: input.pace,
+        pace: normalizePace(input.pace),
         themes,
         placeListId: list.id,
         stayPlaceId,
@@ -1612,19 +1967,29 @@ const resolvers = {
         outputLanguage,
         dayCount
       });
-
-      let planDays = buildSchedulePlan({
+      const { planningMode, planningCandidates, candidateTrim } = resolvePlanningPreparation({
         candidates: candidatePreprocess.candidates,
         dayCount,
-        stayPlace,
-        generationInput
+        generationInputBase,
+        stayPlace
+      });
+      const generationInput = buildGenerationInput({
+        ...generationInputBase,
+        planningMode,
+        candidateTrim,
+        dayBudgetMinutes: resolveDayBudgetMinutes(generationInputBase)
       });
 
-      planDays = sanitizePlanDaysForPersistence({
-        planDays,
+      const aiUsageTracker = createAiUsageTracker(user.id, AI_USAGE_SOURCES.createSchedule);
+      await aiUsageTracker.recordUsage();
+
+      const planDays = await resolveSchedulePlanDays({
+        candidates: planningCandidates,
+        dayCount,
+        stayPlace,
         placeById,
-        outputLanguage,
-        tripDays: generationInput.tripDays
+        generationInput,
+        outputLanguage
       });
 
       const stayRecommendation = stayPlace ? null : buildStayRecommendation(planDays, placeById);
@@ -1641,7 +2006,7 @@ const resolvers = {
           stay_place_id: stayPlaceId,
           stay_recommendation: stayRecommendation,
           companions: input.companions ?? null,
-          pace: input.pace ?? null,
+          pace: normalizePace(input.pace) ?? null,
           themes,
           output_language: outputLanguage,
           generation_input: generationInput,
@@ -1725,12 +2090,19 @@ const resolvers = {
         fail("리스트 전처리 후 일정 후보가 남지 않았어요. 장소를 다시 확인해 주세요.", "BAD_USER_INPUT");
       }
 
-      const generationInput = buildGenerationInput({
+      const normalizedPace = normalizePace(pace);
+      assertMustVisitLimit({
+        candidates: candidatePreprocess.candidates,
+        dayCount,
+        limit: resolveFinalMustVisitLimit(dayCount, normalizedPace)
+      });
+
+      const generationInputBase = buildGenerationInput({
         startDate,
         endDate,
         city: list.city,
         companions,
-        pace,
+        pace: normalizedPace,
         themes,
         placeListId: list.id,
         stayPlaceId,
@@ -1738,19 +2110,29 @@ const resolvers = {
         outputLanguage,
         dayCount
       });
-
-      let planDays = buildSchedulePlan({
+      const { planningMode, planningCandidates, candidateTrim } = resolvePlanningPreparation({
         candidates: candidatePreprocess.candidates,
         dayCount,
-        stayPlace,
-        generationInput
+        generationInputBase,
+        stayPlace
+      });
+      const generationInput = buildGenerationInput({
+        ...generationInputBase,
+        planningMode,
+        candidateTrim,
+        dayBudgetMinutes: resolveDayBudgetMinutes(generationInputBase)
       });
 
-      planDays = sanitizePlanDaysForPersistence({
-        planDays,
+      const aiUsageTracker = createAiUsageTracker(user.id, AI_USAGE_SOURCES.regenerateSchedule);
+      await aiUsageTracker.recordUsage();
+
+      const planDays = await resolveSchedulePlanDays({
+        candidates: planningCandidates,
+        dayCount,
+        stayPlace,
         placeById,
-        outputLanguage,
-        tripDays: generationInput.tripDays
+        generationInput,
+        outputLanguage
       });
 
       const stayRecommendation = stayPlace ? null : buildStayRecommendation(planDays, placeById);
@@ -1766,7 +2148,7 @@ const resolvers = {
           stay_place_id: stayPlaceId ?? null,
           stay_recommendation: stayRecommendation,
           companions: companions ?? null,
-          pace: pace ?? null,
+          pace: normalizedPace ?? null,
           themes,
           output_language: outputLanguage,
           generation_input: generationInput,

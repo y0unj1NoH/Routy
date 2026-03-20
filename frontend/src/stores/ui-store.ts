@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { create } from "zustand";
 
 type ToastKind = "success" | "error" | "info";
@@ -7,7 +8,7 @@ type ToastKind = "success" | "error" | "info";
 export type ToastMessage = {
   id: string;
   kind: ToastKind;
-  message: string;
+  message: ReactNode;
 };
 
 type UiStore = {
@@ -40,4 +41,3 @@ export const useUiStore = create<UiStore>((set) => ({
   },
   clearToasts: () => set({ toasts: [] })
 }));
-
