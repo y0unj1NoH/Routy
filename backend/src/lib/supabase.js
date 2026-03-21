@@ -52,9 +52,11 @@ function createClientWithKey({ supabaseUrl, key, authHeader }) {
 }
 
 function createSupabasePublicClient(authHeader) {
-  const { supabaseUrl, publicKey, privilegedKey } = resolveSupabaseConfig();
-  const selectedKey = publicKey || privilegedKey;
-  return createClientWithKey({ supabaseUrl, key: selectedKey, authHeader });
+  const { supabaseUrl, publicKey } = resolveSupabaseConfig();
+  if (!publicKey) {
+    throw new Error("Missing SUPABASE_PUBLISHABLE_KEY (or legacy SUPABASE_ANON_KEY) for public operations");
+  }
+  return createClientWithKey({ supabaseUrl, key: publicKey, authHeader });
 }
 
 function createSupabaseAdminClient() {
@@ -66,11 +68,13 @@ function createSupabaseAdminClient() {
 }
 
 function createSupabaseClient(authHeader) {
-  const { supabaseUrl, publicKey, privilegedKey } = resolveSupabaseConfig();
+  const { supabaseUrl, publicKey } = resolveSupabaseConfig();
+  if (!publicKey) {
+    throw new Error("Missing SUPABASE_PUBLISHABLE_KEY (or legacy SUPABASE_ANON_KEY) for request operations");
+  }
   const bearerToken = extractBearerToken(authHeader);
-  const key = bearerToken ? publicKey || privilegedKey : privilegedKey || publicKey;
   const headerValue = bearerToken ? `Bearer ${bearerToken}` : null;
-  return createClientWithKey({ supabaseUrl, key, authHeader: headerValue });
+  return createClientWithKey({ supabaseUrl, key: publicKey, authHeader: headerValue });
 }
 
 module.exports = {

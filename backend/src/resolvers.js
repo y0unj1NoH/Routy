@@ -1364,7 +1364,8 @@ const resolvers = {
 
   Query: {
     async health(_, __, context) {
-      const { error } = await context.supabase.from(TABLES.places).select("id", { head: true, count: "exact" });
+      const adminClient = createSupabaseAdminClient();
+      const { error } = await adminClient.from(TABLES.places).select("id", { head: true, count: "exact" });
       assertSupabase(error, "Health check failed");
       return { status: "ok", timestamp: new Date().toISOString() };
     },
