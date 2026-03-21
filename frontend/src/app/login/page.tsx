@@ -17,6 +17,13 @@ import { captureAnalyticsEvent } from "@/lib/analytics";
 import { isSupabaseEnvConfigured, publicEnv } from "@/lib/env";
 import { safeZodResolver } from "@/lib/forms/safe-zod-resolver";
 import { sanitizeNextPath } from "@/lib/safe-next-path";
+import {
+  captureAuthException,
+  captureAuthResponseError,
+  reportAuthConfigIssueOnce,
+  shouldCaptureGoogleOAuthInitError,
+  shouldCaptureSupabaseAuthError
+} from "@/lib/sentry-auth";
 import { mapGoogleOAuthInitError, mapSupabaseAuthError } from "@/lib/supabase/auth-errors";
 import {
   cancelSupabaseBrowserOAuthRedirectPersistence,
@@ -72,11 +79,23 @@ export default function LoginPage() {
   const [activeAuthMethod, setActiveAuthMethod] = useState<AuthMethod | null>(null);
   const activeAuthMethodRef = useRef<AuthMethod | null>(null);
   const pushToast = useUiStore((state) => state.pushToast);
+  const authConfigErrorMessage = !isSupabaseEnvConfigured ? getMissingSupabaseEnvMessage() : "";
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
     setNextPath(sanitizeNextPath(params.get("next")));
+  }, []);
+
+  useEffect(() => {
+    if (isSupabaseEnvConfigured) {
+      return;
+    }
+
+    reportAuthConfigIssueOnce("login", {
+      supabaseUrlConfigured: Boolean(publicEnv.supabaseUrl),
+      supabasePublishableKeyConfigured: Boolean(publicEnv.supabasePublishableKey)
+    });
   }, []);
 
   const form = useForm<LoginValues>({
@@ -118,6 +137,13 @@ export default function LoginPage() {
     });
     form.clearErrors("root");
 
+    if (!isSupabaseEnvConfigured) {
+      form.setError("root", { type: "server", message: authConfigErrorMessage });
+      pushToast({ kind: "error", message: authConfigErrorMessage });
+      releaseAuthAttempt();
+      return;
+    }
+
     try {
       setSupabaseBrowserSessionPersistence(keepSignedIn ? "local" : "session");
       const supabase = getSupabaseBrowserClient();
@@ -128,6 +154,16 @@ export default function LoginPage() {
 
       if (error) {
         const mapped = mapSupabaseAuthError("signIn", error);
+        if (shouldCaptureSupabaseAuthError("signIn", mapped.message)) {
+          captureAuthResponseError({
+            page: "login",
+            stage: "password_sign_in",
+            flow: "signIn",
+            error,
+            mappedMessage: mapped.message,
+            fingerprintKey: "sign_in_response_error"
+          });
+        }
         if (mapped.field === "root") {
           form.setError("root", { type: "server", message: mapped.message });
         } else if (mapped.field === "email" || mapped.field === "password") {
@@ -147,6 +183,12 @@ export default function LoginPage() {
       router.replace(nextPath);
     } catch (error) {
       console.error(error);
+      captureAuthException({
+        page: "login",
+        stage: "password_sign_in",
+        flow: "signIn",
+        error
+      });
       const message = UI_COPY.auth.error.signInGeneric;
       form.setError("root", { type: "server", message });
       pushToast({ kind: "error", message });
@@ -186,12 +228,26 @@ export default function LoginPage() {
         cancelSupabaseBrowserOAuthRedirectPersistence();
         console.error(error);
         const message = mapGoogleOAuthInitError(error);
+        if (shouldCaptureGoogleOAuthInitError(message)) {
+          captureAuthResponseError({
+            page: "login",
+            stage: "google_oauth_init",
+            error,
+            mappedMessage: message,
+            fingerprintKey: "google_oauth_init_error"
+          });
+        }
         form.setError("root", { type: "server", message });
         pushToast({ kind: "error", message });
       }
     } catch (error) {
       cancelSupabaseBrowserOAuthRedirectPersistence();
       console.error(error);
+      captureAuthException({
+        page: "login",
+        stage: "google_oauth_init",
+        error
+      });
       const message = UI_COPY.auth.error.googleFailed;
       form.setError("root", { type: "server", message });
       pushToast({ kind: "error", message });
@@ -209,9 +265,9 @@ export default function LoginPage() {
         </div>
 
         <form onSubmit={onSubmit} className="space-y-4" aria-busy={isAuthBusy}>
-          {form.formState.errors.root?.message ? (
+          {authConfigErrorMessage || form.formState.errors.root?.message ? (
             <p className="rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-xs text-danger">
-              {form.formState.errors.root.message}
+              {authConfigErrorMessage || form.formState.errors.root?.message}
             </p>
           ) : null}
 
@@ -258,7 +314,7 @@ export default function LoginPage() {
             {UI_COPY.auth.login.rememberLabel}
           </label>
 
-          <Button type="submit" fullWidth size="large" disabled={isAuthBusy}>
+          <Button type="submit" fullWidth size="large" disabled={!isSupabaseEnvConfigured || isAuthBusy}>
             {isPasswordSubmitting ? UI_COPY.auth.login.submitting : UI_COPY.auth.login.submit}
           </Button>
         </form>

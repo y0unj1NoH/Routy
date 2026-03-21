@@ -2,10 +2,6 @@ export type PublicAppEnvironment = "local" | "production";
 
 const PUBLIC_APP_ENVIRONMENTS = new Set<PublicAppEnvironment>(["local", "production"]);
 
-function getTrimmedEnv(name: string, fallback = "") {
-  return process.env[name]?.trim() || fallback;
-}
-
 function throwInvalidEnv(name: string, message: string): never {
   throw new Error(`[public env] ${name} ${message}`);
 }
@@ -43,7 +39,6 @@ function parsePublicAppEnvironment(value: string) {
 }
 
 function inferPublicAppEnvironment() {
-  const rawAppEnvironment = getTrimmedEnv("NEXT_PUBLIC_APP_ENV");
   if (rawAppEnvironment) {
     return parsePublicAppEnvironment(rawAppEnvironment);
   }
@@ -60,24 +55,23 @@ function inferPublicAppEnvironment() {
   return "local";
 }
 
+// Next.js only exposes client env when the access is a static `process.env.NEXT_PUBLIC_*` read.
+const rawAppEnvironment = process.env.NEXT_PUBLIC_APP_ENV?.trim() || "";
 const appEnvironment = inferPublicAppEnvironment();
 const requiresDeployedEnv = appEnvironment !== "local";
 
-const rawSupabaseUrl = getTrimmedEnv("NEXT_PUBLIC_SUPABASE_URL");
+const rawSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() || "";
 const rawSupabasePublishableKey =
-  getTrimmedEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY") || getTrimmedEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY");
-const rawAuthCallbackUrl = getTrimmedEnv("NEXT_PUBLIC_AUTH_CALLBACK_URL");
-const rawGraphqlEndpoint = getTrimmedEnv(
-  "NEXT_PUBLIC_GRAPHQL_ENDPOINT",
-  appEnvironment === "local" ? "http://localhost:4000/graphql" : ""
-);
-const rawGoogleMapsEmbedBase = getTrimmedEnv("NEXT_PUBLIC_GOOGLE_MAPS_EMBED_BASE", "https://www.google.com/maps");
-const rawGoogleMapsApiKey = getTrimmedEnv("NEXT_PUBLIC_GOOGLE_MAPS_API_KEY");
-const rawSentryDsn = getTrimmedEnv("NEXT_PUBLIC_SENTRY_DSN");
-const rawSentryEnvironment = getTrimmedEnv("NEXT_PUBLIC_SENTRY_ENVIRONMENT", appEnvironment);
-const rawPosthogKey = getTrimmedEnv("NEXT_PUBLIC_POSTHOG_KEY");
-const rawPosthogHost = getTrimmedEnv("NEXT_PUBLIC_POSTHOG_HOST", "https://us.i.posthog.com");
-const localObservabilityEnabled = getTrimmedEnv("NEXT_PUBLIC_ENABLE_LOCAL_OBSERVABILITY") === "1";
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim() || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() || "";
+const rawAuthCallbackUrl = process.env.NEXT_PUBLIC_AUTH_CALLBACK_URL?.trim() || "";
+const rawGraphqlEndpoint = process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT?.trim() || (appEnvironment === "local" ? "http://localhost:4000/graphql" : "");
+const rawGoogleMapsEmbedBase = process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_BASE?.trim() || "https://www.google.com/maps";
+const rawGoogleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY?.trim() || "";
+const rawSentryDsn = process.env.NEXT_PUBLIC_SENTRY_DSN?.trim() || "";
+const rawSentryEnvironment = process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT?.trim() || appEnvironment;
+const rawPosthogKey = process.env.NEXT_PUBLIC_POSTHOG_KEY?.trim() || "";
+const rawPosthogHost = process.env.NEXT_PUBLIC_POSTHOG_HOST?.trim() || "https://us.i.posthog.com";
+const localObservabilityEnabled = (process.env.NEXT_PUBLIC_ENABLE_LOCAL_OBSERVABILITY?.trim() || "") === "1";
 const observabilityEnabled = appEnvironment !== "local" || localObservabilityEnabled;
 
 const supabaseUrl = ensureUrlEnv("NEXT_PUBLIC_SUPABASE_URL", rawSupabaseUrl, {

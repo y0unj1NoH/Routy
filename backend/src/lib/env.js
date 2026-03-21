@@ -28,6 +28,19 @@ function parsePort() {
   return parsedPort;
 }
 
+function parseHost() {
+  const rawHost = getTrimmedEnv("HOST");
+  if (!rawHost) {
+    return "";
+  }
+
+  if (rawHost.includes("://") || rawHost.includes("/") || /\s/.test(rawHost)) {
+    throw new Error("Invalid HOST: expected a hostname or IP address without protocol");
+  }
+
+  return rawHost;
+}
+
 function resolveAiProviderPreference() {
   const requestedProvider = getTrimmedEnv("AI_PROVIDER").toLowerCase();
 
@@ -84,6 +97,7 @@ function getSentryConfig() {
 module.exports = {
   getTrimmedEnv,
   parsePort,
+  parseHost,
   resolveAiProviderPreference,
   getSupabaseConfig,
   getGooglePlacesApiKey,

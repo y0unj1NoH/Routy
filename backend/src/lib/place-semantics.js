@@ -1,23 +1,5 @@
-const fs = require("node:fs");
-const path = require("node:path");
 const { PLACE_CATEGORY, PLACE_CATEGORY_VALUES } = require("./route-taxonomy");
-
-function loadPlaceTypeTaxonomy() {
-  const candidatePaths = [
-    path.resolve(__dirname, "../../../place-type-taxonomy.json"),
-    path.resolve(__dirname, "../../../z/place-type-taxonomy.json")
-  ];
-
-  for (const candidatePath of candidatePaths) {
-    if (fs.existsSync(candidatePath)) {
-      return require(candidatePath);
-    }
-  }
-
-  throw new Error("place-type-taxonomy.json not found");
-}
-
-const placeTypeTaxonomy = loadPlaceTypeTaxonomy();
+const placeTypeTaxonomy = require("./place-type-taxonomy.json");
 
 const CATEGORY_TAG_LIMIT = 2;
 const PLACE_CATEGORY_SET = new Set(PLACE_CATEGORY_VALUES);
