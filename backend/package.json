@@ -9,7 +9,7 @@
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
     "check:fixtures": "node scripts/verify-schedule-fixtures.js",
-    "check": "node --check src/index.js && node --check src/schema.js && node --check src/resolvers.js && node --check src/lib/env.js && node --check src/lib/supabase.js && node --check src/lib/googlePlaces.js && node --check src/lib/placeListPreprocessor.js && node --check src/lib/scheduleEngine.js && node --check src/lib/geminiOptimizer.js && node --check src/lib/rateLimit.js && node --check src/lib/sentry.js && node --check scripts/analyze-place-list-url.js && node scripts/verify-schedule-fixtures.js"
+    "check": "node --check src/index.js && node --check src/schema.js && node --check src/resolvers.js && node --check src/lib/aiCrawler.js && node --check src/lib/env.js && node --check src/lib/supabase.js && node --check src/lib/googlePlaces.js && node --check src/lib/placeListPreprocessor.js && node --check src/lib/scheduleEngine.js && node --check src/lib/geminiOptimizer.js && node --check src/lib/rateLimit.js && node --check src/lib/sentry.js && node --check scripts/analyze-place-list-url.js && node scripts/verify-schedule-fixtures.js"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
