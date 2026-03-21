@@ -16,6 +16,7 @@ import { AuthPageBrand } from "@/components/auth/auth-page-brand";
 import { captureAnalyticsEvent } from "@/lib/analytics";
 import { isSupabaseEnvConfigured, publicEnv } from "@/lib/env";
 import { safeZodResolver } from "@/lib/forms/safe-zod-resolver";
+import { sanitizeNextPath } from "@/lib/safe-next-path";
 import { mapGoogleOAuthInitError, mapSupabaseAuthError } from "@/lib/supabase/auth-errors";
 import {
   cancelSupabaseBrowserOAuthRedirectPersistence,
@@ -60,7 +61,7 @@ function GoogleMark() {
 function buildAuthCallbackUrl(nextPath: string) {
   const callbackBase = publicEnv.authCallbackUrl || `${window.location.origin}/auth/callback`;
   const redirectUrl = new URL(callbackBase);
-  redirectUrl.searchParams.set("next", nextPath);
+  redirectUrl.searchParams.set("next", sanitizeNextPath(nextPath));
   return redirectUrl.toString();
 }
 
@@ -75,7 +76,7 @@ export default function LoginPage() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
-    setNextPath(params.get("next") || "/");
+    setNextPath(sanitizeNextPath(params.get("next")));
   }, []);
 
   const form = useForm<LoginValues>({

@@ -7,6 +7,7 @@ import { LoadingPanel } from "@/components/common/loading-panel";
 import { UI_COPY } from "@/constants/ui-copy";
 import { PageContainer } from "@/components/layout/page-container";
 import { captureAnalyticsEvent } from "@/lib/analytics";
+import { sanitizeNextPath } from "@/lib/safe-next-path";
 import { mapOAuthCallbackError } from "@/lib/supabase/auth-errors";
 import {
   cancelSupabaseBrowserOAuthRedirectPersistence,
@@ -22,7 +23,7 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     async function handleAuthCallback() {
       const params = new URLSearchParams(window.location.search);
-      const next = params.get("next") || "/";
+      const next = sanitizeNextPath(params.get("next"));
       const oauthError = params.get("error");
       const oauthErrorDescription = params.get("error_description");
       const code = params.get("code");
