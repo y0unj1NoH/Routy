@@ -1,6 +1,7 @@
 const { GraphQLError } = require("graphql");
 const { createHash } = require("node:crypto");
 const GraphQLJSON = require("graphql-type-json");
+const { getOAuthRedirectTo } = require("./lib/env");
 const { createSupabaseAdminClient, extractBearerToken } = require("./lib/supabase");
 const { captureBackendException, setSentryUser } = require("./lib/sentry");
 const {
@@ -1475,7 +1476,7 @@ const resolvers = {
     },
 
     async signInWithGoogle(_, { redirectTo }, context) {
-      const finalRedirect = redirectTo || process.env.OAUTH_REDIRECT_TO || undefined;
+      const finalRedirect = redirectTo || getOAuthRedirectTo() || undefined;
       const { data, error } = await context.supabasePublic.auth.signInWithOAuth({
         provider: "google",
         options: finalRedirect ? { redirectTo: finalRedirect } : undefined

@@ -1,6 +1,11 @@
 const axios = require("axios");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const {
+  getGeminiConfig,
+  getOpenAIConfig,
+  resolveAiProviderPreference
+} = require("./env");
+const {
   buildSchedulePlan,
   buildPromptOpeningSummary,
   evaluateCandidateVisitWindow,
@@ -44,7 +49,7 @@ function haversineKm(lat1, lng1, lat2, lng2) {
 }
 
 function getGeminiApiKey() {
-  return process.env.GEMINI_API_KEY || "";
+  return getGeminiConfig().apiKey;
 }
 
 function ensureGeminiKey() {
@@ -56,18 +61,13 @@ function ensureGeminiKey() {
 }
 
 function getGeminiModelCandidates() {
-  const primaryModel = (process.env.GEMINI_MODEL || "").trim();
-  const fallbackModels = (process.env.GEMINI_FALLBACK_MODELS || "")
-    .split(",")
-    .map((value) => value.trim())
-    .filter(Boolean);
-
-  const candidates = [primaryModel, ...fallbackModels, ...DEFAULT_GEMINI_MODELS].filter(Boolean);
+  const { model: primaryModel } = getGeminiConfig();
+  const candidates = [primaryModel, ...DEFAULT_GEMINI_MODELS].filter(Boolean);
   return [...new Set(candidates)];
 }
 
 function getOpenAIApiKey() {
-  return process.env.OPENAI_API_KEY || "";
+  return getOpenAIConfig().apiKey;
 }
 
 function ensureOpenAIKey() {
@@ -79,24 +79,13 @@ function ensureOpenAIKey() {
 }
 
 function getOpenAIModelCandidates() {
-  const primaryModel = (process.env.OPENAI_MODEL || "").trim();
-  const fallbackModels = (process.env.OPENAI_FALLBACK_MODELS || "")
-    .split(",")
-    .map((value) => value.trim())
-    .filter(Boolean);
-
-  const candidates = [primaryModel, ...fallbackModels, ...DEFAULT_OPENAI_MODELS].filter(Boolean);
+  const { model: primaryModel } = getOpenAIConfig();
+  const candidates = [primaryModel, ...DEFAULT_OPENAI_MODELS].filter(Boolean);
   return [...new Set(candidates)];
 }
 
 function resolveAiProvider() {
-  const requestedProvider = String(process.env.AI_PROVIDER || "")
-    .trim()
-    .toLowerCase();
-
-  if (requestedProvider === "gpt" || requestedProvider === "chatgpt") {
-    return "openai";
-  }
+  const requestedProvider = resolveAiProviderPreference();
 
   if (SUPPORTED_AI_PROVIDERS.has(requestedProvider)) {
     return requestedProvider;
@@ -406,22 +395,10 @@ async function callGemini(systemPrompt, userPrompt) {
 }
 
 function buildOpenAIHeaders(apiKey) {
-  const headers = {
+  return {
     Authorization: `Bearer ${apiKey}`,
     "Content-Type": "application/json"
   };
-
-  const organization = String(process.env.OPENAI_ORGANIZATION || "").trim();
-  if (organization) {
-    headers["OpenAI-Organization"] = organization;
-  }
-
-  const project = String(process.env.OPENAI_PROJECT || "").trim();
-  if (project) {
-    headers["OpenAI-Project"] = project;
-  }
-
-  return headers;
 }
 
 function extractOpenAITextContent(content) {

@@ -10,7 +10,7 @@ Sentry.init({
   environment: sentryEnvironment
 });
 
-if (publicEnv.posthogKey) {
+if (publicEnv.posthogEnabled) {
   posthog.init(publicEnv.posthogKey, {
     api_host: publicEnv.posthogHost,
     defaults: "2026-01-30",

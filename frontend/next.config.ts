@@ -1,12 +1,16 @@
 import path from "node:path";
 import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
+import "./src/lib/env";
 
 const isDevelopment = process.env.NODE_ENV === "development";
 const distDir = process.env.NEXT_DIST_DIR || (isDevelopment ? ".next-dev" : ".next");
 const hasSentrySourceMapConfig = Boolean(
   process.env.SENTRY_AUTH_TOKEN && process.env.SENTRY_ORG && process.env.SENTRY_PROJECT
 );
+const shouldUploadSentrySourceMaps =
+  hasSentrySourceMapConfig &&
+  (process.env.CI === "true" || process.env.SENTRY_UPLOAD_SOURCE_MAPS === "1");
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -34,7 +38,7 @@ export default withSentryConfig(nextConfig, {
       removeDebugLogging: true
     }
   },
-  ...(hasSentrySourceMapConfig
+  ...(shouldUploadSentrySourceMaps
     ? {
         authToken: process.env.SENTRY_AUTH_TOKEN,
         org: process.env.SENTRY_ORG,

@@ -1,6 +1,6 @@
 import { rmSync } from "node:fs";
 
-// Preserve active dev artifacts so `typecheck:stable` does not break a running `next dev`.
-for (const directory of [".next", ".next-verify"]) {
+// Preserve the active dev build, but drop stale generated route types that can outlive deleted pages.
+for (const directory of [".next", ".next-verify", ".next-dev/types"]) {
   rmSync(directory, { recursive: true, force: true });
 }

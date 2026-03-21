@@ -137,21 +137,14 @@ type AnalyticsEventMap = {
   };
 };
 
-const localHostnames = new Set(["localhost", "127.0.0.1", "0.0.0.0"]);
-
-export const posthogEnabled = Boolean(publicEnv.posthogKey && publicEnv.posthogHost);
+export const posthogEnabled = publicEnv.posthogEnabled;
 
 function canUseAnalytics() {
   return posthogEnabled && typeof window !== "undefined";
 }
 
 function isLocalAnalyticsRuntime() {
-  if (typeof window === "undefined") {
-    return process.env.NODE_ENV !== "production";
-  }
-
-  const hostname = window.location.hostname.toLowerCase();
-  return process.env.NODE_ENV !== "production" || localHostnames.has(hostname) || hostname.endsWith(".local");
+  return publicEnv.appEnvironment === "local" && !publicEnv.localObservabilityEnabled;
 }
 
 export function captureAnalyticsEvent<EventName extends keyof AnalyticsEventMap>(

@@ -5,6 +5,7 @@ const { createSchema, createYoga, maskError } = require("graphql-yoga");
 const { typeDefs } = require("./schema");
 const { resolvers } = require("./resolvers");
 const { createSupabaseClient, createSupabasePublicClient } = require("./lib/supabase");
+const { parsePort, getGooglePlacesApiKey, getTrimmedEnv } = require("./lib/env");
 const {
   initSentry,
   captureBackendException,
@@ -12,7 +13,7 @@ const {
   withSentryRequestIsolation
 } = require("./lib/sentry");
 
-const port = Number(process.env.PORT || 4000);
+const port = parsePort();
 
 initSentry();
 
@@ -21,7 +22,7 @@ const yoga = createYoga({
     typeDefs,
     resolvers
   }),
-  graphiql: process.env.NODE_ENV !== "production",
+  graphiql: getTrimmedEnv("NODE_ENV") !== "production",
   maskedErrors: {
     maskError: (error, message, isDev) => {
       captureBackendException(error, {
@@ -43,7 +44,7 @@ const yoga = createYoga({
 });
 
 function resolveGooglePlacesApiKey() {
-  return process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_MAPS_API_KEY || "";
+  return getGooglePlacesApiKey();
 }
 
 function isValidPhotoResourceName(name) {

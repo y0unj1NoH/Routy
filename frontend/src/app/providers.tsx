@@ -1,12 +1,23 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import dynamic from "next/dynamic";
 import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
 import { AppAnalyticsRuntime } from "@/components/analytics/app-analytics-runtime";
 import { AuthSessionProvider } from "@/components/auth/auth-session-provider";
 import { captureReactQueryError } from "@/lib/sentry-react-query";
+
+const ReactQueryDevtools =
+  process.env.NODE_ENV === "development"
+    ? dynamic(
+        () =>
+          import("@tanstack/react-query-devtools").then((module) => ({
+            default: module.ReactQueryDevtools
+          })),
+        { ssr: false }
+      )
+    : () => null;
 
 type ProvidersProps = {
   children: ReactNode;

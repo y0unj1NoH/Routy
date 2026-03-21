@@ -1,9 +1,7 @@
 const { createHash } = require("node:crypto");
 const { GraphQLError } = require("graphql");
 const Sentry = require("@sentry/node");
-
-const rawSentryDsn = String(process.env.SENTRY_DSN || "").trim();
-const rawSentryEnvironment = String(process.env.SENTRY_ENVIRONMENT || process.env.NODE_ENV || "development").trim();
+const { getSentryConfig } = require("./env");
 
 const EXPECTED_GRAPHQL_ERROR_CODES = new Set([
   "UNAUTHENTICATED",
@@ -22,10 +20,12 @@ let isInitialized = false;
 function initSentry() {
   if (isInitialized) return;
 
+  const { dsn, environment } = getSentryConfig();
+
   Sentry.init({
-    dsn: rawSentryDsn || undefined,
-    enabled: Boolean(rawSentryDsn),
-    environment: rawSentryEnvironment
+    dsn: dsn || undefined,
+    enabled: Boolean(dsn),
+    environment
   });
 
   isInitialized = true;

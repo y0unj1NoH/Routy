@@ -1,4 +1,5 @@
 const { derivePlaceCategories } = require("./place-semantics");
+const { getGooglePlacesApiKey: resolveGooglePlacesApiKeyFromEnv } = require("./env");
 
 const SEARCH_URL = "https://places.googleapis.com/v1/places:searchText";
 const DETAILS_BASE_URL = "https://places.googleapis.com/v1/places";
@@ -22,7 +23,7 @@ const UNSCHEDULABLE_BUSINESS_STATUS = new Set([
   "FUTURE_OPENING"
 ]);
 function getGooglePlacesApiKey() {
-  return process.env.GOOGLE_PLACES_API_KEY || process.env.GOOGLE_MAPS_API_KEY || "";
+  return resolveGooglePlacesApiKeyFromEnv();
 }
 
 function hasGooglePlacesApiKey() {

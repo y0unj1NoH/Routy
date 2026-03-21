@@ -1,4 +1,5 @@
 const { createClient } = require("@supabase/supabase-js");
+const { getSupabaseConfig } = require("./env");
 
 function extractBearerToken(authHeader) {
   if (!authHeader || typeof authHeader !== "string") {
@@ -14,11 +15,13 @@ function extractBearerToken(authHeader) {
 }
 
 function resolveSupabaseConfig() {
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const publishableKey = process.env.SUPABASE_PUBLISHABLE_KEY;
-  const secretKey = process.env.SUPABASE_SECRET_KEY;
-  const legacyAnonKey = process.env.SUPABASE_ANON_KEY;
-  const legacyServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const {
+    url: supabaseUrl,
+    publishableKey,
+    secretKey,
+    legacyAnonKey,
+    legacyServiceRoleKey
+  } = getSupabaseConfig();
   const publicKey = publishableKey || legacyAnonKey;
   const privilegedKey = secretKey || legacyServiceRoleKey;
 
