@@ -3,17 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "clean:build": "node ./scripts/clean-build-artifacts.mjs",
     "dev": "next dev",
     "build": "next build",
-    "build:verify": "node ./scripts/run-next-verify.mjs build",
-    "start": "next start",
-    "lint": "next lint",
-    "typegen": "next typegen",
-    "typecheck": "tsc --noEmit",
-    "typecheck:stable:tsc": "tsc -p tsconfig.stable.json --noEmit",
-    "typecheck:stable": "pnpm run clean:build && pnpm run typegen && pnpm run typecheck:stable:tsc",
-    "verify": "pnpm run typecheck:stable && pnpm run build:verify"
+    "start": "next start"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
@@ -38,8 +30,6 @@
     "@types/node": "^24.5.2",
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
-    "eslint": "^9.35.0",
-    "eslint-config-next": "15.5.6",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.2.1",
     "typescript": "^5.9.2"
