@@ -1,0 +1,23 @@
+{
+  "name": "routy-backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "GraphQL backend service for Routy (Supabase)",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "dev": "node --watch src/index.js",
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "@sentry/node": "^10.45.0",
+    "@supabase/supabase-js": "^2.49.8",
+    "axios": "^1.13.6",
+    "dotenv": "^17.2.4",
+    "graphql": "^16.11.0",
+    "graphql-type-json": "^0.3.2",
+    "graphql-yoga": "^5.16.2",
+    "puppeteer": "^24.37.5"
+  }
+}

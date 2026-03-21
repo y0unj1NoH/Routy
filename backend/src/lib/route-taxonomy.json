@@ -1,0 +1,29 @@
+{
+  "mustVisitBadge": "MUSTVISIT",
+  "routeStopLabels": {
+    "fallback": "VISIT",
+    "canonical": ["MORNING", "LUNCH", "VISIT", "DESSERT", "DINNER", "NIGHT"],
+    "reserved": []
+  },
+  "placeCategory": {
+    "STAY": "STAY",
+    "RESTAURANT": "RESTAURANT",
+    "CAFE": "CAFE",
+    "DESSERT": "DESSERT",
+    "SNACK": "SNACK",
+    "BAR": "BAR",
+    "NIGHTLIFE": "NIGHTLIFE",
+    "MARKET": "MARKET",
+    "CULTURE": "CULTURE",
+    "ACTIVITY": "ACTIVITY",
+    "LANDMARK": "LANDMARK",
+    "NATURE": "NATURE",
+    "SHOP": "SHOP"
+  },
+  "themeCategory": {
+    "FOODIE": "FOODIE",
+    "LANDMARK": "LANDMARK",
+    "SHOPPING": "SHOPPING",
+    "NATURE": "NATURE"
+  }
+}
