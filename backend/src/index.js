@@ -30,22 +30,44 @@ const HTTP_RATE_LIMITS = {
 
 initSentry();
 
-function resolveClientIpFromHeaders(headers) {
-  const candidates = [
-    headers.get("cf-connecting-ip"),
-    headers.get("x-real-ip"),
-    headers.get("x-forwarded-for")
-  ];
+const INTERNAL_CLIENT_IP_HEADER = "x-routy-client-ip";
 
-  for (const candidate of candidates) {
-    if (!candidate) continue;
-    const firstValue = candidate
-      .split(",")
-      .map((value) => value.trim())
-      .find(Boolean);
-    if (firstValue) {
-      return firstValue;
-    }
+function normalizeRemoteAddress(remoteAddress) {
+  const normalized = String(remoteAddress || "").trim();
+  if (!normalized) {
+    return "unknown";
+  }
+
+  if (normalized.startsWith("::ffff:")) {
+    return normalized.slice(7);
+  }
+
+  if (normalized === "::1") {
+    return "127.0.0.1";
+  }
+
+  return normalized;
+}
+
+function resolveClientIpFromRequest(req) {
+  const internalClientIp = req.headers[INTERNAL_CLIENT_IP_HEADER];
+  if (typeof internalClientIp === "string" && internalClientIp.trim()) {
+    return internalClientIp.trim();
+  }
+
+  // Use the socket address by default so callers cannot spoof rate-limit identity
+  // through forwarded headers unless the server explicitly re-injects a trusted value.
+  return normalizeRemoteAddress(req.socket?.remoteAddress);
+}
+
+function setInternalClientIpHeader(req, clientIp) {
+  req.headers[INTERNAL_CLIENT_IP_HEADER] = clientIp;
+}
+
+function resolveClientIpFromHeaders(headers) {
+  const internalClientIp = headers.get(INTERNAL_CLIENT_IP_HEADER)?.trim();
+  if (internalClientIp) {
+    return internalClientIp;
   }
 
   return "unknown";
@@ -286,17 +308,8 @@ async function handleRouteMapProxy(req, res, requestUrl) {
 
 const server = createServer(async (req, res) => {
   const url = new URL(req.url || "/", `http://${req.headers.host || "localhost"}`);
-  const clientIp = resolveClientIpFromHeaders(
-    new Headers(
-      Object.entries(req.headers).flatMap(([key, value]) =>
-        typeof value === "string"
-          ? [[key, value]]
-          : Array.isArray(value)
-            ? value.map((item) => [key, item])
-            : []
-      )
-    )
-  );
+  const clientIp = resolveClientIpFromRequest(req);
+  setInternalClientIpHeader(req, clientIp);
 
   return withSentryRequestIsolation(
     {
