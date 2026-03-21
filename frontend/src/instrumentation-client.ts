@@ -2,7 +2,7 @@ import * as Sentry from "@sentry/nextjs";
 import posthog from "posthog-js";
 
 import { sentryDsn, sentryEnabled, sentryEnvironment } from "@/sentry.shared";
-import { publicEnv } from "@/lib/env";
+import { observabilityEnv } from "@/lib/observability-env";
 
 Sentry.init({
   dsn: sentryDsn,
@@ -10,9 +10,9 @@ Sentry.init({
   environment: sentryEnvironment
 });
 
-if (publicEnv.posthogEnabled) {
-  posthog.init(publicEnv.posthogKey, {
-    api_host: publicEnv.posthogHost,
+if (observabilityEnv.posthogEnabled) {
+  posthog.init(observabilityEnv.posthogKey, {
+    api_host: observabilityEnv.posthogHost,
     defaults: "2026-01-30",
     autocapture: false,
     capture_pageview: false,
