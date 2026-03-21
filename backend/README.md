@@ -14,6 +14,8 @@ npm run dev
 GraphQL endpoint:
 
 - `http://localhost:4000/graphql`
+- 같은 네트워크나 원격 서버에 열어둘 때는 시작 로그에 함께 출력되는 `http://<server-ip>:4000/graphql` 형태를 사용
+- SSH 포트 포워딩이면 `ssh -L 4000:localhost:4000 <user>@<server>` 후 로컬에서 `http://localhost:4000/graphql` 사용
 
 ## 2) Environment Variables
 
@@ -26,6 +28,7 @@ GraphQL endpoint:
 선택:
 
 - `PORT` (기본값 `4000`)
+- `HOST` (`127.0.0.1`, `0.0.0.0`, 특정 서버 IP/호스트명 등 listen host를 명시할 때 사용)
 - `GOOGLE_PLACES_API_KEY` (Google 링크 import, 장소 상세 동기화, 장소 사진 프록시, 정적 경로 지도 프록시에 사용)
 - `AI_PROVIDER` (`gemini` 또는 `openai`, 미설정 시 자동 선택)
 - `GEMINI_API_KEY` / `GEMINI_MODEL`

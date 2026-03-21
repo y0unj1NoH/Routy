@@ -1,11 +1,12 @@
 require("dotenv").config();
 
 const { createServer } = require("node:http");
+const { networkInterfaces } = require("node:os");
 const { createSchema, createYoga, maskError } = require("graphql-yoga");
 const { typeDefs } = require("./schema");
 const { resolvers } = require("./resolvers");
 const { createSupabaseClient, createSupabasePublicClient } = require("./lib/supabase");
-const { parsePort, getGooglePlacesApiKey, getTrimmedEnv } = require("./lib/env");
+const { parsePort, parseHost, getGooglePlacesApiKey, getTrimmedEnv } = require("./lib/env");
 const { takeRateLimit, getRetryAfterSeconds } = require("./lib/rateLimit");
 const {
   initSentry,
@@ -15,6 +16,7 @@ const {
 } = require("./lib/sentry");
 
 const port = parsePort();
+const host = parseHost();
 const HTTP_RATE_LIMITS = {
   placePhoto: {
     bucket: "http:place-photo",
@@ -31,6 +33,96 @@ const HTTP_RATE_LIMITS = {
 initSentry();
 
 const INTERNAL_CLIENT_IP_HEADER = "x-routy-client-ip";
+
+function isWildcardHost(value) {
+  return !value || value === "0.0.0.0" || value === "::";
+}
+
+function isLoopbackHost(value) {
+  return value === "localhost" || value === "127.0.0.1" || value === "::1";
+}
+
+function formatUrlHost(value) {
+  if (value.includes(":") && !(value.startsWith("[") && value.endsWith("]"))) {
+    return `[${value}]`;
+  }
+
+  return value;
+}
+
+function buildServerUrl(value, portNumber, endpointPath) {
+  return `http://${formatUrlHost(value)}:${portNumber}${endpointPath}`;
+}
+
+function collectNetworkHosts() {
+  const hosts = [];
+  const seen = new Set();
+  const interfaces = networkInterfaces();
+
+  for (const interfaceAddresses of Object.values(interfaces)) {
+    for (const addressInfo of interfaceAddresses || []) {
+      if (!addressInfo || addressInfo.internal) {
+        continue;
+      }
+
+      if (addressInfo.family !== "IPv4" && addressInfo.family !== 4) {
+        continue;
+      }
+
+      const normalizedAddress = normalizeRemoteAddress(addressInfo.address);
+      if (!normalizedAddress || normalizedAddress === "unknown" || seen.has(normalizedAddress)) {
+        continue;
+      }
+
+      seen.add(normalizedAddress);
+      hosts.push(normalizedAddress);
+    }
+  }
+
+  return hosts;
+}
+
+function resolveServerUrls(value, portNumber, endpointPath) {
+  const urls = [];
+  const seen = new Set();
+
+  function addUrl(hostname) {
+    if (!hostname) {
+      return;
+    }
+
+    const url = buildServerUrl(hostname, portNumber, endpointPath);
+    if (seen.has(url)) {
+      return;
+    }
+
+    seen.add(url);
+    urls.push(url);
+  }
+
+  if (isWildcardHost(value)) {
+    addUrl("localhost");
+    collectNetworkHosts().forEach(addUrl);
+    return urls;
+  }
+
+  if (isLoopbackHost(value)) {
+    addUrl("localhost");
+  }
+
+  addUrl(value);
+  return urls;
+}
+
+function logServerReady(value, portNumber, endpointPath) {
+  const bindLabel = value || "(node default)";
+  const urls = resolveServerUrls(value, portNumber, endpointPath);
+
+  console.log(`GraphQL server ready (bind ${bindLabel}:${portNumber})`);
+  urls.forEach((url) => {
+    console.log(`- ${url}`);
+  });
+}
 
 function normalizeRemoteAddress(remoteAddress) {
   const normalized = String(remoteAddress || "").trim();
@@ -356,6 +448,12 @@ const server = createServer(async (req, res) => {
   );
 });
 
-server.listen(port, () => {
-  console.log(`GraphQL server ready at http://localhost:${port}${yoga.graphqlEndpoint}`);
-});
+if (host) {
+  server.listen(port, host, () => {
+    logServerReady(host, port, yoga.graphqlEndpoint);
+  });
+} else {
+  server.listen(port, () => {
+    logServerReady(host, port, yoga.graphqlEndpoint);
+  });
+}
