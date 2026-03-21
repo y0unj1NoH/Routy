@@ -2,6 +2,7 @@ const { GraphQLError } = require("graphql");
 const { createHash } = require("node:crypto");
 const GraphQLJSON = require("graphql-type-json");
 const { getOAuthRedirectTo } = require("./lib/env");
+const { takeRateLimit, getRetryAfterSeconds } = require("./lib/rateLimit");
 const { createSupabaseAdminClient, extractBearerToken } = require("./lib/supabase");
 const { captureBackendException, setSentryUser } = require("./lib/sentry");
 const {
@@ -82,6 +83,23 @@ const AI_USAGE_SOURCES = {
   createSchedule: "CREATE_SCHEDULE",
   regenerateSchedule: "REGENERATE_SCHEDULE"
 };
+const MUTATION_RATE_LIMITS = {
+  importPlaceListFromCrawler: {
+    bucket: "mutation:import-place-list-from-crawler",
+    limit: 3,
+    windowMs: 10 * 60 * 1000
+  },
+  createSchedule: {
+    bucket: "mutation:create-schedule",
+    limit: 3,
+    windowMs: 10 * 60 * 1000
+  },
+  regenerateSchedule: {
+    bucket: "mutation:regenerate-schedule",
+    limit: 3,
+    windowMs: 10 * 60 * 1000
+  }
+};
 
 function fail(message, code = "INTERNAL_SERVER_ERROR", details = null) {
   throw new GraphQLError(message, { extensions: { code, details } });
@@ -90,6 +108,22 @@ function fail(message, code = "INTERNAL_SERVER_ERROR", details = null) {
 function assertSupabase(error, message) {
   if (error) {
     fail(message, "INTERNAL_SERVER_ERROR", error.message);
+  }
+}
+
+function assertRateLimit(context, user, config, detailsKind) {
+  const identifier = user?.id || context.clientIp || "anonymous";
+  const result = takeRateLimit({
+    ...config,
+    identifier
+  });
+
+  if (!result.allowed) {
+    fail("요청이 너무 많아요. 잠시 후 다시 시도해 주세요.", "TOO_MANY_REQUESTS", {
+      kind: detailsKind,
+      limit: config.limit,
+      retryAfterSeconds: getRetryAfterSeconds(result)
+    });
   }
 }
 
@@ -1496,6 +1530,12 @@ const resolvers = {
 
     async importPlaceListFromCrawler(_, { url, listName, city, description, language }, context) {
       const user = await requireUser(context);
+      assertRateLimit(
+        context,
+        user,
+        MUTATION_RATE_LIMITS.importPlaceListFromCrawler,
+        "IMPORT_PLACE_LIST_RATE_LIMITED"
+      );
 
       // 1. Scrape the list using Puppeteer
       const scrapedPlaces = await scrapeList(url);
@@ -1922,6 +1962,7 @@ const resolvers = {
 
     async createSchedule(_, { input }, context) {
       const user = await requireUser(context);
+      assertRateLimit(context, user, MUTATION_RATE_LIMITS.createSchedule, "CREATE_SCHEDULE_RATE_LIMITED");
       const list = await fetchOwnedPlaceList(context.supabase, user.id, input.placeListId);
       if (!list) fail("placeListId is invalid", "BAD_USER_INPUT");
 
@@ -2044,6 +2085,12 @@ const resolvers = {
 
     async regenerateSchedule(_, { scheduleId, input }, context) {
       const user = await requireUser(context);
+      assertRateLimit(
+        context,
+        user,
+        MUTATION_RATE_LIMITS.regenerateSchedule,
+        "REGENERATE_SCHEDULE_RATE_LIMITED"
+      );
       const existing = await fetchOwnedSchedule(context.supabase, user.id, scheduleId);
       if (!existing) fail("Schedule not found", "NOT_FOUND");
 

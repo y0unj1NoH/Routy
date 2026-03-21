@@ -6,6 +6,7 @@ const { typeDefs } = require("./schema");
 const { resolvers } = require("./resolvers");
 const { createSupabaseClient, createSupabasePublicClient } = require("./lib/supabase");
 const { parsePort, getGooglePlacesApiKey, getTrimmedEnv } = require("./lib/env");
+const { takeRateLimit, getRetryAfterSeconds } = require("./lib/rateLimit");
 const {
   initSentry,
   captureBackendException,
@@ -14,8 +15,68 @@ const {
 } = require("./lib/sentry");
 
 const port = parsePort();
+const HTTP_RATE_LIMITS = {
+  placePhoto: {
+    bucket: "http:place-photo",
+    limit: 120,
+    windowMs: 60 * 1000
+  },
+  routeMap: {
+    bucket: "http:route-map",
+    limit: 60,
+    windowMs: 60 * 1000
+  }
+};
 
 initSentry();
+
+function resolveClientIpFromHeaders(headers) {
+  const candidates = [
+    headers.get("cf-connecting-ip"),
+    headers.get("x-real-ip"),
+    headers.get("x-forwarded-for")
+  ];
+
+  for (const candidate of candidates) {
+    if (!candidate) continue;
+    const firstValue = candidate
+      .split(",")
+      .map((value) => value.trim())
+      .find(Boolean);
+    if (firstValue) {
+      return firstValue;
+    }
+  }
+
+  return "unknown";
+}
+
+function applyHttpRateLimit(res, config, clientIp) {
+  const result = takeRateLimit({
+    ...config,
+    identifier: clientIp
+  });
+
+  res.setHeader("X-RateLimit-Limit", String(result.limit));
+  res.setHeader("X-RateLimit-Remaining", String(result.remaining));
+  res.setHeader("X-RateLimit-Reset", String(result.resetAt));
+
+  if (result.allowed) {
+    return true;
+  }
+
+  const retryAfterSeconds = getRetryAfterSeconds(result);
+  res.statusCode = 429;
+  res.setHeader("Retry-After", String(retryAfterSeconds));
+  res.setHeader("Content-Type", "application/json; charset=utf-8");
+  res.end(
+    JSON.stringify({
+      error: "Too many requests",
+      retryAfterSeconds
+    })
+  );
+  return false;
+}
 
 const yoga = createYoga({
   schema: createSchema({
@@ -33,12 +94,14 @@ const yoga = createYoga({
   },
   context: ({ request, params }) => {
     const authHeader = request.headers.get("authorization");
+    const clientIp = resolveClientIpFromHeaders(request.headers);
     setGraphqlRequestScope(request, params);
 
     return {
       supabase: createSupabaseClient(authHeader),
       supabasePublic: createSupabasePublicClient(authHeader),
-      authHeader
+      authHeader,
+      clientIp
     };
   }
 });
@@ -223,6 +286,17 @@ async function handleRouteMapProxy(req, res, requestUrl) {
 
 const server = createServer(async (req, res) => {
   const url = new URL(req.url || "/", `http://${req.headers.host || "localhost"}`);
+  const clientIp = resolveClientIpFromHeaders(
+    new Headers(
+      Object.entries(req.headers).flatMap(([key, value]) =>
+        typeof value === "string"
+          ? [[key, value]]
+          : Array.isArray(value)
+            ? value.map((item) => [key, item])
+            : []
+      )
+    )
+  );
 
   return withSentryRequestIsolation(
     {
@@ -233,11 +307,17 @@ const server = createServer(async (req, res) => {
     async () => {
       try {
         if (req.method === "GET" && url.pathname === "/place-photo") {
+          if (!applyHttpRateLimit(res, HTTP_RATE_LIMITS.placePhoto, clientIp)) {
+            return;
+          }
           await handlePlacePhotoProxy(req, res, url);
           return;
         }
 
         if (req.method === "GET" && url.pathname === "/route-map") {
+          if (!applyHttpRateLimit(res, HTTP_RATE_LIMITS.routeMap, clientIp)) {
+            return;
+          }
           await handleRouteMapProxy(req, res, url);
           return;
         }
