@@ -21,7 +21,6 @@
     "@supabase/supabase-js": "^2.58.0",
     "@tanstack/react-query": "^5.90.2",
     "@tanstack/react-query-devtools": "^5.90.2",
-    "@use-funnel/next": "^0.0.22",
     "clsx": "^2.1.1",
     "graphql-request": "^7.3.2",
     "lucide-react": "^0.553.0",

@@ -23,9 +23,6 @@ importers:
       '@tanstack/react-query-devtools':
         specifier: ^5.90.2
         version: 5.91.3(@tanstack/react-query@5.90.21(react@19.1.1))(react@19.1.1)
-      '@use-funnel/next':
-        specifier: ^0.0.22
-        version: 0.0.22(next@15.5.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react@19.1.1)
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
@@ -1444,17 +1441,6 @@ packages:
     resolution: {integrity: sha512-lrW200hZdbfRtztbygyaq/6jP6AKE8qQN2KvPcJ+x7wiD038YtnYtZ82IMNJ69GJibV7bwL3y9FgK+5w/pYt6g==}
     cpu: [x64]
     os: [win32]
-
-  '@use-funnel/core@0.0.13':
-    resolution: {integrity: sha512-0cFqUs0Z5QWnTG5ua2FZloKyGn3KAbA9miaFOa6RAeBmm74lilyFk4ovLe/9g1W58ZZlR3+1wbjDzyAT9yIGig==}
-    peerDependencies:
-      react: '>=16.8'
-
-  '@use-funnel/next@0.0.22':
-    resolution: {integrity: sha512-AFdROs+MfC+HxVnHNyI6jNuWmgV1YjUq6IG2ckps2PTqPLp7ZowtmVAa1k7iJxEBu/0PXqXiLstEku1V8kZACQ==}
-    peerDependencies:
-      next: '>=12'
-      react: '>=16.8'
 
   '@webassemblyjs/ast@1.14.1':
     resolution: {integrity: sha512-nuBEDgQfm1ccRp/8bCQrx1frohyufl4JlbMMZ4P1wpeOfDhF6FQkxZJ1b/e+PLwr6X1Nhw6OLme5usuBWYBvuQ==}
@@ -4461,16 +4447,6 @@ snapshots:
 
   '@unrs/resolver-binding-win32-x64-msvc@1.11.1':
     optional: true
-
-  '@use-funnel/core@0.0.13(react@19.1.1)':
-    dependencies:
-      react: 19.1.1
-
-  '@use-funnel/next@0.0.22(next@15.5.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react@19.1.1)':
-    dependencies:
-      '@use-funnel/core': 0.0.13(react@19.1.1)
-      next: 15.5.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
-      react: 19.1.1
 
   '@webassemblyjs/ast@1.14.1':
     dependencies:
