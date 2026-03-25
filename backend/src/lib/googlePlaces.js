@@ -165,6 +165,41 @@ function extractNestedGoogleMapsUrl(rawUrl) {
   return null;
 }
 
+function inferGoogleMapsLinkTypeHint(candidates) {
+  let sawListLink = false;
+  let sawPlaceLink = false;
+
+  for (const candidate of candidates) {
+    const placeIds = extractPlaceIdsFromGoogleUrl(candidate);
+    if (placeIds.length > 1) {
+      sawListLink = true;
+      continue;
+    }
+    if (placeIds.length === 1) {
+      sawPlaceLink = true;
+    }
+
+    let parsedUrl;
+    try {
+      parsedUrl = new URL(candidate);
+    } catch {
+      continue;
+    }
+
+    const pathname = safeDecode(parsedUrl.pathname).toLowerCase();
+    if (pathname.includes("/maps/place/") || pathname.includes("/maps/search/")) {
+      sawPlaceLink = true;
+    }
+    if (pathname.includes("/maps/placelists/") || pathname.includes("/maps/list/")) {
+      sawListLink = true;
+    }
+  }
+
+  if (sawListLink) return "LIST";
+  if (sawPlaceLink) return "PLACE";
+  return "UNKNOWN";
+}
+
 async function expandGoogleMapsUrl(rawUrl) {
   let parsed;
   try {
@@ -190,6 +225,29 @@ async function expandGoogleMapsUrl(rawUrl) {
   } catch {
     return rawUrl;
   }
+}
+
+async function inspectGoogleMapsLink(rawUrl) {
+  const nestedUrl = extractNestedGoogleMapsUrl(rawUrl);
+  const expandedUrl = await expandGoogleMapsUrl(rawUrl);
+  const expandedNestedUrl = nestedUrl ? await expandGoogleMapsUrl(nestedUrl) : null;
+  const candidates = toUniqueList([
+    rawUrl,
+    nestedUrl,
+    expandedUrl,
+    expandedNestedUrl,
+    safeDecode(rawUrl),
+    safeDecode(nestedUrl),
+    safeDecode(expandedUrl),
+    safeDecode(expandedNestedUrl)
+  ]);
+
+  return {
+    candidates,
+    placeIds: toUniqueList(candidates.flatMap((candidate) => extractPlaceIdsFromGoogleUrl(candidate))),
+    query: candidates.map((candidate) => extractSearchTextFromGoogleUrl(candidate)).find(Boolean) || null,
+    linkTypeHint: inferGoogleMapsLinkTypeHint(candidates)
+  };
 }
 
 async function fetchGooglePlacesJson(url, options) {
@@ -238,32 +296,18 @@ async function fetchPlaceDetailsById(placeId) {
 }
 
 async function resolveGoogleMapsLink(rawUrl, options = {}) {
-  const nestedUrl = extractNestedGoogleMapsUrl(rawUrl);
-  const expandedUrl = await expandGoogleMapsUrl(rawUrl);
-  const expandedNestedUrl = nestedUrl ? await expandGoogleMapsUrl(nestedUrl) : null;
-  const candidates = toUniqueList([
-    rawUrl,
-    nestedUrl,
-    expandedUrl,
-    expandedNestedUrl,
-    safeDecode(rawUrl),
-    safeDecode(nestedUrl),
-    safeDecode(expandedUrl),
-    safeDecode(expandedNestedUrl)
-  ]);
-
-  const placeIds = toUniqueList(candidates.flatMap((candidate) => extractPlaceIdsFromGoogleUrl(candidate)));
+  const inspection = await inspectGoogleMapsLink(rawUrl);
+  const { candidates, placeIds, query, linkTypeHint } = inspection;
   if (placeIds.length > 0) {
     return {
       kind: placeIds.length > 1 ? "LIST" : "PLACE",
       placeIds,
       note: "Resolved from URL tokens",
-      query: null
+      query: null,
+      linkTypeHint
     };
   }
 
-  const query =
-    candidates.map((candidate) => extractSearchTextFromGoogleUrl(candidate)).find(Boolean) || null;
   if (query && hasGooglePlacesApiKey()) {
     if (typeof options.onSearchByText === "function") {
       await options.onSearchByText({ query });
@@ -275,7 +319,8 @@ async function resolveGoogleMapsLink(rawUrl, options = {}) {
         kind: resolvedPlaceIds.length > 1 ? "LIST" : "PLACE",
         placeIds: resolvedPlaceIds,
         note: "Resolved via Google text search",
-        query
+        query,
+        linkTypeHint
       };
     }
   }
@@ -284,7 +329,8 @@ async function resolveGoogleMapsLink(rawUrl, options = {}) {
     kind: "UNRESOLVED",
     placeIds: [],
     note: "No place_id found in URL. For list links, pass explicit place IDs if needed.",
-    query: query || null
+    query: query || null,
+    linkTypeHint
   };
 }
 
@@ -561,6 +607,7 @@ function getOpeningHoursSignals(openingHours) {
 module.exports = {
   hasGooglePlacesApiKey,
   extractPlaceIdsFromGoogleUrl,
+  inspectGoogleMapsLink,
   resolveGoogleMapsLink,
   searchPlacesByText,
   fetchPlaceDetailsById,

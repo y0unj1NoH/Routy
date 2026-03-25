@@ -39,6 +39,7 @@ import {
   updatePlaceList,
   updatePlaceListItem
 } from "@/lib/graphql/api";
+import { buildTrackedErrorToastContent, resolveKnownGraphQLErrorMessage } from "@/lib/graphql/error-policy";
 import { resolveImportErrorMessage } from "@/lib/graphql/import-errors";
 import { queryKeys } from "@/lib/query-keys";
 import { useUiStore } from "@/stores/ui-store";
@@ -293,7 +294,11 @@ export default function SavedListDetailPage() {
     },
     onError: (error: Error) => {
       console.error(error);
-      pushToast({ kind: "error", message: UI_COPY.saved.detail.deleteError });
+      const message = resolveKnownGraphQLErrorMessage(error, UI_COPY.saved.detail.deleteError) ?? UI_COPY.saved.detail.deleteError;
+      pushToast({
+        kind: "error",
+        ...buildTrackedErrorToastContent("saved_list_delete", error, UI_COPY.saved.detail.deleteError, message)
+      });
     }
   });
 
@@ -343,7 +348,10 @@ export default function SavedListDetailPage() {
           ? error.message
           : resolveImportErrorMessage(error, UI_COPY.saved.detail.addPlaceError);
       addPlaceForm.setError("root", { type: "server", message });
-      pushToast({ kind: "error", message });
+      pushToast({
+        kind: "error",
+        ...buildTrackedErrorToastContent("saved_list_add_google_place", error, UI_COPY.saved.detail.addPlaceError, message)
+      });
     }
   });
 

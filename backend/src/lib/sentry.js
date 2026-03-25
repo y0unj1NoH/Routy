@@ -6,10 +6,29 @@ const { getSentryConfig } = require("./env");
 const EXPECTED_GRAPHQL_ERROR_CODES = new Set([
   "UNAUTHENTICATED",
   "BAD_USER_INPUT",
+  "DATE_INPUT_INVALID",
+  "PLACE_LIST_SELECTION_INVALID",
+  "REGENERATION_INPUT_INVALID",
+  "SCHEDULE_STOP_MOVE_INVALID",
+  "SCHEDULE_EDIT_INVALID",
+  "SCHEDULE_CONFIRMATION_REQUIRED",
+  "PLACE_LIST_HAS_SCHEDULES",
+  "GOOGLE_MAPS_LIST_LINK_REQUIRED",
+  "GOOGLE_MAPS_PLACE_LINK_REQUIRED",
+  "GOOGLE_MAPS_LIST_ITEM_LIMIT_EXCEEDED",
+  "PLACE_LIST_ITEM_LIMIT_EXCEEDED",
   "IMPORT_LIST_QUOTA_EXCEEDED",
   "IMPORT_PLACE_QUOTA_EXCEEDED",
+  "MUST_VISIT_LIMIT_EXCEEDED",
+  "AI_CANDIDATE_LIMIT_EXCEEDED",
+  "PLACE_LIST_EMPTY_FOR_SCHEDULE",
+  "SCHEDULE_NO_SCHEDULABLE_PLACES",
+  "SCHEDULE_CANDIDATES_EMPTY_AFTER_PREPROCESS",
+  "STAY_PLACE_NOT_IN_LIST",
+  "STAY_PLACE_DATA_MISSING",
   "AI_DAILY_QUOTA_EXCEEDED",
   "AI_SYSTEM_MONTHLY_QUOTA_EXCEEDED",
+  "TOO_MANY_REQUESTS",
   "NOT_FOUND"
 ]);
 
@@ -67,6 +86,14 @@ function stringifyForSentry(value) {
     const fallback = String(value);
     return fallback.length > SENTRY_EXTRA_LIMIT ? `${fallback.slice(0, SENTRY_EXTRA_LIMIT)}...` : fallback;
   }
+}
+
+function getDetailsKind(details) {
+  if (!details || typeof details !== "object") {
+    return "";
+  }
+
+  return typeof details.kind === "string" ? details.kind : "";
 }
 
 function hashGraphqlQuery(query) {
@@ -171,8 +198,16 @@ function captureBackendException(error, options = {}) {
 
     if (graphQLError) {
       const code = typeof graphQLError.extensions?.code === "string" ? graphQLError.extensions.code : "UNKNOWN";
+      const detailsKind = getDetailsKind(graphQLError.extensions?.details);
+
+      scope.setTag("graphql.error_code", code);
+      if (detailsKind) {
+        scope.setTag("graphql.error_kind", detailsKind);
+      }
+
       scope.setContext("graphql.error", {
-        code
+        code,
+        kind: detailsKind || null
       });
 
       const details = stringifyForSentry(graphQLError.extensions?.details);

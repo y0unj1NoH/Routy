@@ -9,6 +9,7 @@ import type { ToastMessage } from "@/stores/ui-store";
 type ToastCardProps = {
   kind: ToastMessage["kind"];
   message: ReactNode;
+  detail?: ReactNode;
   role?: "status" | "alert";
   action?: ReactNode;
   className?: string;
@@ -45,7 +46,7 @@ const TOAST_ICONS: Record<ToastMessage["kind"], typeof CheckCircle2> = {
   info: Info
 };
 
-export function ToastCard({ kind, message, role, action, className }: ToastCardProps) {
+export function ToastCard({ kind, message, detail, role, action, className }: ToastCardProps) {
   const tone = TOAST_TONES[kind];
   const Icon = TOAST_ICONS[kind];
 
@@ -68,6 +69,11 @@ export function ToastCard({ kind, message, role, action, className }: ToastCardP
           <p className="break-keep whitespace-pre-line text-[13px] font-semibold leading-[1.45] text-foreground/82 md:text-sm md:leading-[1.45]">
             {message}
           </p>
+          {detail ? (
+            <p className="mt-1 break-all text-[11px] font-medium leading-[1.35] text-foreground/46 md:text-[11px]">
+              {detail}
+            </p>
+          ) : null}
         </div>
 
         {action ? <div className="shrink-0">{action}</div> : <div aria-hidden className="h-0 w-0" />}

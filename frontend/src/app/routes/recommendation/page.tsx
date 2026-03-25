@@ -27,8 +27,9 @@ import { useRequireAuth } from "@/hooks/use-require-auth";
 import { captureAnalyticsEvent } from "@/lib/analytics";
 import { useRouteStopInteractions } from "@/hooks/use-route-stop-interactions";
 import { cn } from "@/lib/cn";
-import { fetchScheduleDetail, regenerateSchedule } from "@/lib/graphql/api";
+import { confirmSchedule, fetchRecommendationScheduleDetail, regenerateSchedule } from "@/lib/graphql/api";
 import { resolveAiScheduleQuotaMessage } from "@/lib/graphql/ai-schedule-errors";
+import { buildTrackedErrorToastContent } from "@/lib/graphql/error-policy";
 import { buildGoogleDirectionsEmbedUrl } from "@/lib/maps";
 import { queryKeys } from "@/lib/query-keys";
 import { getRouteStayMarker, getRouteStayOverlayMode, getRouteStayRecommendation } from "@/lib/route-stay";
@@ -92,8 +93,8 @@ export default function RecommendationPage() {
   }, []);
 
   const scheduleQuery = useQuery({
-    queryKey: queryKeys.scheduleDetail(scheduleId || "missing"),
-    queryFn: () => fetchScheduleDetail(scheduleId || "", accessToken || ""),
+    queryKey: queryKeys.recommendationScheduleDetail(scheduleId || "missing"),
+    queryFn: () => fetchRecommendationScheduleDetail(scheduleId || "", accessToken || ""),
     enabled: Boolean(paramsReady && accessToken && scheduleId && status !== "error")
   });
 
@@ -105,7 +106,7 @@ export default function RecommendationPage() {
       });
       const nextScheduleId = regeneratedSchedule?.id || scheduleId || "";
       pushToast({ kind: "success", message: UI_COPY.routes.recommendation.toast.regenerateSuccess });
-      queryClient.invalidateQueries({ queryKey: queryKeys.scheduleDetail(nextScheduleId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.recommendationScheduleDetail(nextScheduleId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.mySchedules });
 
       if (regeneratedSchedule?.id && regeneratedSchedule.id !== scheduleId) {
@@ -117,10 +118,48 @@ export default function RecommendationPage() {
       console.error(error);
       const aiQuotaMessage = resolveAiScheduleQuotaMessage(error);
       if (aiQuotaMessage) {
-        pushToast({ kind: "error", message: aiQuotaMessage });
+        pushToast({
+          kind: "error",
+          ...buildTrackedErrorToastContent(
+            "route_recommendation_regenerate",
+            error,
+            UI_COPY.routes.recommendation.toast.regenerateError,
+            aiQuotaMessage
+          )
+        });
         return;
       }
-      pushToast({ kind: "error", message: UI_COPY.routes.recommendation.toast.regenerateError });
+      pushToast({
+        kind: "error",
+        ...buildTrackedErrorToastContent("route_recommendation_regenerate", error, UI_COPY.routes.recommendation.toast.regenerateError)
+      });
+    }
+  });
+
+  const confirmMutation = useMutation({
+    mutationFn: () => confirmSchedule(accessToken || "", scheduleId || ""),
+    onSuccess: (confirmedSchedule) => {
+      const nextScheduleId = confirmedSchedule?.id || scheduleId || "";
+      captureAnalyticsEvent("route_recommendation_confirmed", {
+        schedule_id: nextScheduleId,
+        day_count: schedule?.dayCount ?? 0,
+        stay_mode: resolveRecommendationStayMode(schedule)
+      });
+      queryClient.invalidateQueries({ queryKey: queryKeys.mySchedules });
+      queryClient.invalidateQueries({ queryKey: queryKeys.scheduleDetail(nextScheduleId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.recommendationScheduleDetail(nextScheduleId) });
+      router.push(`/routes/${nextScheduleId}`);
+    },
+    onError: (error: Error) => {
+      console.error(error);
+      pushToast({
+        kind: "error",
+        ...buildTrackedErrorToastContent(
+          "route_recommendation_confirm",
+          error,
+          UI_COPY.common.error.serviceUnavailableDescription
+        )
+      });
     }
   });
 
@@ -175,13 +214,8 @@ export default function RecommendationPage() {
   };
 
   const handleConfirmRoute = () => {
-    if (!scheduleId) return;
-    captureAnalyticsEvent("route_recommendation_confirmed", {
-      schedule_id: scheduleId,
-      day_count: schedule?.dayCount ?? 0,
-      stay_mode: resolveRecommendationStayMode(schedule)
-    });
-    router.push(`/routes/${scheduleId}`);
+    if (!scheduleId || confirmMutation.isPending) return;
+    confirmMutation.mutate();
   };
 
   useEffect(() => {
@@ -435,7 +469,7 @@ export default function RecommendationPage() {
             size="small"
             variant="secondary"
             onClick={() => regenerateMutation.mutate()}
-            disabled={regenerateMutation.isPending}
+            disabled={regenerateMutation.isPending || confirmMutation.isPending}
           >
             {UI_COPY.routes.recommendation.regenerateAction}
           </Button>
@@ -443,7 +477,7 @@ export default function RecommendationPage() {
             type="button"
             size="small"
             onClick={handleConfirmRoute}
-            disabled={regenerateMutation.isPending}
+            disabled={regenerateMutation.isPending || confirmMutation.isPending}
           >
             {UI_COPY.routes.recommendation.confirmAction}
           </Button>
@@ -548,7 +582,7 @@ export default function RecommendationPage() {
                   fullWidth
                   className="min-w-0"
                   onClick={() => regenerateMutation.mutate()}
-                  disabled={regenerateMutation.isPending}
+                  disabled={regenerateMutation.isPending || confirmMutation.isPending}
                 >
                   {UI_COPY.routes.recommendation.regenerateAction}
                 </Button>
@@ -558,7 +592,7 @@ export default function RecommendationPage() {
                   fullWidth
                   className="min-w-0"
                   onClick={handleConfirmRoute}
-                  disabled={regenerateMutation.isPending}
+                  disabled={regenerateMutation.isPending || confirmMutation.isPending}
                 >
                   {UI_COPY.routes.recommendation.confirmAction}
                 </Button>

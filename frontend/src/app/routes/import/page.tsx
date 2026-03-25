@@ -9,6 +9,7 @@ import { z } from "zod";
 
 import { CategoryBadge } from "@/components/common/category-badge";
 import { DialogFieldHint, DialogFieldLabel } from "@/components/common/dialog-field";
+import { ImportListWarningNotice } from "@/components/import/import-list-warning-notice";
 import { LinkInput } from "@/components/common/link-input";
 import { LoadingPanel } from "@/components/common/loading-panel";
 import { PageTitle } from "@/components/common/page-title";
@@ -30,6 +31,7 @@ import {
   PLACE_LIST_NAME_MAX_LENGTH
 } from "@/lib/forms/input-schemas";
 import { importPlaceFromGoogleLink, importPlaceListFromCrawler } from "@/lib/graphql/api";
+import { buildTrackedErrorToastContent } from "@/lib/graphql/error-policy";
 import { resolveImportErrorMessage } from "@/lib/graphql/import-errors";
 import { queryKeys } from "@/lib/query-keys";
 import { useRequireAuth } from "@/hooks/use-require-auth";
@@ -96,7 +98,10 @@ export default function ImportRoutePage() {
       });
       const message = resolveImportErrorMessage(error, UI_COPY.routes.import.toast.importListError);
       crawlerForm.setError("root", { type: "server", message });
-      pushToast({ kind: "error", message });
+      pushToast({
+        kind: "error",
+        ...buildTrackedErrorToastContent("route_import_list", error, UI_COPY.routes.import.toast.importListError, message)
+      });
     }
   });
 
@@ -120,7 +125,10 @@ export default function ImportRoutePage() {
       });
       const message = resolveImportErrorMessage(error, UI_COPY.routes.import.toast.importPlacesError);
       googleForm.setError("root", { type: "server", message });
-      pushToast({ kind: "error", message });
+      pushToast({
+        kind: "error",
+        ...buildTrackedErrorToastContent("route_import_place", error, UI_COPY.routes.import.toast.importPlacesError, message)
+      });
     }
   });
 
@@ -175,6 +183,8 @@ export default function ImportRoutePage() {
               {crawlerForm.formState.errors.root.message}
             </p>
           ) : null}
+
+          <ImportListWarningNotice />
 
           <div className="space-y-1">
             <DialogFieldLabel htmlFor={crawlerUrlFieldId} required>

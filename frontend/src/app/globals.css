@@ -319,8 +319,12 @@
   }
 }
 
+/*
+  Keep the app in light mode only so mobile/desktop browsers do not auto-apply
+  dark theme heuristics when the OS is in dark mode.
+*/
 :root {
-  color-scheme: light;
+  color-scheme: only light;
   --animate-mascot-float: mascot-float 5.2s ease-in-out infinite;
   --page-content-max-width: 1200px;
   --page-x-padding: 20px;

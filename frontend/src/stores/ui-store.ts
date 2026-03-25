@@ -9,6 +9,7 @@ export type ToastMessage = {
   id: string;
   kind: ToastKind;
   message: ReactNode;
+  detail?: ReactNode;
 };
 
 type UiStore = {

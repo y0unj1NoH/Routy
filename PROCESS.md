@@ -1,0 +1,2738 @@
+# 마이루트 작업 기록
+
+- 기준 시간대: KST (Asia/Seoul)
+- 기록 원칙: `git commit`이 있으면 그 내용을 우선 사용하고, 커밋이 없는 구간은 파일 수정 시각과 문서 생성 시각으로 복원합니다.
+- 신뢰도 표기:
+  - `확정`: Git 커밋으로 확인됨
+  - `복원`: 파일 수정 시각/문서명 기준으로 추정됨. 같은 날짜 안의 정확한 작업 순서는 다를 수 있음
+
+## 작업 로그
+
+### 2026-02-06 `확정`
+- 저장소 초기 커밋 생성
+- 근거: `d8f44e1 first commit`
+
+### 2026-02-18 `확정`
+- 구글맵 저장 리스트를 가져오는 초기 기능 추가
+- 크롤링/디버깅 스크립트와 서버 진입점 초안 작성
+- 근거: `40835a5 feat: 구글맵 저장 리스트 가져오기`
+
+### 2026-02-24 `확정`
+- 구글맵 저장 리스트를 기반으로 최적 일정 추천 기능 추가
+- 일정 생성 결과 샘플과 최적화 스크립트 정리
+- 근거: `ed498e1 feat: 구글맵 저장 리스트로 최적 일정 추천 기능 추가`
+
+### 2026-02-28 `확정`
+- 백엔드 MVP 통합 완료
+- Supabase, crawler, AI optimizer, GraphQL schema/resolver, 일정 엔진, SQL 초기화 스크립트, 백엔드 문서 추가
+- 근거: `e57ff72 feat(backend): 백엔드 MVP 개발 완료`
+
+### 2026-03-02 `복원`
+- 컴포넌트 라이브러리 비교/분석 문서 작성
+- `shadcn/ui`, `Radix UI`, `Chakra UI` 비교와 프론트엔드 컴포넌트 전략 정리
+- 근거: `component-analysis-report.md`
+
+### 2026-03-03 `복원`
+- 프론트엔드 E2E MVP 구현 계획 문서화
+- Next.js 프론트엔드 기반 구조 시작
+- 인증/세션/상태관리/공용 타입/GraphQL 클라이언트 골격 추가
+- `/login`, `/signup`, `/auth/callback` 화면과 Figma 노드 맵, QA 체크리스트 작성
+- 근거:
+  - `PLAN.md`
+  - `implementation_plan.md`
+  - `frontend/src/app/layout.tsx`
+  - `frontend/src/app/login/page.tsx`
+  - `frontend/src/app/signup/page.tsx`
+  - `frontend/src/app/auth/callback/page.tsx`
+  - `frontend/src/lib/graphql/client.ts`
+
+### 2026-03-04 `복원`
+- 저장 리스트 화면과 새 일정 생성 흐름 작업 시작
+- 프론트 환경변수/지도/사진 유틸 및 퍼널 상수 추가
+- 백엔드 `index.js`, `googlePlaces.js`, `geminiOptimizer.js` 보강
+- 근거:
+  - `frontend/src/app/saved/page.tsx`
+  - `frontend/src/app/routes/new/page.tsx`
+  - `frontend/src/lib/env.ts`
+  - `frontend/src/lib/maps.ts`
+  - `frontend/src/lib/photos.ts`
+  - `backend/src/index.js`
+  - `backend/src/lib/googlePlaces.js`
+  - `backend/src/lib/geminiOptimizer.js`
+
+### 2026-03-05 `복원`
+- 장소 영업시간 처리 유틸과 사용자 취향 상태 저장 로직 추가
+- 근거:
+  - `frontend/src/lib/place-opening.ts`
+  - `frontend/src/stores/preferences-store.ts`
+
+### 2026-03-11 `복원`
+- 프론트 주요 화면을 대거 확장 및 다듬음
+- 홈, 빈 상태, 에러, 마이페이지, 저장 리스트 상세, 장소 상세, 추천 결과, 일정 상세 등 화면 보강
+- 공용 UI/레이아웃 컴포넌트 정리
+- 마스코트/일러스트 에셋 추가
+- 프론트 GraphQL 문서/API 유틸 업데이트
+- 백엔드 `schema.js`, `resolvers.js` 수정 및 `README.md` 업데이트
+- 오늘 이 기록 파일을 생성해서 작업 로그를 이어갈 기반 마련
+- 저장소 루트 `AGENTS.md` 추가로 이후 다른 대화에서도 작업 후 `PROCESS.md`를 갱신하도록 규칙화
+- 근거:
+  - `frontend/src/app/page.tsx`
+  - `frontend/src/app/empty/page.tsx`
+  - `frontend/src/app/error.tsx`
+  - `frontend/src/app/not-found.tsx`
+  - `frontend/src/app/mypage/page.tsx`
+  - `frontend/src/app/saved/[listId]/page.tsx`
+  - `frontend/src/app/saved/[listId]/[placeId]/page.tsx`
+  - `frontend/src/app/places/[placeId]/page.tsx`
+  - `frontend/src/app/routes/import/page.tsx`
+  - `frontend/src/app/routes/recommendation/page.tsx`
+  - `frontend/src/app/routes/[id]/page.tsx`
+  - `frontend/src/components/common/loading-panel.tsx`
+  - `frontend/src/components/layout/app-shell.tsx`
+  - `frontend/src/lib/graphql/api.ts`
+  - `frontend/src/lib/graphql/documents.ts`
+  - `backend/src/schema.js`
+  - `backend/src/resolvers.js`
+  - `AGENTS.md`
+
+### 2026-03-12
+- 홈 `내 일정`과 `내 저장 리스트`의 리스트 카드 스타일을 공용 컴포넌트로 통일
+- `내 일정` 카드에 일정 시작 3일 전부터 `D-Day` 배지 표시 추가
+- 홈 `내 일정`에서 가장 가까운 일정을 최상단에 두고, 나머지 일정은 점선 구분선 아래 별도 묶음으로 정리
+- 빌드 검증 안정화를 위해 `frontend/next.config.ts`에 `outputFileTracingRoot` 설정 추가
+- 수정 파일: `frontend/src/app/page.tsx`, `frontend/src/app/saved/page.tsx`, `frontend/src/components/common/list-item-card.tsx`, `frontend/src/components/common/d-day-badge.tsx`, `frontend/src/lib/schedule-status.ts`, `frontend/src/lib/format.ts`, `frontend/next.config.ts`
+- 확인: `frontend`에서 `pnpm run build` 통과
+- 장소 상세 공용 레이아웃을 신설해 지도/본문 폭 기준을 `PageContainer`에 맞추고 정보 밀도를 높임
+- 메인 장소 상세와 저장 리스트 장소 상세가 같은 상세 컴포넌트를 사용하도록 정리
+- 수정 파일: `frontend/src/components/places/place-detail-content.tsx`, `frontend/src/app/places/[placeId]/page.tsx`, `frontend/src/app/saved/[listId]/[placeId]/page.tsx`
+- 확인: `frontend`에서 `pnpm run build` 통과
+- 공용 모달 셸을 추가하고 삭제 확인, 리스트 가져오기, 저장 리스트의 Google 링크 추가 모달 스타일을 통일
+- 저장 리스트 상세에서 Google 지도 링크로 감지된 장소를 첫 번째만 버리지 않고 모두 리스트에 추가하도록 수정
+- `routes/import`에 최근 가져온 장소 미리보기와 상세/Google Maps 이동 액션을 추가하고, `saved/[listId]/[placeId]`를 공용 장소 상세 레이아웃으로 유지하도록 정리
+- 공유 링크 안의 중첩 Google Maps URL도 해석하도록 링크 파서를 보강
+- 수정 파일: `frontend/src/components/common/dialog-shell.tsx`, `frontend/src/components/import/import-list-modal.tsx`, `frontend/src/app/saved/[listId]/page.tsx`, `frontend/src/app/routes/import/page.tsx`, `backend/src/lib/googlePlaces.js`
+- 확인: `frontend`에서 `pnpm run build`, `backend`에서 `npm run check` 통과
+- dev 서버와 빌드가 같은 `.next`를 공유해 CSS/JS 청크가 404 나던 문제를 막기 위해 `frontend/next.config.ts`에 개발 전용 `distDir`(`.next-dev`)를 추가
+- 확인: `frontend`에서 `pnpm run build` 통과, 새 dev 서버(`:3015`)의 `/saved`가 CSS/JS 자산을 모두 200으로 응답
+- 남은 메모: 기존 `:3000` dev 서버는 새 설정 반영을 위해 한 번 재시작 필요
+- Google 소셜 로그인 실패 원인을 OAuth 콜백 URL이 현재 브라우저 origin에 종속되던 점으로 확인하고, `NEXT_PUBLIC_AUTH_CALLBACK_URL`로 고정 가능하게 수정
+- 현재 로컬 환경에 `frontend/.env.local`의 OAuth 콜백 URL을 `http://localhost:3015/auth/callback`으로 추가하고 예시/QA 문서도 같은 기준으로 보강
+- 수정 파일: `frontend/src/app/login/page.tsx`, `frontend/src/lib/env.ts`, `frontend/.env.example`, `frontend/.env.local`, `frontend/docs/qa-checklist.md`
+- 새 일정 funnel 날짜 단계에서 오늘 이전 날짜를 모두 비활성화하고, 과거 날짜가 저장돼 있어도 상태를 자동 정리해 다음 단계와 일정 생성으로 넘어가지 못하게 수정
+- 날짜 달력의 이전 달 이동을 현재 달에서 막고, 현재 달보다 이전 월이 열리지 않도록 보정 로직 추가
+- 수정 파일: `frontend/src/components/routes/new-route-client.tsx`
+- 확인: `frontend`에서 `pnpm run typecheck`, `pnpm run build` 통과
+- 확인: `frontend`에서 `pnpm run build` 통과
+- 남은 이슈: Supabase Dashboard Authentication 설정의 Redirect URLs에도 `NEXT_PUBLIC_AUTH_CALLBACK_URL`와 동일한 값이 등록되어 있어야 Google OAuth가 실제로 완료됨
+- Google OAuth 초기화 시 `Unsupported provider: provider is not enabled` 응답을 Supabase Google provider 비활성화 안내 문구로 매핑
+- 수정 파일: `frontend/src/app/login/page.tsx`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과
+- 남은 이슈: Supabase Dashboard Authentication > Providers > Google에서 Enabled 켜기와 Client ID/Secret 저장이 필요
+- 로컬 OAuth 콜백 기준을 `3015`에서 `3000`으로 되돌리기 위해 `frontend/.env.local`의 `NEXT_PUBLIC_AUTH_CALLBACK_URL`을 `http://localhost:3000/auth/callback`으로 변경
+- 남은 이슈: Supabase URL Configuration과 Google OAuth 클라이언트의 localhost 설정도 `3000` 기준으로 맞춰야 함
+- 로그인 페이지의 Google 버튼에 로고를 추가하고 문구를 `Google 계정으로 로그인`으로 변경
+- 수정 파일: `frontend/src/app/login/page.tsx`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과
+- OAuth 콜백 페이지가 `exchangeCodeForSession()`을 사용하는 흐름과 맞추기 위해 브라우저 Supabase client의 auth flow를 `pkce`로 명시
+- 수정 파일: `frontend/src/lib/supabase/browser.ts`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과
+- `frontend/src`의 하드코딩 한글 문구를 페이지별/공용 컴포넌트별로 전수 조사해 루트 `comment.md`에 정리
+- 포함 범위: 제목, 설명, 버튼, 토스트, validation, placeholder, `aria-label`, `alt`, fallback/빈 상태 문구
+- 수정 파일: `comment.md`, `PROCESS.md`
+- 공통/전역 한글 문구 톤 수정 요청을 반영해 메타데이터, 로딩 기본 문구, 마스코트 `alt`, 일정 상태 라벨, 영업 상태 문구, 인증 에러 문구를 교체
+- Supabase 환경변수 누락 메시지를 개발/프로덕션 분기로 공통화하고 로그인 화면도 같은 메시지를 재사용하도록 정리
+- 수정 파일: `frontend/src/app/layout.tsx`, `frontend/src/components/common/loading-panel.tsx`, `frontend/src/components/layout/mascot.tsx`, `frontend/src/lib/format.ts`, `frontend/src/lib/place-opening.ts`, `frontend/src/lib/supabase/auth-errors.ts`, `frontend/src/lib/supabase/browser.ts`, `frontend/src/app/login/page.tsx`, `comment.md`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build` 통과
+- 홈 `내 일정` 상단 헤더를 공용 컴포넌트로 분리해 홈 일반 상태, 홈 빈 상태, `/empty` 프리뷰가 같은 헤더 구조를 쓰도록 정리
+- 홈 빈 상태 문구 `아직 일정이 없어요! 만들어 볼까요?`의 타이틀 크기를 한 단계 축소
+- 수정 파일: `frontend/src/components/home/home-schedule-header.tsx`, `frontend/src/app/page.tsx`, `frontend/src/app/empty/page.tsx`, `frontend/src/components/home/home-empty-state.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build` 통과
+- 공용 모달 셸의 카드 배경을 완전 불투명으로 바꾸고 오버레이를 회색 톤 반투명으로 조정해 모달 집중도를 높임
+- 저장 리스트/가져오기 관련 입력 흐름에 공용 zod 스키마를 연결하고, URL·도시·리스트 이름 검증과 에러 메시지를 추가
+- 수정 파일: `frontend/src/components/common/dialog-shell.tsx`, `frontend/src/lib/forms/input-schemas.ts`, `frontend/src/components/import/import-list-modal.tsx`, `frontend/src/app/routes/import/page.tsx`, `frontend/src/app/saved/[listId]/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck`, `pnpm run build` 통과
+- 버튼 반경 규칙을 `buttonStyles` 공용 유틸과 `shape`(`default`/`pill`)로 분리하고 `Button` 컴포넌트도 같은 규칙을 쓰도록 정리
+- 홈 CTA, 404, 가져오기 링크, 경로 카드 액션, 장소 상세 CTA, 마이페이지 월 이동/언어 토글에 공용 버튼 반경 기준 적용
+- 수정 파일: `frontend/src/components/ui/button-styles.ts`, `frontend/src/components/ui/button.tsx`, `frontend/src/app/page.tsx`, `frontend/src/components/home/home-empty-state.tsx`, `frontend/src/app/not-found.tsx`, `frontend/src/app/routes/import/page.tsx`, `frontend/src/components/routes/route-stop-card.tsx`, `frontend/src/components/places/place-detail-content.tsx`, `frontend/src/app/mypage/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build` 통과
+- 홈 빈 상태와 `/empty` 프리뷰에서는 헤더 우측 강아지를 숨기도록 `HomeScheduleHeader`에 `showMascot` 옵션 추가
+- `내 일정` 빈 상태와 `다가오는 일정 없음` 상태도 같은 옵션을 써서 헤더와 중앙 마스코트가 중복되지 않게 정리
+- 수정 파일: `frontend/src/components/home/home-schedule-header.tsx`, `frontend/src/app/page.tsx`, `frontend/src/app/empty/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build` 통과
+- 공용 리스트 가져오기 모달, 장소 상세 공용 본문, 일정 스탑 카드, 지도 fallback의 한글 문구를 추가 수정 요청에 맞게 교체
+- 수정 파일: `frontend/src/components/import/import-list-modal.tsx`, `frontend/src/components/places/place-detail-content.tsx`, `frontend/src/components/routes/route-stop-card.tsx`, `frontend/src/components/routes/google-route-map.tsx`, `comment.md`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build` 통과
+- 홈 빈 상태 보조 문구를 `다음 여행을 기다리고 있어요.`로 정리하고 `comment.md`에 남아 있던 화살표 메모를 같은 기준으로 마무리
+- 수정 파일: `frontend/src/components/home/home-empty-state.tsx`, `comment.md`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build` 통과
+- 공용 모달 셸의 카드 배경을 완전 불투명으로 바꾸고 오버레이를 회색 톤 반투명으로 조정해 모달 집중도를 높임
+- 저장 리스트/가져오기 관련 입력 흐름에 공용 zod 스키마를 연결하고, URL·도시·리스트 이름 검증과 에러 메시지를 추가
+- 수정 파일: `frontend/src/components/common/dialog-shell.tsx`, `frontend/src/lib/forms/input-schemas.ts`, `frontend/src/components/import/import-list-modal.tsx`, `frontend/src/app/routes/import/page.tsx`, `frontend/src/app/saved/[listId]/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck`, `pnpm run build` 통과
+- 마이페이지 로그아웃 아래에 거의 버튼처럼 보이지 않는 `회원 탈퇴` 텍스트 액션을 추가하고, `sad_dog.png`를 사용하는 재확인 모달과 실제 탈퇴 뮤테이션을 연결
+- 프론트 GraphQL 문서/API에 `deleteMyAccount` 호출을 추가하고, 탈퇴 성공 시 로컬 세션 정리 후 `/login`으로 이동하도록 처리
+- 수정 파일: `frontend/src/app/mypage/page.tsx`, `frontend/src/lib/graphql/documents.ts`, `frontend/src/lib/graphql/api.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck`, `pnpm run build` 통과
+- `comment.md`를 메타데이터/접근성 텍스트 중심 인벤토리에서 실제 UI 노출 문구만 보는 편집용 문서로 다시 정리
+- 공용 화면과 페이지별 섹션으로 재구성하고 제목, 버튼, 토스트, validation, placeholder, 빈 상태/오류 상태만 남김
+- 수정 파일: `comment.md`, `PROCESS.md`
+- 로그인·회원가입 화면을 폼 + `greeting_dog` 2열 레이아웃으로 바꾸고 모바일에서는 폼 우선 흐름을 유지
+- 새 일정 funnel의 날짜/동행자 단계에 `calendar_dog`, `friend_dog`를 적용하고 동행자 강아지 가로 비율이 자연스럽게 보이도록 폭을 따로 조정
+- 전역 에러, 404, 홈/추천/저장/상세 조회 실패 상태에 `surprise_dog`를 연결하고 관련 마스코트 variant를 공용 `Mascot`에 추가
+- 수정 파일: `frontend/src/components/layout/mascot.tsx`, `frontend/src/app/login/page.tsx`, `frontend/src/app/signup/page.tsx`, `frontend/src/components/routes/new-route-client.tsx`, `frontend/src/app/error.tsx`, `frontend/src/app/not-found.tsx`, `frontend/src/app/page.tsx`, `frontend/src/app/mypage/page.tsx`, `frontend/src/app/saved/page.tsx`, `frontend/src/app/routes/recommendation/page.tsx`, `frontend/src/app/routes/[id]/page.tsx`, `frontend/src/app/saved/[listId]/page.tsx`, `frontend/src/app/places/[placeId]/page.tsx`, `frontend/src/app/saved/[listId]/[placeId]/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build` 통과
+- 공용 `EmptyState`를 `panel`/`hero` 변형과 `showMascot`, `eyebrow`를 지원하도록 확장하고 홈 빈 상태를 hero wrapper로 정리
+- 저장 리스트는 상단 `리스트 가져오기` 버튼을 지속 액션으로 두고 빈 패널 안 CTA를 제거, 새 일정 리스트 단계는 `StepTitle` 아래에 가져오기 버튼을 항상 노출하고 빈 패널에서는 마스코트를 숨김
+- 수정 파일: `frontend/src/components/common/empty-state.tsx`, `frontend/src/components/home/home-empty-state.tsx`, `frontend/src/app/saved/page.tsx`, `frontend/src/components/routes/new-route-client.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build` 통과
+- 회원 탈퇴 모달 헤더/본문의 중복 문구를 정리하고, 로그아웃 아래 `회원 탈퇴` 텍스트를 밑줄 있는 차콜 톤 링크처럼 보이도록 조정
+- 수정 파일: `frontend/src/app/mypage/page.tsx`, `PROCESS.md`
+- 로그인·회원가입 화면의 `greeting_dog`를 별도 박스와 안내 문구 없이 이미지로만 보이게 정리하고, 데스크톱에서는 폼 카드 주변에 absolute로 걸치도록 재배치
+- 모바일에서는 인증 폼 헤더 오른쪽에 작은 강아지 이미지만 두고 기존 폼 흐름은 유지
+- 수정 파일: `frontend/src/app/login/page.tsx`, `frontend/src/app/signup/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build` 통과
+- 로그인·회원가입 화면의 폼 레이아웃을 기존 단일 카드 위치로 되돌리고, `greeting_dog`만 카드 우상단 바깥에 겹치는 오버레이로 재조정
+- 수정 파일: `frontend/src/app/login/page.tsx`, `frontend/src/app/signup/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build` 통과
+- 로그인·회원가입 화면에서 폼 카드 폭 기준을 다시 `section max-w-[440px]`로 명시하고, 강아지는 카드 폭과 분리된 absolute 좌표로 배치해 기존 크기감이 유지되도록 조정
+- 수정 파일: `frontend/src/app/login/page.tsx`, `frontend/src/app/signup/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build` 통과
+- 인증 화면에서 `greeting_dog`를 제거하고 로그인/회원가입을 강아지 추가 전 단일 폼 카드 레이아웃으로 복원
+- 수정 파일: `frontend/src/app/login/page.tsx`, `frontend/src/app/signup/page.tsx`, `PROCESS.md`
+- 로그인 화면에서 이메일/Google 인증 시 첫 클릭 즉시 인증 잠금을 걸어 중복 클릭으로 요청이 두 번 나가지 않도록 정리
+- 입력 필드와 두 로그인 버튼을 같은 busy 상태로 묶고, 이메일 로그인 버튼은 잠금 중 `로그인 중...`으로 유지
+- 수정 파일: `frontend/src/app/login/page.tsx`, `PROCESS.md`
+- 마이페이지 하단 로그아웃 버튼과 `회원 탈퇴` 링크 사이 간격을 늘려 다른 설정 아이템과 유사한 여백으로 정리
+- 수정 파일: `frontend/src/app/mypage/page.tsx`, `PROCESS.md`
+
+### 2026-03-13
+- 장소 상세 지도 카드 하단의 `지도에서 위치를 바로 확인할 수 있어요` 문구를 제거하고, 장소 이름 위 상단 배지는 카테고리 1개만 남기도록 정리
+- 장소 상세 대표 사진은 하단 썸네일 미리보기 대신 드래그 가능한 슬라이더 + 점 인디케이터로 교체
+- 일정 상세와 임시 상세에서 장소 상세 링크에 `visitDate`를 함께 넘기고, 장소 상세 영업시간 카드에서 `오늘`과 `방문 예정` 요일을 각각 동시에 강조되게 수정
+- 활성화된 영업시간 row는 배경 강조를 넣고 오른쪽 시간 텍스트도 파란색으로 맞춤
+- 수정 파일: `frontend/src/components/places/place-detail-content.tsx`, `frontend/src/components/common/horizontal-drag-scroll.tsx`, `frontend/src/app/places/[placeId]/page.tsx`, `frontend/src/app/routes/[id]/page.tsx`, `frontend/src/app/routes/temp/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과, `pnpm run build`는 첫 시도에 `.next/server/app/_not-found/page.js.nft.json` 누락으로 실패 후 `.next` 삭제 재실행으로 통과
+- 남은 이슈: 장소 상세 가격 범위(`priceRange`)와 장소 로컬 시각(`utcOffsetMinutes`)은 아직 저장/표시하지 않음
+- 장소 상세 슬라이더의 사진 수 인디케이터를 이미지 우상단으로 옮기고, 좌우 화살표는 제거했으며 점 인디케이터는 이미지 내부 하단 중앙으로 재배치
+- 영업시간 카드 헤더 설명과 `방문 예정 수요일 24시간 영업` 형태의 요약 안내를 제거
+- 리뷰 카드 별점 아이콘은 노란색 filled star로 바꾸고, 리뷰 날짜는 연도까지 표시하도록 수정
+- 수정 파일: `frontend/src/components/places/place-detail-content.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과, `.next`와 `.next-dev` 정리 후 샌드박스 밖 `pnpm run build` 통과
+- 장소 상세 데스크톱 레이아웃도 모바일과 같은 단일 컬럼 흐름으로 통일하고, 정보/리뷰 카드의 다단 그리드를 제거
+- 슬라이더 오버레이에 `pointer-events-none`을 적용해 이미지 드래그가 다시 동작하도록 했고, 점 인디케이터는 크기 변화 없이 흰색 원형으로 고정
+- 슬라이더 오버레이의 가격 칩을 제거하고, 메인/저장 장소 상세의 뒤로가기 버튼은 아이콘만 남기도록 정리
+- 수정 파일: `frontend/src/components/places/place-detail-content.tsx`, `frontend/src/components/common/horizontal-drag-scroll.tsx`, `frontend/src/app/places/[placeId]/page.tsx`, `frontend/src/app/saved/[listId]/[placeId]/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck`, `.next`와 `.next-dev` 정리 후 `pnpm run build` 통과
+- 장소 상세 슬라이더가 실제로 안 움직이던 문제를 스크롤 기반 구현에서 상태 기반 translate 캐러셀로 교체해 수정
+- 사진 컴포넌트의 기본 이미지 drag도 비활성화해 데스크톱 마우스 드래그가 브라우저 기본 동작에 먹히지 않도록 정리
+- 수정 파일: `frontend/src/components/places/place-detail-content.tsx`, `frontend/src/components/common/place-photo.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck`, `.next`와 `.next-dev` 정리 후 `pnpm run build` 통과
+- 장소 상세 슬라이더를 양끝 clone slide 기반 무한 루프로 바꿔 마지막 사진 다음은 첫 사진, 첫 사진에서 오른쪽 드래그는 마지막 사진으로 이어지게 수정
+- 점 인디케이터는 부모 drag 핸들러와 이벤트 충돌이 나지 않도록 분리해 클릭 시 즉시 해당 사진으로 이동하도록 정리
+- 수정 파일: `frontend/src/components/places/place-detail-content.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과, `pnpm run build`는 첫 시도 타임아웃 후 동일 명령 재실행으로 통과
+
+### 2026-03-14
+- 장소 상세 슬라이더에 `5초` 자동 넘김을 추가하고, 드래그나 점 인디케이터 클릭으로 한 번이라도 수동 조작하면 자동 넘김이 멈추도록 수정
+- 자동 넘김은 기존 무한 루프 캐러셀 상태를 그대로 사용해 마지막 사진 다음은 첫 사진으로 계속 순환
+- 수정 파일: `frontend/src/components/places/place-detail-content.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck`, `.next`와 `.next-dev` 정리 후 `pnpm run build` 통과
+
+### 2026-03-18
+- 저장 리스트 상세 상단에 1번 장소 데이터를 재사용한 `새 카드 시안` 비교 카드를 추가하고, 기존 1번 카드에는 `현재 카드` 라벨을 붙여 한 화면에서 디자인 비교가 가능하게 정리
+- `SavedListPlaceCard`에 comparison variant를 추가해 모바일에서도 사진과 정보가 한 줄에서 읽히는 새 레이아웃, 주소 strip, 더 큰 action 버튼, Must Visit overlay badge를 적용
+- 저장 리스트 카드에서 쓰는 `Badge`/`CategoryBadge`에 prominent size를 추가해 Must Visit 및 카테고리 뱃지가 모바일에서도 너무 작지 않게 보이도록 조정
+- 수정 파일: `frontend/src/app/saved/[listId]/page.tsx`, `frontend/src/components/saved/saved-list-place-card.tsx`, `frontend/src/components/ui/badge.tsx`, `frontend/src/components/common/category-badge.tsx`, `frontend/src/constants/ui-copy.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 다음 단계: 비교 시안 확인 후 저장 리스트 상세 카드 전체를 새 variant로 전환할지 결정
+- 후속 피드백에 따라 기존 카드는 원래 구조로 되돌리고, 비교 라벨은 카드 외부 텍스트로 이동시켜 기존 UI를 건드리지 않도록 정리
+- comparison 카드만 `이미지 헤더형`으로 다시 조정해 데스크톱 카드 언어를 크게 벗어나지 않으면서 모바일에서 사진/상태/제목 가독성이 더 좋아지게 수정
+- 수정 파일: `frontend/src/app/saved/[listId]/page.tsx`, `frontend/src/components/saved/saved-list-place-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 후속 조정으로 comparison 카드의 평점/리뷰는 사진 하단 overlay로 올리고, `영업 상태`와 장소명은 다시 본문 상단으로 내려 기존 카드 정보 흐름에 가깝게 맞춤
+- comparison 카드 하단 `메모 추가`/`지도 보기`는 아이콘 위치를 통일한 equal-width 버튼으로 재배치해 모바일에서 두 버튼이 한 줄 2등분으로 보이게 정리
+- 수정 파일: `frontend/src/components/saved/saved-list-place-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 후속 조정으로 comparison 카드의 카테고리 배지는 사진 overlay에서 본문 첫 줄로 내려 `영업 상태` 앞에 배치하고, 사진 좌상단 자리는 `MUSTVISIT`일 때만 사용하도록 정리
+- 수정 파일: `frontend/src/components/saved/saved-list-place-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 후속 조정으로 comparison 카드 본문/인라인 에디터 묶음의 세로 간격은 `space-y` 대신 `flex flex-col + gap`으로 바꿔 margin 기반 간격 없이 정리
+- 수정 파일: `frontend/src/components/saved/saved-list-place-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 후속 조정으로 comparison 카드의 `prominent` 배지는 `MUSTVISIT`과 카테고리가 같은 반응형 크기 규칙을 쓰도록 맞추고, 전체 크기를 한 단계 줄여 모바일에서 덜 과하게 보이도록 정리
+- 사진 overlay의 즐겨찾기/삭제 원형 버튼과 평점·리뷰 pill은 `bg-overlay` 기반의 반투명 회색 + blur 톤으로 통일해 사진 위에서도 더 가볍게 뜨도록 조정
+- comparison 카드 본문은 `배지/상태/장소명/주소` 정보 묶음과 `메모/하단 버튼` 유틸 묶음 두 영역으로 다시 나누고, 각 gap을 줄여 정보 밀도를 높임
+- 수정 파일: `frontend/src/components/ui/badge.tsx`, `frontend/src/components/common/category-badge.tsx`, `frontend/src/components/saved/saved-list-place-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 후속 조정으로 comparison 카드의 정보/유틸 grouping div는 flex 정렬만 담당하도록 되돌리고, 추가했던 보더·배경·패딩 스타일은 모두 제거
+- 수정 파일: `frontend/src/components/saved/saved-list-place-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 저장 리스트 카드의 뱃지 스펙 차이를 줄이기 위해 `Badge`/`CategoryBadge`에 중간 `card` size를 추가하고, 기존 카드와 comparison 카드 모두 같은 `card` 규격으로 `MUSTVISIT`/카테고리 배지를 렌더하도록 통일
+- 수정 파일: `frontend/src/components/ui/badge.tsx`, `frontend/src/components/common/category-badge.tsx`, `frontend/src/components/saved/saved-list-place-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 후속 조정으로 comparison 카드 주소 줄은 기존 카드와 같은 `text-xs / md:text-sm`, `h-3.5 w-3.5` 아이콘 스펙으로 맞추고, 긴 주소가 더 자연스럽게 읽히도록 `items-start` 정렬로 변경
+- 수정 파일: `frontend/src/components/saved/saved-list-place-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 후속 조정으로 comparison 카드 본문은 `(뱃지·장소명·주소) / (메모) / (메모추가·지도보기)` 3개 섹션으로 분리하고, 이를 바깥 `flex gap` wrapper 안의 형제 블록으로 재구성
+- 수정 파일: `frontend/src/components/saved/saved-list-place-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 후속 조정으로 comparison 카드의 메모/하단 버튼 섹션은 추가 `flex` wrapper를 걷고, 각 섹션 컴포넌트를 바깥 `flex gap` 안에 바로 형제로 렌더하도록 단순화
+- 수정 파일: `frontend/src/components/saved/saved-list-place-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 후속 조정으로 comparison 카드의 `배지/상태/장소명/주소` 묶음 gap을 한 단계 더 줄여 장소명 주변 간격이 덜 벌어지게 정리
+- 수정 파일: `frontend/src/components/saved/saved-list-place-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 후속 조정으로 comparison 카드 사진 overlay의 삭제 원형 버튼은 별도 분홍 톤 대신 `text-danger` / hover `text-danger-hover`를 사용하도록 맞춤
+- 수정 파일: `frontend/src/components/saved/saved-list-place-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 삭제 계열 모달은 공용 `DialogShell`에 danger tone을 추가해 헤더 그라데이션, 헤더 장식, 아이브로우 텍스트가 모두 빨간 계열로 통일되도록 정리
+- 일정/리스트 삭제 확인 모달과 마이페이지 계정 삭제 모달이 같은 danger tone을 사용하도록 연결
+- 수정 파일: `frontend/src/components/common/dialog-shell.tsx`, `frontend/src/components/common/confirm-dialog.tsx`, `frontend/src/app/mypage/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file src/components/common/dialog-shell.tsx --file src/components/common/confirm-dialog.tsx --file src/app/mypage/page.tsx`, `pnpm run typecheck:stable` 통과
+- 후속 정정으로 마이페이지 탈퇴 모달은 헤더 강아지를 유지하고, danger tone만 적용한 상태로 정리
+- 수정 파일: `frontend/src/app/mypage/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file src/app/mypage/page.tsx`, `pnpm run typecheck:stable` 통과
+- 후속 미세조정으로 공용 `DialogShell`에 마스코트 크기 오버라이드 prop을 추가하고, 탈퇴 모달의 슬픈 강아지만 기본 대비 약 18% 크게 보이도록 조정
+- 수정 파일: `frontend/src/components/common/dialog-shell.tsx`, `frontend/src/app/mypage/page.tsx`, `PROCESS.md`
+- 후속 미세조정으로 탈퇴 모달의 슬픈 강아지 배율은 `1.18x`에서 `1.28x`로 한 단계 더 올려 헤더 존재감만 조금 더 키움
+- 수정 파일: `frontend/src/app/mypage/page.tsx`, `PROCESS.md`
+- 후속 미세조정으로 탈퇴 모달 강아지 배율을 `1.5x`까지 올려 헤더에서 더 확실히 보이도록 조정
+- 수정 파일: `frontend/src/app/mypage/page.tsx`, `PROCESS.md`
+- `shared/route-taxonomy.json` 의존을 제거하고, 프런트는 `frontend/src/constants/route-taxonomy.json`, 백엔드는 `backend/src/lib/route-taxonomy.json`을 각각 직접 읽도록 바꿔 개별 배포에서 루트 공용 파일 추적이 필요 없게 정리
+- 확인: `frontend`에서 `pnpm run verify` 통과, `backend`에서 `npm run check` 통과
+- 수정 파일: `frontend/src/constants/route-taxonomy.ts`, `frontend/src/constants/route-taxonomy.json`, `backend/src/lib/route-taxonomy.js`, `backend/src/lib/route-taxonomy.json`, `shared/route-taxonomy.json`, `PROCESS.md`
+
+## 현재 상태 메모
+
+### Git으로 바로 확인되는 마지막 커밋
+- 2026-02-28 `e57ff72`
+
+### 아직 커밋되지 않은 작업 묶음
+- `frontend/` 전체
+- `PLAN.md`
+- `implementation_plan.md`
+- `component-analysis-report.md`
+- `README.md`
+- `backend/src/index.js`
+- `backend/src/lib/geminiOptimizer.js`
+- `backend/src/lib/googlePlaces.js`
+- `backend/src/resolvers.js`
+- `backend/src/schema.js`
+
+## 이후 기록 규칙
+
+### 매일 이렇게 추가
+```md
+### YYYY-MM-DD
+- 오늘 한 일 1
+- 오늘 한 일 2
+- 수정한 핵심 파일: `path/to/file`
+- 남은 이슈 / 다음 작업:
+  - 항목 1
+  - 항목 2
+```
+
+### 권장 방식
+- 작업이 끝날 때마다 이 파일에 바로 3~5줄 추가
+- 커밋 전에 한 번, 커밋 후에 한 번 정리하면 나중에 복원하기 쉬움
+- 확정된 사실과 추정 내용을 섞어 적어야 하면 `확정`, `복원`처럼 라벨을 붙여두기
+
+- `/routes/new?step=companions` 동행 선택 카드만 아이콘과 라벨을 세로 중앙 정렬로 맞추고, 마이페이지 여행 캘린더 섹션 제목에도 아이콘을 추가
+- 마이페이지 상단 타이틀 문구를 `여행 캘린더`에서 `마이페이지`로 변경
+- 수정 파일: `frontend/src/components/routes/new-route-client.tsx`, `frontend/src/app/mypage/page.tsx`, `frontend/src/constants/ui-copy.ts`, `PROCESS.md`
+- `/routes/new?step=companions`, `/routes/new?step=style` 선택 카드에 동행/페이스/테마별 Lucide 아이콘을 추가하고 카드 레이아웃을 아이콘 포함 형태로 정리
+- 마이페이지 `내 여행 스타일` 섹션 제목 왼쪽에 `Sparkles` 아이콘을 추가
+- 수정 파일: `frontend/src/components/routes/new-route-client.tsx`, `frontend/src/app/mypage/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과, `.next` 정리 후 `pnpm run build` 통과
+- 마이페이지 로그아웃 시 세션이 먼저 비면서 `마이페이지를 불러오는 중...`이 잠깐 보이던 흐름을 전용 `로그아웃 중...` 상태로 분리
+- 일반 로그아웃은 현재 기기 기준으로 빠르게 정리되도록 `supabase.auth.signOut({ scope: "local" })`로 변경하고, 성공 시 query cache를 비운 뒤 `/login`으로 이동하도록 정리
+- 수정 파일: `frontend/src/app/mypage/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck`, `pnpm run build` 통과
+- 남은 이슈: 로그아웃 직후 `/`에 머무는 UX를 원하면 홈 라우트를 비로그인 공개 화면으로 분리해야 함
+- 마이페이지 월간 여행 캘린더에서 토요일/일요일 주간 경계를 새 세그먼트로 보지 않도록 바꿔, 실제 시작일과 종료일만 둥글게 처리되게 수정
+- 수정 파일: `frontend/src/app/mypage/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build` 통과
+- 저장 리스트 상세의 장소 카드를 카드 전체 클릭으로 상세 이동되게 바꾸고, 별찜/삭제 버튼과 메모 입력은 카드 링크 위에서 계속 독립 동작하도록 레이어를 분리
+- 메모 입력은 기존처럼 blur 시 `updatePlaceListItem` GraphQL mutation으로 저장되는 흐름을 유지
+- 전체 빌드 확인을 막던 일정 상세의 `travelModes` 타입 좁힘 오류를 `modeLabel` 문자열 명시로 정리
+- 수정 파일: `frontend/src/app/saved/[listId]/page.tsx`, `frontend/src/app/routes/[id]/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build` 통과
+- 저장 리스트 상세의 장소 삭제를 즉시 실행 대신 카드별 확인 모달을 거치도록 바꾸고, 메모 저장 mutation과 삭제 mutation을 분리
+- 저장 장소 카드는 hover 시 제목 색 변화뿐 아니라 border·background·shadow가 함께 반응하도록 시각 효과를 추가
+- 수정 파일: `frontend/src/app/saved/[listId]/page.tsx`, `frontend/src/constants/ui-copy.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build` 통과
+- `/routes/new?step=date` 기간 선택 캘린더의 연결 영역을 `bg-primary/24`로 올려 범위 배경이 더 또렷하게 보이도록 조정
+- 날짜 요약 라벨은 시작일/종료일 각각 선택 여부를 따로 판단해, 미선택 값만 회색으로 보이고 선택된 값은 기존 전경색을 유지하도록 수정
+- 수정 파일: `frontend/src/components/routes/new-route-client.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build` 통과
+- `/routes/new?step=date` 범위 연결 배경을 `bg-primary/30`로 한 단계 더 올려 실제 선택 영역이 더 또렷하게 보이도록 조정
+- 날짜 요약 라벨은 선택된 날짜만 `font-black`으로 유지하고, `날짜 미선택`과 구분자는 회색 계열의 덜 강조된 가중치로 정리
+- 수정 파일: `frontend/src/components/routes/new-route-client.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build` 통과
+- `/routes/new?step=date`의 `날짜 미선택` placeholder 텍스트를 `text-foreground/24`로 더 옅게 조정해 실제 선택값과 대비를 키움
+- 수정 파일: `frontend/src/components/routes/new-route-client.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build` 통과
+- `/routes/new` 일정 생성은 여행 기간 전체를 최대 7일로 제한하고, 7일을 넘기는 두 번째 날짜 클릭은 새 시작일 선택으로 다시 잡히도록 프론트 로직을 조정
+- 날짜 단계에 `최대 7일까지 선택 가능` 안내 문구를 추가하고, 백엔드 `createSchedule`/`regenerateSchedule` 공통 dayCount 검증도 최대 7일 기준으로 축소
+- 수정 파일: `frontend/src/components/routes/new-route-client.tsx`, `frontend/src/constants/ui-copy.ts`, `backend/src/resolvers.js`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build`, `backend`에서 `node --check src/resolvers.js` 통과
+- `/routes/new?step=date` 최대 기간 안내를 빨간 `CircleAlert` 아이콘 + 인라인 메시지 박스로 바꿔 제한 조건이 더 바로 보이도록 조정
+- 수정 파일: `frontend/src/components/routes/new-route-client.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build` 통과
+- `/routes/new?step=date` 최대 기간 안내 박스의 세로 정렬을 `items-center` 기준으로 맞추고, 아이콘은 더 눈에 띄는 빨간 `AlertTriangle`로 교체
+- 빌드 중 `.next/server/pages-manifest.json` 누락으로 한 차례 실패해 캐시를 비운 뒤 재빌드로 확인
+- 수정 파일: `frontend/src/components/routes/new-route-client.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `if (Test-Path .next) { Remove-Item -Recurse -Force .next }; pnpm run build` 통과
+- `/routes/new?step=list` 리스트 카드는 다시 클릭하면 선택 해제되는 토글 동작으로 바꾸고, 선택 해제 시 `placeListId`와 자동 일정 제목을 함께 비워 `다음` 버튼이 자연스럽게 비활성화되도록 정리
+- 리스트 카드 클릭과 import 직후 자동 선택이 같은 `applySelectedList` 경로를 쓰도록 묶어, 다른 리스트로 바꿔도 일정 제목이 현재 선택 리스트 기준으로 맞춰지게 수정
+- 수정 파일: `frontend/src/components/routes/new-route-client.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build` 통과
+- `frontend/src/constants/ui-copy.ts`를 추가하고 로그인/회원가입/홈/저장 리스트/새 일정/추천/상세/마이페이지 문구를 페이지별 상수로 이관
+- `comment.md` 기준으로 문구를 교체하고, 홈/인증/저장 리스트 흐름에서 개발자용 상세 에러가 UI에 직접 노출되지 않도록 일반 사용자용 문구로 정리
+- 수정 파일: `frontend/src/constants/ui-copy.ts`, `frontend/src/app/login/page.tsx`, `frontend/src/app/signup/page.tsx`, `frontend/src/app/auth/callback/page.tsx`, `frontend/src/app/page.tsx`, `frontend/src/app/saved/page.tsx`, `frontend/src/app/saved/[listId]/page.tsx`, `frontend/src/app/routes/import/page.tsx`, `frontend/src/components/routes/new-route-client.tsx`, `frontend/src/app/routes/recommendation/page.tsx`, `frontend/src/app/routes/[id]/page.tsx`, `frontend/src/components/places/place-detail-content.tsx`, `frontend/src/app/mypage/page.tsx`, `frontend/src/lib/forms/input-schemas.ts`, `frontend/src/lib/supabase/auth-errors.ts`, `frontend/src/lib/supabase/browser.ts`, `frontend/src/lib/format.ts`, `frontend/src/lib/place-opening.ts`, `frontend/src/components/import/import-list-modal.tsx`, `frontend/src/components/home/home-schedule-header.tsx`, `frontend/src/components/home/home-empty-state.tsx`, `frontend/src/components/layout/bottom-nav.tsx`, `frontend/src/components/common/loading-panel.tsx`, `frontend/src/app/error.tsx`, `frontend/src/app/not-found.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build` 통과
+- 일정 상세 split 화면에서 지도 패널 최소 높이를 보강하고 `GoogleRouteMap`에 `ResizeObserver` 기반 viewport 재동기화를 넣어 레이아웃 변경 뒤에도 지도가 비지 않게 수정
+- 상단 `지도+일정/일정만` 토글을 삭제 버튼과 같은 높이감으로 다시 맞추고, 모바일 바텀시트·데이 선택·지도 패널 그림자를 한 단계 약하게 조정
+- 수정 파일: `frontend/src/app/routes/[id]/page.tsx`, `frontend/src/components/routes/google-route-map.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck`, `pnpm run build` 통과
+- Playwright로 모바일 `/routes/temp`를 재현해 지도 루트 rect 높이가 `0px`인 것을 확인했고, 모바일/데스크톱 일정 상세의 지도 레이어를 절대 배치로 바꿔 부모 영역을 확실히 채우도록 수정
+- 실제 재검증에서 모바일 지도 레이어 rect가 `544px`로 복구된 것을 확인하고, 같은 구조를 쓰는 임시 상세 페이지도 함께 동기화
+- 수정 파일: `frontend/src/app/routes/[id]/page.tsx`, `frontend/src/app/routes/temp/page.tsx`, `PROCESS.md`
+- 확인: Playwright `myroute-mobile` 세션에서 모바일 `/routes/temp` DOM 재검증, `frontend`에서 `pnpm run typecheck`, `pnpm run build` 통과
+- 일정 상세 day 탭 가로 영역을 스크롤바 대신 직접 드래그해서 넘길 수 있도록 공용 `HorizontalDragScroll` 컴포넌트를 추가하고, 드래그 중에는 day 버튼 클릭이 오작동하지 않게 처리
+- 실제 일정 상세와 임시 상세 페이지의 day selector가 같은 드래그 스크롤 컴포넌트를 쓰도록 맞춤
+- 수정 파일: `frontend/src/components/common/horizontal-drag-scroll.tsx`, `frontend/src/app/routes/[id]/page.tsx`, `frontend/src/app/routes/temp/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck`, `pnpm run build` 통과
+- 모바일 일정 상세에서 바텀시트 배경을 `bg-white`로 되돌리고 `overflow-x-hidden`을 추가해 지도+일정 모드에서 시트가 비쳐 보이지 않게 정리
+- day strip의 `w-[calc(100%+0.5rem)]`와 `scrollbar-subtle`을 제거하고 `scrollbar-hidden` 유틸 + `w-full` 드래그 스크롤로 바꿔, 스크롤 UI 없이도 좌우 이동되면서 sheet 가로 overflow가 생기지 않게 수정
+- 모바일 full-bleed 지도/시트 래퍼는 `w-[100vw]` + negative margin 정렬로 맞추고, Playwright 모바일 `/routes/temp` 재검증에서 페이지 `scrollWidth === clientWidth`, 시트 배경 `rgb(255,255,255)`를 확인
+- 수정 파일: `frontend/src/app/globals.css`, `frontend/src/components/common/horizontal-drag-scroll.tsx`, `frontend/src/app/routes/[id]/page.tsx`, `frontend/src/app/routes/temp/page.tsx`, `PROCESS.md`
+- 확인: Playwright `myroute-mobile` 세션에서 모바일 `/routes/temp` DOM 재검증, `frontend`에서 `if (Test-Path .next) { Remove-Item -Recurse -Force .next }; pnpm run build`, `pnpm run typecheck` 통과
+- day strip은 모바일에서 커스텀 pointer drag를 빼고 native touch scroll + hidden scrollbar로 넘겨 스와이프가 더 부드럽게 느껴지도록 조정하고, 마우스 드래그만 별도로 유지
+- 모바일 일정 상세 바텀시트는 `peek -> full -> peek`만 되도록 드래그 범위를 제한하고, 지도 프레임 높이를 기본 시트 위치 기준으로 줄인 뒤 24px 정도 sheet 아래로 겹치게 해서 동선이 시트 뒤에 과하게 잘리지 않도록 수정
+- Playwright 모바일 `/routes/temp` 재확인에서 page `scrollWidth === clientWidth`, map frame bottom이 sheet top보다 약 24px 아래까지 내려오도록 겹친 상태를 확인
+- 수정 파일: `frontend/src/components/common/horizontal-drag-scroll.tsx`, `frontend/src/app/routes/[id]/page.tsx`, `frontend/src/app/routes/temp/page.tsx`, `PROCESS.md`
+- 확인: Playwright `myroute-mobile-3016` 세션에서 모바일 `/routes/temp` DOM 재검증, `frontend`에서 `pnpm run build`, `pnpm run typecheck` 통과
+- 모바일 일정 상세는 리스트 카드 섹션 자체가 아니라 바텀시트 본문 전체가 세로 스크롤되도록 바꿔, 지도 마커 클릭 시 아래쪽 카드도 위로 충분히 끌어올릴 수 있게 수정
+- 모바일 sheet 본문 하단에 추가 scroll padding을 넣고, 지도 줌 컨트롤은 `.route-map-mobile .gm-bundled-control` 하단 margin으로 위쪽에 띄웠으며, 리스트 섹션의 `flex-1`을 제거해 바텀시트 하단의 남는 보라색 빈 영역이 생기지 않게 정리
+- 수정 파일: `frontend/src/app/globals.css`, `frontend/src/app/routes/[id]/page.tsx`, `frontend/src/app/routes/temp/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `if (Test-Path .next) { Remove-Item -Recurse -Force .next }; pnpm run build`, `pnpm run typecheck` 통과
+- 장소 상세보기 상단 대표 이미지를 슬라이더로 바꾸고 기존 사진 섹션은 제거, 평점·리뷰 수·가격대는 사진 오버레이 칩으로 재배치
+- 장소 상세 상단의 8개 스탯/액션 타일은 제거하고 `빠른 정보` 스타일 정보 rows로 교체했으며, generic Google Places 타입 뱃지(`point_of_interest`, `establishment`)는 숨기고 `hotel`, `lodging` 라벨을 한글화
+- 영업시간 카드는 오늘 강조가 들어간 compact 요일 리스트로 압축하고, 영업 상태 배지는 점+톤형 pill 스타일로 정리
+- 수정 파일: `frontend/src/components/places/place-detail-content.tsx`, `frontend/src/constants/ui-copy.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck`, `if (Test-Path .next) { Remove-Item -Recurse -Force .next }; pnpm run build` 통과
+- 남은 이슈: 일부 장소의 가격대는 Google Places가 값을 주지 않았거나 저장 데이터가 오래된 경우 계속 `가격 정보 없음`으로 보일 수 있음
+
+### 2026-03-13
+- 모바일 일정 상세 바텀시트는 `AppShell`이 확보한 하단 내비 영역까지만 쓰도록 정리하고, 시트 내부의 별도 bottom scroll padding 보정을 제거
+- 하단 내비 높이/offset을 `--bottom-nav-height`, `--bottom-nav-offset` CSS 변수로 올려 `AppShell`과 `BottomNav`가 같은 기준을 공유하게 수정
+- 수정 파일: `frontend/src/app/routes/[id]/page.tsx`, `frontend/src/components/layout/app-shell.tsx`, `frontend/src/components/layout/bottom-nav.tsx`, `frontend/src/app/globals.css`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck`, `pnpm run build` 통과
+- 현재 앱의 badge/pill/label 사용처를 전수 스캔해 루트 `badge.md`로 정리하고, 라벨명·용도·사용 위치·아이콘·배경색·폰트색·preview/mock 여부를 문서화
+- 수정 파일: `badge.md`, `PROCESS.md`
+- 확인: 코드 변경 없음, 로컬 소스 스캔 기준 문서화
+- badge 문서만으로 보기 어려운 시각 차이를 확인할 수 있게 `/badge` 임시 참고 페이지를 추가하고, 공용 Badge 맵·fallback badge·상태 pill·마이페이지 취향 chip을 실제 스타일로 렌더링
+- `badge.md`에는 시각 미리보기 경로를 함께 기록
+- 수정 파일: `frontend/src/app/badge/page.tsx`, `badge.md`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck`, `pnpm run build` 통과
+- 일정 상세 view 토글을 `routes/temp`와 같은 공용 `RouteViewModeToggle` 컴포넌트로 통일해 실제 상세도 동일한 토글 스타일을 사용하도록 정리
+- 수정 파일: `frontend/src/components/routes/route-view-mode-toggle.tsx`, `frontend/src/app/routes/[id]/page.tsx`, `frontend/src/app/routes/temp/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build` 통과
+- `routes/temp` 상단 뒤로가기를 소개 섹션 밖의 공통 상단 행으로 옮기고, 토글과 좌우 `justify-between` 배치로 정리해 헤더 카드 안 버튼 노출을 제거
+- 수정 파일: `frontend/src/app/routes/temp/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build` 통과
+- 모바일 일정 상세 바텀시트는 `translateY` 대신 `top` 기준 높이 전환으로 바꿔, peek 상태에서도 실제 보이는 시트 높이만큼만 스크롤되도록 수정
+- 모바일 split 레이아웃의 시트 아래 숨은 빈 여백을 제거하고, 지도 overlap을 `24px -> 6px`로 줄여 체감 높이를 약 18px 낮춤
+- 수정 파일: `frontend/src/app/routes/[id]/page.tsx`, `frontend/src/app/routes/temp/page.tsx`, `PROCESS.md`
+- 확인: Playwright로 모바일 `http://localhost:3018/routes/temp` 레이아웃 재확인, `frontend`에서 `pnpm run typecheck`, `pnpm run build` 통과
+- 일정 상세·임시 상세·장소 상세·저장 장소 상세의 뒤로가기 버튼을 공용 `PageBackButton`으로 통일해 원형 40px 크기, 동일한 ghost 톤, 20px 아이콘 기준으로 맞춤
+- 수정 파일: `frontend/src/components/common/page-back-button.tsx`, `frontend/src/app/routes/[id]/page.tsx`, `frontend/src/app/routes/temp/page.tsx`, `frontend/src/app/places/[placeId]/page.tsx`, `frontend/src/app/saved/[listId]/[placeId]/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build` 통과
+- `routes/temp` 소개 카드의 마스코트 아래 텍스트를 배지, 축소된 타이틀, 짧은 설명, 날짜 pill 구조로 다시 정리해 모바일/데스크톱 모두 덜 과한 헤더로 조정
+- 수정 파일: `frontend/src/app/routes/temp/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build` 통과
+- 저장 리스트 인덱스 카드에 `previewPlaces(limit: 4)` GraphQL 필드를 추가하고, `/saved` 카드만 2x2 썸네일 그리드 + `리스트명 | 도시` + `n개의 장소` 구조로 교체
+- 썸네일이 4개보다 적으면 비어 있는 placeholder 타일로 채우고, `/saved` 리스트 레이아웃은 모바일 1열 / 큰 화면 다열 카드 그리드로 정리
+- 수정 파일: `backend/src/schema.js`, `backend/src/resolvers.js`, `frontend/src/lib/graphql/documents.ts`, `frontend/src/lib/graphql/api.ts`, `frontend/src/components/common/list-item-card.tsx`, `frontend/src/app/saved/page.tsx`, `frontend/src/constants/ui-copy.ts`, `PROCESS.md`
+- 확인: `backend`에서 `node --check src/schema.js`, `node --check src/resolvers.js` 통과, `frontend`에서 `if (Test-Path .next) { Remove-Item -Recurse -Force .next }; pnpm run build` 통과
+- `routes/temp` 소개 카드는 마스코트 크기·세로 여백·제목 줄바꿈을 줄여 카드 높이를 압축하고, 하단 CTA는 큰 텍스트 링크 대신 보편적인 secondary/primary 2버튼 바 형태로 재구성
+- 수정 파일: `frontend/src/app/routes/temp/page.tsx`, `PROCESS.md`
+- 확인: `.next/export/404.html` 누락으로 첫 빌드가 실패해 캐시를 비운 뒤 `frontend`에서 `if (Test-Path .next) { Remove-Item -Recurse -Force .next }; pnpm run build` 통과
+- 모바일 일정 상세/임시 상세 split 화면의 peek 지도 높이를 고정 `320px` 기준으로 다시 맞추고, 시트 top 계산도 픽셀 기준으로 바꿔 바텀시트가 더 많은 높이를 차지하게 조정
+- `770~1024px` 구간에서 다시 살아나던 `PageContainer`의 `md` bottom padding을 split view에서 명시적으로 제거해 시트 아래 빈 여백이 생기지 않게 정리
+- 수정 파일: `frontend/src/app/routes/[id]/page.tsx`, `frontend/src/app/routes/temp/page.tsx`, `PROCESS.md`
+- 확인: Playwright로 `393x852`, `800x900` `/routes/temp` 레이아웃 재확인, `frontend`에서 `pnpm run typecheck`, `pnpm run build` 통과
+- 지도 번호 클릭 시 모바일 바텀시트는 `peek` 상태를 유지하고, 시트 내부 스크롤만 이동해 해당 장소 카드가 최상단 가까이 오도록 포커스 로직을 단순화
+- 모바일 전용 auto-expand timeout/cleanup 분기를 제거하고, 실제 상세와 preview 모두 `focusStopInList -> scrollStopIntoView` 단일 흐름으로 맞춤
+- 수정 파일: `frontend/src/app/routes/[id]/page.tsx`, `frontend/src/app/routes/temp/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck`, `if (Test-Path .next) { Remove-Item -Recurse -Force .next }; pnpm run build` 통과, Playwright 모바일 `/routes/temp`는 Google Maps SDK 대신 fallback `iframe`가 떠 marker click 자체는 재현하지 못함
+
+### 2026-03-14
+- 저장 리스트 상세 상단의 `리스트 편집` 버튼에 아이콘을 붙이고, 편집 폼의 도시 입력은 과한 pill radius를 제거해 모달과 같은 기본 `Input` 톤으로 맞춤
+- 저장 리스트 편집 폼의 이름/도시 입력에는 기존 값을 placeholder로 보이게 하고, 리스트 이름·도시 최대 길이는 프런트/백엔드 모두 12자로 통일해 import 모달과 `/routes/import` 검증도 함께 갱신
+- 수정 파일: `frontend/src/app/saved/[listId]/page.tsx`, `frontend/src/lib/forms/input-schemas.ts`, `frontend/src/constants/ui-copy.ts`, `backend/src/resolvers.js`, `PROCESS.md`
+- 확인: `backend`에서 `node --check src/resolvers.js` 통과, `frontend`에서 `pnpm run typecheck` 통과, 첫 `pnpm run build`는 `.next/types` 누락으로 실패 후 `.next` 삭제 뒤 `pnpm run build` 통과
+- 저장 리스트 상세 헤더는 뒤로가기와 제목을 같은 상단 행으로 올려 다른 상세 화면과 위계를 맞추고, 기존 연필 아이콘은 제거
+- 상단 우측 액션은 `리스트 편집`과 `리스트 삭제`만 남기고, `링크로 장소 추가`는 `저장한 장소` 섹션 헤더의 action 버튼으로 내려 `between` 배치되도록 재정렬
+- 수정 파일: `frontend/src/app/saved/[listId]/page.tsx`, `frontend/src/constants/ui-copy.ts`, `PROCESS.md`
+- 확인: `frontend`에서 첫 `pnpm run typecheck`는 `.next/types` 누락으로 실패 후 `pnpm run build`, `pnpm run typecheck` 통과
+- 저장 리스트의 리스트-level 메모/설명 UI는 서비스 범위에서 제외하기로 하고, `/saved/[listId]` 헤더에서 메모 노출·수정 UI를 제거
+- 리스트 가져오기 공용 모달과 `/routes/import` 페이지에서도 설명 입력을 제거하고, crawler import GraphQL 호출도 `url/listName/city`만 보내도록 단순화
+- 수정 파일: `frontend/src/app/saved/[listId]/page.tsx`, `frontend/src/components/import/import-list-modal.tsx`, `frontend/src/app/routes/import/page.tsx`, `frontend/src/lib/forms/input-schemas.ts`, `frontend/src/lib/graphql/api.ts`, `frontend/src/lib/graphql/documents.ts`, `frontend/src/constants/ui-copy.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck`, `pnpm run build` 통과
+- `/saved/[listId]` 헤더의 과한 gradient/card 구성을 걷어내고, 제목은 큰 텍스트 + 편집 아이콘, 도시/장소 수는 한 줄 메타, 메모는 박스형 카드 대신 짧은 본문처럼 읽히는 단순 구조로 다시 정리
+- 편집 모드도 같은 톤으로 단순화해 제목은 underline 스타일 입력, 도시는 작은 pill 입력, 메모만 필요한 범위의 서브 패널로 남겨 헤더 정보 밀도를 낮춤
+- 수정 파일: `frontend/src/app/saved/[listId]/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 첫 `pnpm run typecheck`는 `.next/types` 누락으로 실패 후 `pnpm run build`, `pnpm run typecheck` 통과
+- 리스트 가져오기 폼의 `리스트 이름` 입력 아래에 `비워두면 도시 이름으로 입력돼요` helper 문구를 추가하고, 공용 import 모달과 `/routes/import` 페이지에 같은 안내가 보이도록 정리
+- 수정 파일: `frontend/src/constants/ui-copy.ts`, `frontend/src/components/import/import-list-modal.tsx`, `frontend/src/app/routes/import/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 첫 `pnpm run typecheck`는 `.next/types` 누락으로 실패 후 `pnpm run build`, `pnpm run typecheck` 통과
+- 저장 리스트 이름 입력은 최대 20자, 도시 입력은 최대 10자로 공통 제한을 추가하고, `/saved/[listId]` 헤더 수정 입력과 import 리스트 모달·`/routes/import` 폼에 동일한 Zod 검증과 `maxLength`를 연결
+- 백엔드 `importPlaceListFromCrawler`/`createPlaceList`/`updatePlaceList`도 같은 길이 제한을 적용해 프런트 외 경로로 긴 값이 들어와도 막히도록 보강
+- 수정 파일: `frontend/src/constants/ui-copy.ts`, `frontend/src/lib/forms/input-schemas.ts`, `frontend/src/components/import/import-list-modal.tsx`, `frontend/src/app/routes/import/page.tsx`, `frontend/src/app/saved/[listId]/page.tsx`, `backend/src/resolvers.js`, `PROCESS.md`
+- 확인: `backend`에서 `node --check src/resolvers.js` 통과, `frontend`에서 `pnpm run typecheck`, `pnpm run build` 통과
+- 저장 리스트 헤더 수정 직후 `updatePlaceList` 응답이 카드용 필드만 담아 상세 캐시의 `items`를 날리면서 런타임 에러가 나던 문제를 수정
+- `updatePlaceList` GraphQL mutation은 상세와 같은 `items`까지 반환하도록 바꾸고, 프런트 상세 캐시 갱신도 기존 `items`를 보존하며 병합하도록 보강
+- 수정 파일: `frontend/src/lib/graphql/documents.ts`, `frontend/src/app/saved/[listId]/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build` 통과, 첫 `pnpm run typecheck`는 `.next/types` 누락으로 실패 후 빌드 재생성 뒤 `pnpm run typecheck` 통과
+- `/saved/[listId]` 상단에 `/saved`로 돌아가는 공용 뒤로가기 버튼을 추가하고, 헤더를 좌측 정보 카드와 우측 액션 컬럼으로 다시 배치해 `링크로 장소 추가 / 리스트 삭제`가 오른쪽에 고정되도록 정리
+- 저장 리스트 메모는 입력칸처럼 보이던 단순 박스 대신 헤더 카드 안의 보조 메모 패널로 바꿔 제목·도시와 같은 맥락에서 더 가볍게 읽히도록 조정
+- 수정 파일: `frontend/src/app/saved/[listId]/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck`, `pnpm run build` 통과
+- `/saved/[listId]`의 별도 `리스트 정보` 카드는 제거하고, 제목 옆 edit 아이콘으로 헤더 편집 모드에 들어가 이름·도시·메모를 상단에서 함께 수정하도록 구조를 변경
+- 헤더 아래에는 리스트 메모만 요약 카드처럼 노출하고, 저장 리스트 상세 카피도 새 헤더 편집 흐름에 맞게 정리
+- 수정 파일: `frontend/src/app/saved/[listId]/page.tsx`, `frontend/src/constants/ui-copy.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과, 첫 `pnpm run build`는 `.next/server/app/_not-found/page.js.nft.json` 누락으로 실패 후 `.next` 삭제 뒤 `pnpm run build` 통과
+- `routes/temp` 모바일 split 바텀시트의 그림자, day 카드 shadow, 리스트 카드 하단 여백을 `routes/[id]`와 같은 톤으로 맞추고 시트 내부의 추가 bottom padding을 제거
+- 소개 헤더 문구는 `...여행, 이렇게 둘러보세요`로 다듬고 split 래퍼 최소 높이도 실제 상세와 같은 `36rem` 기준으로 정리
+- 수정 파일: `frontend/src/app/routes/temp/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build` 통과
+- `routes/temp` 소개 카드의 설명 문단은 제거하고 날짜 pill만 남겨 헤더 높이와 정보 밀도를 더 간결하게 정리
+- 수정 파일: `frontend/src/app/routes/temp/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build` 통과
+- `routes/temp` 소개 카드는 도시/날짜 배지를 한 줄로 묶은 요약 스트립으로 바꾸고, 강아지는 우측의 작은 스티커형 포인트로 재배치해 지도 전 공간을 더 확보
+- 수정 파일: `frontend/src/app/routes/temp/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build` 통과
+- `routes/temp` 요약 스트립의 강아지는 우측 여백에 더 차도록 데스크톱 `96px`, 모바일 `80px` 크기로 한 단계 확대
+- 수정 파일: `frontend/src/app/routes/temp/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build` 통과
+- `routes/temp` 진입 시 한 번만 짧게 보이는 `CelebrationConfetti` 오버레이를 추가하고, `prefers-reduced-motion` 환경에서는 자동으로 비활성화되도록 정리
+- 수정 파일: `frontend/src/components/common/celebration-confetti.tsx`, `frontend/src/app/globals.css`, `frontend/src/app/routes/temp/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build` 통과
+- LottieFiles confetti 도입을 검토했지만 직접 asset fetch가 Cloudflare 차단으로 막혀, 커스텀 confetti는 마지막 안정 상태로 되돌리고 현행 빌드/타입체크 통과 상태를 복구
+- 수정 파일: `frontend/src/components/common/celebration-confetti.tsx`, `frontend/src/app/globals.css`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build`, `pnpm run typecheck` 통과
+- 모바일 split 지도+바텀시트 셸을 실제 일정 상세 기준의 공용 `RouteMobileSplitLayout`으로 분리해 `routes/[id]`와 `routes/temp`가 같은 레이아웃을 공유하도록 정리
+- `routes/temp` 모바일 CTA는 별도 여백을 차지하던 fixed 바 대신 바텀시트 위 오버레이로 옮기고, split 모드에서는 기존 하단 fixed CTA를 숨겨 지도 뒤 빈 여백을 제거
+- 수정 파일: `frontend/src/components/routes/route-mobile-split-layout.tsx`, `frontend/src/app/routes/[id]/page.tsx`, `frontend/src/app/routes/temp/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build`, `pnpm run typecheck` 통과
+- 공용 `GoogleRouteMap`은 빈 day에서 지도 인스턴스를 iframe/country view로 갈아끼우지 않게 바꾸고, marker/polyline만 비운 채 마지막 정상 viewport와 fallback route URL을 유지하도록 수정
+- 빈 day 위에는 `등록된 장소가 없어요` overlay를 얹어 상태를 명확히 보이게 하고, 다시 일정 있는 day로 돌아오면 번호 marker와 route overlay를 정상적으로 다시 그리도록 정리
+- 수정 파일: `frontend/src/components/routes/google-route-map.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck`, `if (Test-Path .next) { Remove-Item -Recurse -Force .next }; pnpm run build` 통과
+- 지도 빈 상태 overlay 문구는 `UI_COPY.routes.detail.emptyDay`로 통일하고, 바텀시트 빈 상태는 돋보기 강아지와 `일정 안내` pill이 있는 공용 `RouteDayEmptyState` 컴포넌트로 분리
+- 지도 번호 클릭 후 카드 포커스는 DOM 반영 뒤 `requestAnimationFrame`에서 컨테이너 기준 top 정렬로 다시 스크롤하도록 바꿔, 모바일 시트 내부 포커스가 더 정확히 맞도록 조정
+- 수정 파일: `frontend/src/components/routes/route-day-empty-state.tsx`, `frontend/src/constants/ui-copy.ts`, `frontend/src/components/routes/google-route-map.tsx`, `frontend/src/app/routes/[id]/page.tsx`, `frontend/src/app/routes/temp/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck`, `if (Test-Path .next) { Remove-Item -Recurse -Force .next }; pnpm run build` 통과
+- 바텀시트 빈 상태의 `일정 안내` pill은 제거하고, 지도 빈 상태 overlay에는 빨간 warning triangle 아이콘을 추가해 지도 쪽 안내를 더 명확히 분리
+- 이동 거리 안내 문구는 카드 아래 간격을 조금 더 벌렸고, 시트 카드 클릭은 활성화만 하도록 분리해 스크롤이 임의로 다시 움직이지 않게 조정
+- 지도 번호 클릭 스크롤은 카드 클릭과 별도 핸들러로 분리하고, 두 번의 `requestAnimationFrame` 뒤 `auto` 스크롤로 맞춰 모바일 시트 포커스를 더 안정적으로 계산
+- `routes/temp`의 `CelebrationConfetti` import는 standalone `tsc`에서만 alias 해석이 깨지던 문제를 피하기 위해 상대경로로 정리
+- 수정 파일: `frontend/src/components/routes/route-day-empty-state.tsx`, `frontend/src/components/routes/google-route-map.tsx`, `frontend/src/app/routes/[id]/page.tsx`, `frontend/src/app/routes/temp/page.tsx`, `frontend/src/constants/ui-copy.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck`, `if (Test-Path .next) { Remove-Item -Recurse -Force .next }; pnpm run build` 통과
+- 모바일 지도 marker focus는 시트 내부에 자동 tail spacer를 계산해 붙이는 방식으로 바꾸고, `ResizeObserver`로 시트 높이 변화 시 pending target을 다시 정렬하도록 보강
+- 실제 상세/preview 모두 marker 클릭은 `pendingMapFocusStopIdRef` 기준으로만 시트 스크롤을 이동시키고, 카드 클릭은 active 상태만 바꾸도록 다시 분리
+- 수정 파일: `frontend/src/app/routes/[id]/page.tsx`, `frontend/src/app/routes/temp/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck`, `if (Test-Path .next) { Remove-Item -Recurse -Force .next }; pnpm run build` 통과
+- `routes/temp` 모바일 CTA는 지도 위 오버레이를 제거하고 `일정만`과 같은 하단 fixed 위치로 통일했으며, split 바텀시트 스크롤 영역에만 추가 bottom padding을 줘 CTA 가림을 방지
+- 공용 `CelebrationConfetti`는 사용자 추가 asset 중 `frontend/public/animations/confetti.json`을 `lottie-react`로 재생하도록 교체하고, 기존 커스텀 confetti keyframe CSS는 제거
+- 수정 파일: `frontend/src/app/routes/temp/page.tsx`, `frontend/src/components/routes/route-mobile-split-layout.tsx`, `frontend/src/components/common/celebration-confetti.tsx`, `frontend/src/app/globals.css`, `frontend/package.json`, `frontend/pnpm-lock.yaml`, `PROCESS.md`
+- 확인: `frontend`에서 `if (Test-Path .next) { Remove-Item -Recurse -Force .next }; pnpm run build`, `pnpm run typecheck` 통과
+- `CelebrationConfetti`는 로티 원본 캔버스를 화면 비율에 맞춰 cover처럼 scale 하도록 바꿔, 모바일/데스크톱 모두에서 컨페티가 뷰포트 폭에 맞게 더 넓게 퍼지도록 조정
+- 수정 파일: `frontend/src/components/common/celebration-confetti.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build`, `pnpm run typecheck` 통과
+- `CelebrationConfetti`는 `confetti.json`을 초기 번들 import 대신 런타임 fetch로 늦게 불러오고 canvas 렌더러로 재생하도록 바꿔, 지도 초기 로드와 메인 스레드 경쟁을 줄임
+- 데스크톱 landscape에서는 별도 scale 공식을 써 컨페티가 과하게 확대되지 않도록 조정했고, `/routes/temp` 빌드 결과도 `102kB -> 89.5kB`로 감소
+- 수정 파일: `frontend/src/components/common/celebration-confetti.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build`, `pnpm run typecheck` 통과
+- 별 아이콘 전용 `star` 컬러 토큰(`#FFD84A`)을 추가하고, 장소 상세/일정 stop 카드/가져오기 결과/저장 리스트 우선순위 별과 `/badge` 참고 예시를 모두 명시적 `fill-star text-star` 노란색으로 통일
+- 수정 파일: `frontend/src/app/globals.css`, `frontend/tailwind.config.ts`, `frontend/src/components/places/place-detail-content.tsx`, `frontend/src/components/routes/route-stop-card.tsx`, `frontend/src/app/routes/import/page.tsx`, `frontend/src/app/saved/[listId]/page.tsx`, `frontend/src/app/badge/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과, `pnpm run build`는 `pages-manifest.json`/`middleware-manifest.json` 누락으로 `Collecting page data` 이후 실패
+- 장소 상세 리뷰 요약/리뷰 카드와 일정 상세 카드 별은 Lucide 기본 `fill="none"` 때문에 비어 보이던 문제를 확인하고, `Star`에 `fill="currentColor"`를 직접 지정해 실제로 꽉 찬 노란별이 렌더링되도록 수정
+- 수정 파일: `frontend/src/components/places/place-detail-content.tsx`, `frontend/src/components/routes/route-stop-card.tsx`, `frontend/src/app/routes/import/page.tsx`, `frontend/src/app/saved/[listId]/page.tsx`, `frontend/src/app/badge/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과
+- `routes/temp`의 Lottie confetti는 제거하고, 상단에서 좌우로 퍼지는 가벼운 DOM/CSS burst형 `CelebrationConfetti`로 교체해 파티 톤은 유지하면서 지도 로딩 부담을 줄임
+- `lottie-react` 의존성은 제거했고, confetti는 fetch/canvas 없이 고정 piece 배열 + CSS transform/opacity 애니메이션만 사용하도록 단순화
+- 수정 파일: `frontend/src/components/common/celebration-confetti.tsx`, `frontend/src/app/globals.css`, `frontend/package.json`, `frontend/pnpm-lock.yaml`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build`, `pnpm run typecheck` 통과
+- 장소 상세 대표 사진 오버레이 별과 일정 상세 카드 별에 class-only 방식이 일부 다시 남아 있던 것을 정리하고, 잘못 들어간 `background-star` 클래스를 제거해 둘 다 `fill="currentColor" + text-star`로 고정
+- 수정 파일: `frontend/src/components/places/place-detail-content.tsx`, `frontend/src/components/routes/route-stop-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과
+- `--star` 토큰을 `oklch(...)` 전체 색 문자열로 사용하는 현재 globals 형식에 맞춰, 별 아이콘과 Tailwind `star` 색상 매핑이 `rgb(var(--star))`가 아니라 `var(--star)`를 직접 읽도록 수정
+- 수정 파일: `frontend/tailwind.config.ts`, `frontend/src/components/places/place-detail-content.tsx`, `frontend/src/components/routes/route-stop-card.tsx`, `frontend/src/app/routes/import/page.tsx`, `frontend/src/app/saved/[listId]/page.tsx`, `frontend/src/app/badge/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과
+- `globals.css`의 공용 색상 토큰을 전반적으로 `oklch(...)` 형식으로 바꾸고 각 토큰 옆에 hex 주석을 추가했으며, Tailwind 색상 매핑과 전역 CSS의 `rgb(var(--...))` 참조도 `oklch/from var(...)` 기준으로 정리
+- 수정 파일: `frontend/src/app/globals.css`, `frontend/tailwind.config.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과
+- 저장 리스트 2x2 썸네일 카드는 각 타일을 고정 `100px x 100px`로 줄이고, 카드 내부 padding/gap/title 크기도 함께 낮춰 전체 비율이 덜 부담스럽게 보이도록 조정
+- 수정 파일: `frontend/src/components/common/list-item-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build` 재시도 시 `frontend/src/app/routes/[id]/page.tsx:266`의 기존 `queueStopFocusScroll` 선언 순서 타입 오류로 실패, 이번 카드 크기 변경 자체의 새 오류는 확인되지 않음
+- 프런트엔드를 Tailwind CSS v4로 마이그레이션하고, `globals.css`를 CSS-first 구조(`@import "tailwindcss"`, `@theme`, OKLCH 토큰+hex 주석)로 재정리했으며 `tailwind.config.ts`는 제거
+- PostCSS는 `@tailwindcss/postcss` 플러그인으로 교체하고 `frontend/package.json`/`frontend/pnpm-lock.yaml` 의존성을 갱신
+- 수정 파일: `frontend/src/app/globals.css`, `frontend/postcss.config.mjs`, `frontend/package.json`, `frontend/pnpm-lock.yaml`, `frontend/tailwind.config.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm install`, `pnpm run typecheck`, `pnpm run build` 통과
+- Tailwind v4 `@theme`의 `text-star` 유틸리티가 정상 동작하는 것을 기준으로, 별 아이콘의 inline `style={{ color: "var(--star)" }}`를 제거하고 `fill="currentColor" + text-star` 클래스로 다시 단순화
+- 수정 파일: `frontend/src/components/places/place-detail-content.tsx`, `frontend/src/components/routes/route-stop-card.tsx`, `frontend/src/app/routes/import/page.tsx`, `frontend/src/app/saved/[listId]/page.tsx`, `frontend/src/app/badge/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과
+- day selector 가로 스크롤바 숨김은 Tailwind v4 `@utility`만으로는 브라우저별로 불안정할 수 있어, `globals.css`에 `.scrollbar-hidden` plain CSS fallback을 추가해 스크롤바를 강제로 숨기도록 보강
+- 수정 파일: `frontend/src/app/globals.css`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과
+- `/saved` 저장 리스트 섹션은 카드 하나가 한 줄 전체를 차지하지 않도록, outer grid를 `248px` 고정 카드 트랙 + `gap-4` 정렬로 바꿔 카드 사이 간격을 레이아웃 차원에서 일정하게 맞춤
+- 수정 파일: `frontend/src/app/saved/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build` 통과
+- 장소 상세의 `최근 업데이트`는 정보 카드 한 칸 대신 같은 카드 하단 우측의 회색 캡션으로 옮겨 메타 정보 위계를 낮춤
+- 수정 파일: `frontend/src/components/places/place-detail-content.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과
+- Tailwind v4 테마를 `@theme inline`으로 전환해 `text-primary-foreground` 같은 유틸리티가 중간 `--color-*` 변수 대신 원본 앱 토큰을 직접 보도록 정리
+- 수정 파일: `frontend/src/app/globals.css`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck`, `if (Test-Path .next) { Remove-Item -Recurse -Force .next }; pnpm run build` 통과, 빌드 CSS의 `text-primary-foreground`는 `color: var(--primary-foreground)`로 생성됨
+- 공용 `buttonStyles`의 `primary`/`danger` variant는 `text-primary-foreground` 대신 `text-white`를 직접 사용하도록 바꿔, 파란/빨간 버튼 글자가 CSS 출력 순서와 무관하게 흰색으로 유지되게 정리
+- 일정 상세 카드 `장소 정보` 버튼에 임시로 덧붙였던 `text-white` override는 제거하고 공용 버튼 스타일만 따르도록 되돌림
+- 수정 파일: `frontend/src/components/ui/button-styles.ts`, `frontend/src/components/routes/route-stop-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과
+- 공용 `buttonStyles`에 variant별 색상 원천 `buttonVariantToneClasses`를 분리하고, 직접 `bg-primary text-primary-foreground`를 쓰던 day selector/보기 토글/달력 선택 셀/장소 상세 날짜 pill은 이 공용 primary tone을 재사용하도록 정리
+- `text-primary-foreground` 직접 사용은 소스에서 제거했고, `/badge` 예시 코드도 `text-white` 기준으로 업데이트
+- 수정 파일: `frontend/src/components/ui/button-styles.ts`, `frontend/src/app/routes/[id]/page.tsx`, `frontend/src/app/routes/temp/page.tsx`, `frontend/src/components/routes/route-view-mode-toggle.tsx`, `frontend/src/components/routes/new-route-client.tsx`, `frontend/src/components/places/place-detail-content.tsx`, `frontend/src/app/badge/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과, 로컬 dev HTML(`/routes/temp`)에는 `text-primary-foreground`가 더 이상 없고 `bg-primary text-white`가 포함됨
+- 실제 브라우저에서 `장소 정보` 링크가 여전히 검게 보이던 원인은 `globals.css`의 unlayered `a { color: inherit; }`가 Tailwind utility layer보다 우선 적용되던 구조였고, 링크/selection/heading/body 기본 규칙을 `@layer base`로 옮겨 utility 색상이 정상 우선되게 수정
+- Playwright로 `/routes/temp`의 첫 `장소 정보` 링크 computed style을 재확인해 수정 전 `oklch(0.28835 0.06818 256.225)`였던 text color가 수정 후 `rgb(255, 255, 255)`로 바뀐 것까지 검증
+- 수정 파일: `frontend/src/app/globals.css`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과, Playwright 세션 `myroute-debug`로 `/routes/temp` 재로드 후 첫 `장소 정보` 링크 computed color가 `rgb(255, 255, 255)`로 확인됨
+- `Mascot`는 `next/image` 대신 배경 이미지 기반 렌더링으로 바꿔, 브라우저 확장이 이미지 위에 삽입하는 DOM 때문에 홈 로딩 패널에서 나던 hydration mismatch를 피하도록 조정
+- 공용 마스코트 API는 유지하고 접근성 라벨은 `role="img" + aria-label`로 보존
+- 수정 파일: `frontend/src/components/layout/mascot.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 첫 `pnpm run typecheck`는 `.next/types` 누락으로 실패, 이어서 `pnpm run build`, `pnpm run typecheck` 통과
+- `PROCESS.md`와 현재 코드 기준으로 면접용 `troubleshooting.md`를 새로 작성해, 실제로 해결했던 대표 트러블슈팅 7건과 보조 사례를 구조화
+- 수정 파일: `troubleshooting.md`, `PROCESS.md`
+- 확인: 문서 작업만 수행, 별도 빌드/타입체크 없음
+- 공용 `RouteViewModeToggle`의 외곽 높이와 버튼 내부 높이를 삭제 버튼과 맞도록 `h-9` 기준으로 다시 정리하고, divider 기반 구조로 바꿔 두 보기 토글이 같은 높이감으로 보이게 조정
+- 보기 토글과 일정 상세 삭제 버튼의 그림자는 한 단계 약하게 줄여 상단 액션 묶음이 덜 두껍게 보이도록 정리했고, 공용 토글을 쓰는 실제 일정 상세와 `/routes/temp` preview에 함께 반영됨
+- 수정 파일: `frontend/src/components/routes/route-view-mode-toggle.tsx`, `frontend/src/app/routes/[id]/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build`, `pnpm run typecheck` 통과
+- `RouteViewModeToggle`는 hard divider 구조를 걷어내고, 기존처럼 부드러운 카드형 segmented 톤으로 되돌리되 외곽선은 border 대신 inset shadow로 바꿔 실제 보이는 토글 버튼 높이가 `36px`로 유지되게 정리
+- 실제 일정 상세 헤더의 우측 액션 래퍼는 `items-center`로 맞추고 삭제 버튼에는 `shrink-0`를 줘, 보기 토글과 삭제 버튼이 같은 기준선과 높이감으로 정렬되게 조정
+- 수정 파일: `frontend/src/components/routes/route-view-mode-toggle.tsx`, `frontend/src/app/routes/[id]/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build`, `pnpm run typecheck` 통과
+- 현재 2버튼형 `RouteViewModeToggle`은 그대로 두고, 예전처럼 흰 셸 안에서 파란 활성 pill이 좌우로 이동하는 `RouteViewModeSliderToggle` 컴포넌트를 새로 추가
+- 실제 일정 상세와 `/routes/temp` preview의 보기 토글 연결은 새 slider 토글로 교체해 이전 segmented 인터랙션을 복원
+- 수정 파일: `frontend/src/components/routes/route-view-mode-slider-toggle.tsx`, `frontend/src/app/routes/[id]/page.tsx`, `frontend/src/app/routes/temp/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build`, `pnpm run typecheck` 통과
+- `RouteViewModeSliderToggle`의 비율은 고정 segment width 기반으로 다시 정리해 active pill과 버튼 텍스트가 같은 축 안에서 정렬되도록 맞추고, `지도 + 일정` 표기는 공용 copy와 preview 하드코딩 모두 공백 포함 plain text로 통일
+- slider 토글 버튼 라벨은 `span.text-current`로 감싸 `+`를 포함한 전체 문구가 버튼 상태 색상을 그대로 상속하도록 명시
+- 수정 파일: `frontend/src/components/routes/route-view-mode-slider-toggle.tsx`, `frontend/src/constants/ui-copy.ts`, `frontend/src/app/routes/temp/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build`, `pnpm run typecheck` 통과
+- `RouteViewModeSliderToggle`의 active pill 계산은 직접 `left/width`를 맞추는 대신 `inner track + w-1/2 + translate-x-full` 구조로 단순화해, 오른쪽 `일정만` 상태에서도 쉘 여백이 안정적으로 유지되게 정리
+- active pill은 절반 슬롯 안에서 좌우 `2px` inset을 한 번 더 줘, 쉘 여백은 유지하면서도 파란 pill 폭이 과하게 커 보이지 않도록 한 단계 축소
+- 수정 파일: `frontend/src/components/routes/route-view-mode-slider-toggle.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build` 통과, 첫 `pnpm run typecheck`는 `.next/types` 타이밍 문제로 실패 후 재실행해 통과
+- 일정 상세 `routes/[id]`의 데스크톱 레이아웃만 조정해 페이지 전체는 `100vh` 안에서 고정되고, 헤더/day selector 아래 남는 높이를 장소 리스트 내부 스크롤과 지도 패널이 나눠 쓰도록 정리
+- 데스크톱 split grid의 `min-h-168` 고정 높이를 제거해 map이 헤더·바텀내브를 제외한 남은 높이를 그대로 채우게 했고, list view도 데스크톱에서는 카드 리스트만 내부 스크롤되도록 맞춤
+- 지도 숫자 마커 클릭 시 내부 리스트 스크롤을 움직이는 기존 포커스 로직은 유지하고, 이번 수정은 모바일 split/bottom sheet 분기에는 손대지 않음
+- 수정 파일: `frontend/src/app/routes/[id]/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck`, `pnpm run build` 통과
+- 일정 상세 `routes/[id]`의 데스크톱 높이 제약은 바텀내브 offset을 직접 뺀 `calc(100dvh - var(--bottom-nav-offset))`로 한 단계 더 명시해, 공통 레이아웃의 fixed bottom nav 아래에서도 실제 상세 화면이 남은 뷰포트 높이를 정확히 쓰도록 보강
+- 이번 보강도 모바일 split/bottom sheet는 그대로 두고 데스크톱 분기에만 적용
+- 수정 파일: `frontend/src/app/routes/[id]/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 첫 `pnpm run typecheck`는 `.next/types` 누락으로 실패 후 `if (Test-Path .next) { Remove-Item -Recurse -Force .next }; pnpm run build`, `pnpm run typecheck` 통과
+- 바텀내브와 콘텐츠가 너무 붙어 보이던 간격은 공용 `--bottom-nav-offset` 계산에 `--bottom-nav-gap`(`0.75rem`)을 추가해 보강했고, 이 offset 체인을 쓰는 페이지들은 별도 숫자 수정 없이 같은 여백을 공유하도록 정리
+- 수정 파일: `frontend/src/app/globals.css`, `PROCESS.md`
+- 확인: `frontend`에서 첫 `pnpm run typecheck`는 `.next/types` 누락으로 실패 후 `pnpm run build`, `pnpm run typecheck` 통과
+- 지도 숫자 마커 클릭으로 장소 리스트를 맞출 때 데스크톱에서는 내부 스크롤이 `auto` 대신 `smooth`로 움직이도록 바꿔, 실제 일정 상세와 `/routes/temp` preview 모두 카드 포커스 이동이 덜 딱딱하게 보이게 조정
+- 모바일 재보정 흐름은 그대로 두고, 데스크톱 마커 클릭 시점에만 `matchMedia("(min-width: 1024px)")` 기준으로 smooth 스크롤을 적용
+- 수정 파일: `frontend/src/app/routes/[id]/page.tsx`, `frontend/src/app/routes/temp/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 첫 `pnpm run typecheck`는 `.next/types` 누락으로 실패 후 `pnpm run build`, `pnpm run typecheck` 통과
+
+### 2026-03-14
+- badge spec에 맞춰 category badge 공용 테마를 새로 정리하고, `saved` / `routes/import` / `route-stop-card` / `place-detail`의 카테고리 badge를 한국어 라벨 + 아이콘 + 지정 배경색 형태로 통일
+- 마이페이지 companion / pace / theme chip은 단색 fill + 흰 글자 + 아이콘 스타일로 바꾸고, companion·pace·theme 라벨도 새 badge spec 기준으로 맞춤
+- `DDayBadge`는 primary 단색 배경으로 바꾸고 폰트는 장소 badge와 같은 `text-xs font-semibold` 계열로 정리
+- `/badge` 임시 참고 페이지와 `badge.md`는 새 badge 스타일 기준으로 갱신
+- 수정 파일: `frontend/src/lib/badge-theme.ts`, `frontend/src/components/common/badge-icon.tsx`, `frontend/src/components/common/category-badge.tsx`, `frontend/src/components/common/preference-badge-chip.tsx`, `frontend/src/components/common/d-day-badge.tsx`, `frontend/src/components/routes/route-stop-card.tsx`, `frontend/src/app/routes/import/page.tsx`, `frontend/src/app/saved/[listId]/page.tsx`, `frontend/src/components/places/place-detail-content.tsx`, `frontend/src/app/mypage/page.tsx`, `frontend/src/app/badge/page.tsx`, `badge.md`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck`, `pnpm run build` 통과
+- category badge 라벨은 한국어에서 기존 영문(`LANDMARK`, `FOODIE`, `SHOPPING`, `NATURE`, `VIEW`)으로 되돌리고, 아이콘은 새 라이브러리 추가 없이 반투명 원형 chip 안에 넣어 filled 느낌으로 보강
+- `/badge` 참고 페이지와 `badge.md`도 영문 라벨 기준으로 다시 맞춤
+- 수정 파일: `frontend/src/lib/badge-theme.ts`, `frontend/src/components/common/category-badge.tsx`, `frontend/src/app/badge/page.tsx`, `badge.md`, `PROCESS.md`
+- 확인: `frontend`에서 첫 `pnpm run typecheck`는 `.next/types` 누락으로 실패 후 `pnpm run build`, `pnpm run typecheck` 통과
+- 일정 상세와 `/routes/temp` preview의 stop 카드는 클릭 시 active 상태만 바꾸지 않고 같은 포커스 스크롤 흐름으로 연결해, 아래쪽 카드도 클릭하면 지도 마커 클릭 때처럼 `smooth`하게 기준 위치로 이동하도록 조정
+- 노트 열기 같은 보조 액션은 기존 `activateStopInList`를 유지하고, 카드 본문 클릭에만 별도 `focusStopFromCard`를 연결해 불필요한 자동 스크롤이 퍼지지 않게 분리
+- 수정 파일: `frontend/src/app/routes/[id]/page.tsx`, `frontend/src/app/routes/temp/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 첫 `pnpm run typecheck`는 `.next/types` 누락으로 실패 후 `pnpm run build`, `pnpm run typecheck` 통과
+- DAY 변경 시에는 현재 day의 첫 stop을 다시 active로 맞추는 것에 더해, 이전 day에서 남아 있던 리스트 스크롤과 예약된 포커스 animation frame도 함께 초기화해 항상 리스트가 맨 위에서 시작되도록 보강
+- 실제 일정 상세와 `/routes/temp` preview 모두 `currentDay` 변경 effect 안에서 mobile sheet/list scroll container를 `top: 0`으로 리셋
+- 수정 파일: `frontend/src/app/routes/[id]/page.tsx`, `frontend/src/app/routes/temp/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 첫 `pnpm run typecheck`는 `.next/types` 누락으로 실패 후 `pnpm run build`, `pnpm run typecheck` 통과
+- 모바일 split 바텀시트와 숨겨진 데스크톱 리스트가 같은 stop ref를 공유하던 구조를 분리해, 지도 숫자 마커 클릭과 stop 카드 클릭이 이제 실제 모바일 시트 내부 리스트를 기준으로 스크롤되게 수정
+- 실제 일정 상세와 `/routes/temp` preview 모두 split 모바일, split 데스크톱, list view마다 각각 별도 scroll container ref와 item ref를 쓰도록 정리해 포커스 스크롤 대상이 화면에 보이는 리스트와 일치하도록 보강
+- 수정 파일: `frontend/src/app/routes/[id]/page.tsx`, `frontend/src/app/routes/temp/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build`, `pnpm run typecheck` 순서로 통과
+- 모바일 stop 포커스 스크롤은 pending target과 behavior를 같이 유지하도록 바꿔, 마지막 stop처럼 spacer가 필요한 경우에도 지도 마커 클릭과 카드 클릭이 바텀시트 내부에서 `smooth`하게 이어지도록 수정
+- `GoogleRouteMap`은 marker click handler를 ref로 안정화하고 active marker 변경은 overlay 재생성 대신 marker icon만 갱신하게 분리해, 마지막 stop 선택 때 지도 overlay가 번쩍이던 현상을 완화
+- 수정 파일: `frontend/src/app/routes/[id]/page.tsx`, `frontend/src/app/routes/temp/page.tsx`, `frontend/src/components/routes/google-route-map.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build`, `pnpm run typecheck` 순서로 통과
+- 실제 일정 상세에는 손대지 않고 `/stopcard` 실험 페이지를 새로 추가해, label/category/badge 역할 분리와 정보 밀도 차이를 비교하는 stop 카드 시안 3종(Core Hierarchy / Editorial Split / Utility Planner)을 따로 확인할 수 있게 구성
+- 실험용 컴포넌트는 `frontend/src/app/stopcard/_components/stopcard-lab.tsx`로 분리해 이후 카드 디자인 고도화 작업을 production 카드와 독립적으로 진행할 수 있게 정리
+- 수정 파일: `frontend/src/app/stopcard/page.tsx`, `frontend/src/app/stopcard/_components/stopcard-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck`, `pnpm run build` 통과
+- `/stopcard` 시안은 인터넷 사례를 반영해 전면 재구성하고, 현재 데이터에 없는 예시 badge(`줄서는 곳` 등)는 제거한 뒤 장소명을 메인 타이틀로 올리고 카테고리/평점/위치 메타는 보조화한 3안(Title First / Compact Place / Reason Led)으로 교체
+- 상단 연구 요약 카드에는 Google-style compact place, Material card 원칙, travel itinerary case study 기준으로 이번 수정 방향을 짧게 정리
+- 수정 파일: `frontend/src/app/stopcard/_components/stopcard-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck`, `pnpm run build` 통과
+- `/stopcard`는 1안 기반 수정안 2종으로 다시 좁혀 `Option 01-1`(조용한 FOODIE pill)과 `Option 01-2`(아이콘 + 텍스트형 FOODIE)만 남기고, `영업 중`은 브런치 옆 메타 라인으로 이동시켜 사진은 오른쪽 plain thumbnail로만 보이게 정리
+- 메모 영역은 실험용 interactive UI로 바꿔, 메모가 있을 때는 `수정`/`삭제` 액션이 바로 보이고 메모가 없을 때는 dashed placeholder + `메모 추가` CTA가 뜨도록 구성
+- 수정 파일: `frontend/src/app/stopcard/_components/stopcard-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck`, `pnpm run build` 통과
+- `/stopcard` 샘플 데이터는 긴 장소명 + 전체 주소 기준으로 바꿔 카드 길이 대응을 바로 볼 수 있게 했고, 제목은 `line-clamp-2`로 제한한 대신 위치 메타는 전체 주소를 그대로 노출하지 않고 카드용 축약 위치(`Phra Nakhon · Bangkok`)를 파생해 쓰도록 정리
+- `브런치` role chip은 검정 fill 대신 연한 블루 톤으로 바꾸고, `영업 중` pill은 배경 있는 badge 대신 초록 점 + 텍스트 중심 inline 상태 메타로 재구성
+- 수정 파일: `frontend/src/app/stopcard/_components/stopcard-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck`, `pnpm run build` 통과
+- 백엔드 일정 생성 스키마에 `schedule_stops.visit_tip`, `schedules.output_language`, `place_lists.language`를 추가하고, GraphQL schema/resolver 및 프론트 타입 계약도 함께 확장해 일정 stop이 `reason`과 별도로 언어별 `visitTip`을 저장·조회할 수 있게 정리
+- Gemini 일정 생성 프롬프트는 trip day/date + output language를 포함하도록 다시 작성하고, `visitTip`은 generic praise가 아닌 날짜/시간 기반 현장 팁을 출력하게 보강; deterministic fallback planner도 같은 필드 구조로 `visitTip`/언어별 `reason`을 채우도록 맞춤
+- 기존 DB 대응용 `backend/supabase/sql/002_add_schedule_tip_language.sql` migration을 추가하고, fresh bootstrap용 `001_init_requirements.sql`, `backend/README.md`, `backend/테이블.md`, backend check script까지 새 필드 기준으로 갱신
+- 수정 파일: `backend/src/schema.js`, `backend/src/resolvers.js`, `backend/src/lib/geminiOptimizer.js`, `backend/src/lib/scheduleEngine.js`, `backend/supabase/sql/001_init_requirements.sql`, `backend/supabase/sql/002_add_schedule_tip_language.sql`, `backend/README.md`, `backend/테이블.md`, `backend/package.json`, `frontend/src/types/domain.ts`, `frontend/src/lib/graphql/documents.ts`, `frontend/src/lib/graphql/api.ts`, `PROCESS.md`
+- 확인: `backend`에서 `npm run check` 통과, `frontend`에서 `pnpm run typecheck`, `pnpm run build` 통과
+- badge / label / chip 높이는 2단계 기준으로 다시 정리해, 공용 작은 badge 라인은 `h-7`, 취향 chip·주요 상태 pill·사진 overlay pill은 `h-8` 기준으로 통일
+- `Badge`, route/place 상세 상태 pill, 홈/마이페이지 상태 pill, preview label, 취향 chip, `/badge` 참고 페이지와 `badge.md`를 같은 size token 기준으로 맞춤
+- 수정 파일: `frontend/src/lib/badge-size.ts`, `frontend/src/components/ui/badge.tsx`, `frontend/src/components/common/preference-badge-chip.tsx`, `frontend/src/components/routes/route-stop-card.tsx`, `frontend/src/components/places/place-detail-content.tsx`, `frontend/src/components/home/home-schedule-header.tsx`, `frontend/src/components/home/home-empty-state.tsx`, `frontend/src/app/mypage/page.tsx`, `frontend/src/app/badge/page.tsx`, `badge.md`, `PROCESS.md`
+- 확인: `frontend`에서 첫 `pnpm run typecheck`는 `.next/types` 누락으로 실패 후 `pnpm run build`, `pnpm run typecheck` 통과
+- 모바일 일정 상세와 `/routes/temp`의 마지막 stop 포커스는 동적 spacer를 제거하고 `max scrollTop`까지만 clamp하는 단순 내부 스크롤로 바꿔, 마지막 카드 선택 시 추가 레이아웃 재배치와 튐을 줄임
+- stop/card 포커스 스크롤 큐는 double `requestAnimationFrame`에서 single frame으로 줄여 모바일에서 스크롤 시작 지연을 낮추고, 바텀시트 스크롤 컨테이너에는 `scroll-smooth`를 추가해 부드러운 이동을 보강
+- 수정 파일: `frontend/src/app/routes/[id]/page.tsx`, `frontend/src/app/routes/temp/page.tsx`, `frontend/src/components/routes/route-mobile-split-layout.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build`, `pnpm run typecheck` 순서로 통과, `/routes/temp` 모바일 흐름은 Playwright CLI로 재현 확인
+
+### 2026-03-15
+- Gemini 일정 생성 프롬프트에 한국어 출력 시 자연스러운 `~요` 말투, 영어 혼합 금지, 기계번역 같은 딱딱한 표현 회피 규칙을 추가해 `reason`과 `visitTip`이 한국어 앱 톤에 맞게 생성되도록 보강
+- Gemini 실패 시 쓰는 deterministic fallback의 한국어 `reason` 문구도 `~요` 말투로 통일
+- 수정 파일: `backend/src/lib/geminiOptimizer.js`, `backend/src/lib/scheduleEngine.js`, `PROCESS.md`
+- 확인: `backend`에서 `npm run check` 통과
+- `/routes/temp`도 실제 일정 상세와 같은 유저 액션을 가지도록 stop note 추가/수정/삭제, 상단 삭제 confirm 흐름을 로컬 state 기반으로 붙여 preview에서 동일한 조작을 확인할 수 있게 정리
+- `troubleshooting.md`의 6번 사례에는 모바일 바텀시트 후속 보강으로 ref 분리, 마지막 stop clamp scroll, active marker icon-only update 내용을 추가
+- 수정 파일: `frontend/src/app/routes/temp/page.tsx`, `troubleshooting.md`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build`, `pnpm run typecheck` 통과
+- `/routes/temp`는 카드의 `메모 추가`와 `지도 보기` 액션을 다시 제거하고, map action은 `RouteStopCard`의 optional prop으로 숨길 수 있게 분리해 실제 일정 상세와 preview의 액션 범위를 다르게 제어할 수 있게 정리
+- temp 데스크톱 레이아웃은 `routes/[id]`와 같은 높이 체인으로 다시 맞춰 `100dvh - bottom nav offset` 기준 고정, split grid `min-h-0`, list view 내부 스크롤, desktop fixed CTA 숨김으로 레거시 desktop intro/높이 차이를 줄임
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `frontend/src/app/routes/temp/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build`, `pnpm run typecheck` 통과
+- `/stopcard` 실험 카드에서 메모가 없을 때는 별도 memo placeholder를 렌더링하지 않도록 바꾸고, 하단 액션 줄의 작은 `메모 추가`로만 편집창을 열게 조정
+- `/stopcard` 하단에 역할 라벨, 카테고리 메타, 영업 상태, 메모 상태별 표시 규칙을 정리한 `Display Rules` 섹션을 추가하고 카드 본문 예시는 `추천 이유` 대신 `현장 팁` 중심으로 정리
+- 수정 파일: `frontend/src/app/stopcard/_components/stopcard-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 첫 `pnpm run typecheck`는 `.next/types` 누락으로 실패 후 `pnpm run build`, `pnpm run typecheck` 통과
+- 일정 상세와 `/routes/temp`에서 stop 카드를 클릭하면 현재 map zoom은 유지한 채 해당 마커가 보이도록 `GoogleRouteMap`에 focus request 기반 `panTo`를 추가하고, mobile split과 desktop map 모두 같은 request를 받도록 연결
+- 카드 클릭에만 map pan을 연결해 marker 직접 클릭 시 기존 동작은 유지하면서, zoom-in 상태에서도 선택한 stop 번호가 시야 밖에 남지 않도록 보강
+- 수정 파일: `frontend/src/components/routes/google-route-map.tsx`, `frontend/src/components/routes/route-mobile-split-layout.tsx`, `frontend/src/app/routes/[id]/page.tsx`, `frontend/src/app/routes/temp/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build`, `pnpm run typecheck` 통과
+- `/routes/temp` celebration confetti는 조각별 낙하 높이·지연 차이를 더 벌리고, 칩/리본/스파크를 `낙하`와 `좌우 drift` 애니메이션으로 분리해 한 번에 뚝뚝 꺾여 떨어지던 움직임을 더 자연스럽게 정리
+- 길게 보이던 streamer 종이 조각은 높이를 전반적으로 줄여 리본처럼 과하게 늘어진 인상을 완화
+- 수정 파일: `frontend/src/components/common/celebration-confetti.tsx`, `frontend/src/app/globals.css`, `PROCESS.md`
+- 확인: `frontend`에서 `.next` 캐시를 비운 뒤 `pnpm run build`, `pnpm run typecheck` 통과
+- celebration confetti는 `variant` 기반 구조로 다시 묶고, 기존 연출은 `default`로 유지한 채 중앙에서 폭죽처럼 퍼졌다가 떨어지는 `burst` preset을 별도로 추가
+- `/routes/temp` preview는 `TEMP_CONFETTI_VARIANT` 상수로 갈아끼울 수 있게 연결했고, 현재 값은 요청대로 `default`로 유지
+- 수정 파일: `frontend/src/components/common/celebration-confetti.tsx`, `frontend/src/app/globals.css`, `frontend/src/app/routes/temp/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과, `.next` 캐시를 비운 뒤 `pnpm run build` 통과
+- 컨페티 streamer는 길쭉한 리본처럼 보이지 않게 `default` 높이를 `38~48px`, `burst` 높이를 `28~36px` 범위로 더 짧게 줄여 종이조각 비율로 재조정
+- 수정 파일: `frontend/src/components/common/celebration-confetti.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build`, `pnpm run typecheck` 통과
+- `/stopcard`의 역할 라벨 규칙은 임의 예시 대신 실제 canonical 값(`START / MORNING / VISIT / AFTERNOON / FINISH`) 기준으로 다시 정리하고, `MUSTVISIT` priority badge 규칙도 `Display Rules`에 추가
+- 카드 본문 `visitTip` 패널은 이전의 파란 글로시 + sparkles 톤으로 되돌리고, 샘플 카드 상단 role chip도 `MORNING` quiet label 기준으로 맞춤
+- 수정 파일: `frontend/src/app/stopcard/_components/stopcard-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 첫 `pnpm run build`는 `.next/server/pages-manifest.json` 누락으로 일시 실패 후 재실행 성공, `pnpm run typecheck` 통과
+- `/stopcard`는 1안만 남기는 확정안 기준으로 정리하고, 비교용 icon-text 카테고리안은 제거; 카테고리 규칙 카드에는 실제 category set(`LANDMARK / FOODIE / SHOPPING / NATURE / VIEW`) 전부를 quiet pill 스타일로 추가
+- 수정 파일: `frontend/src/app/stopcard/_components/stopcard-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build` 통과, 첫 `pnpm run typecheck`는 `.next/types` 누락으로 실패 후 재실행 통과
+- `/stopcard` 표시 규칙에서 `곧 마감` 상태는 주황 대신 빨간 계열 dot/text로 조정하고, 상태 설명 문구도 빨강 기준으로 갱신
+- 수정 파일: `frontend/src/app/stopcard/_components/stopcard-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build` 통과, 첫 `pnpm run typecheck`는 `.next/types` 누락으로 실패 후 재실행 통과
+- `/stopcard` 역할 라벨 스타일 정의에 `DINNER`, `DESSERT`를 예비 슬롯으로 추가하고, `Display Rules`에는 현재 백엔드 canonical 5개와 구분되는 reserved label임을 함께 표기
+- 수정 파일: `frontend/src/app/stopcard/_components/stopcard-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build` 통과, 첫 `pnpm run typecheck`는 `.next/types` 누락으로 실패 후 재실행 통과
+- route / category badge 규칙은 `/stopcard` 실험안 기준으로 공용화해, 새 `RouteLabelChip`을 추가하고 실제 `RouteStopCard`의 strong label badge를 quiet chip으로 교체; 공용 `CategoryBadge`도 filled icon badge에서 아이콘 없는 quiet pill로 전환하고 하단 중복 category badge는 숨김
+- `/badge` 참고 페이지, `badge.md`, `frontend/README.md`도 legacy filled route/category 규칙 대신 quiet chip / quiet pill 기준으로 갱신
+- 수정 파일: `frontend/src/components/routes/route-label-chip.tsx`, `frontend/src/components/routes/route-stop-card.tsx`, `frontend/src/components/common/category-badge.tsx`, `frontend/src/app/stopcard/_components/stopcard-lab.tsx`, `frontend/src/app/badge/page.tsx`, `frontend/src/lib/badge-theme.ts`, `badge.md`, `frontend/README.md`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build` 통과, 첫 `pnpm run typecheck`는 `.next/types` 누락으로 실패 후 재실행 통과
+- `/stopcard`에서 확정한 타이틀 우선 stop card를 실제 `RouteStopCard`에 이식해, route detail도 quiet route label + compact address + inline 영업 상태 + `visitTip` 우선 안내 패널 + optional 메모 구조로 교체
+- `/routes/temp` preview는 mock stop 문구를 `visitTip` 기준으로 바꾸고 `showNoteSection={false}`를 넘겨 메모 기능이 전혀 없는 UI 확인용 카드로 분리
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `frontend/src/app/routes/temp/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build` 통과, 첫 `pnpm run typecheck`는 `.next/types` 누락으로 실패 후 재실행 통과
+- `/routes/temp` 데스크톱 split 레이아웃의 상단 preview hero를 복구해, 강아지 섹션이 map 왼쪽 컬럼에서 day selector 위에 다시 노출되도록 모바일/데스크톱 공용 helper로 정리
+- 수정 파일: `frontend/src/app/routes/temp/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 첫 `pnpm run build`는 `.next/server/pages-manifest.json` 누락으로 일시 실패 후 재실행 통과, `pnpm run typecheck` 통과
+- `troubleshooting.md` 상단에 Codex와 더 잘 작업하는 요청 방식/협업 팁을 추가하고, 빠져 있던 트러블슈팅 사례로 `Mascot` hydration mismatch와 장소 상세 슬라이더 재설계 사례를 정식 섹션으로 보강
+- OAuth 사례에는 PKCE/provider-disabled 후속 대응을, 지도 포커스 사례에는 ref 분리·clamp scroll·marker icon-only update 보강 내용을 반영해 문서를 현행 이력 기준으로 업데이트
+- 수정 파일: `troubleshooting.md`, `PROCESS.md`
+- 확인: 문서 작업만 수행, 별도 빌드/타입체크 없음
+- `/stopcard` 하단에 저장 리스트 상세 카드 전용 `List Detail Card Space`를 추가하고, 일정 상세 카드에서 확정한 title-first / quiet meta / glossy panel 톤을 가져온 리스트 카드 시안 3종(Quiet Utility / Guide Cover / Split Utility)을 별도 비교 가능하게 구성
+- 리스트 카드 연구 요약에는 Google Maps Lists, Google Places UI Kit, Apple Maps Guides, Airbnb Wishlists에서 가져온 방향성을 반영했고, `List Card Rules` 섹션으로 `MUSTVISIT`, 메모 패널, 위치 정보 양, 액션 개수 규칙을 함께 정리
+- 수정 파일: `frontend/src/app/(test)/stopcard/_components/stopcard-lab.tsx`, `frontend/src/app/(test)/stopcard/_components/list-detail-card-lab.tsx`, `frontend/src/app/(test)/stopcard/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck`는 기존 `.next-dev/types`가 top-level `src/app/badge/page.js`, `src/app/routes/temp/page.js`, `src/app/stopcard/page.js`를 찾는 stale route reference로 실패했고, `pnpm run build`도 같은 계열의 `src/app/empty/page.tsx` route cache 문제로 검증 불가
+- 테스트용 라우트 `badge`, `empty`, `stopcard`, recommendation preview를 `frontend/src/app/(test)` 아래로 옮겨 정리하고, 기존 `/routes/temp` preview는 `/recommendation`으로 이동해 실사용 `/routes/recommendation`과 분리
+- badge 참고 문서와 현재 안내 문구는 새 `(test)` 경로와 `/recommendation` URL 기준으로 갱신
+- 수정 파일: `frontend/src/app/(test)/badge/page.tsx`, `frontend/src/app/(test)/empty/page.tsx`, `frontend/src/app/(test)/recommendation/page.tsx`, `frontend/src/app/(test)/stopcard/page.tsx`, `frontend/src/app/(test)/stopcard/_components/stopcard-lab.tsx`, `frontend/src/app/(test)/stopcard/_components/list-detail-card-lab.tsx`, `badge.md`, `README.md`, `PROCESS.md`
+- 확인: `frontend`에서 `.next`, `.next-dev` 캐시 정리 후 `pnpm run build`, `pnpm run typecheck` 통과
+- `troubleshooting.md` 상단 협업 팁은 개별 명령 예시보다 실제로 잘 맞았던 작업 플로우 중심으로 재구성하고, 테스트 페이지 비교 -> production 이식, preview/실화면 병행, 문서 기준+화면 기준 병행, `(test)` 분리 흐름을 추가
+- 수정 파일: `troubleshooting.md`, `PROCESS.md`
+- 확인: 문서 작업만 수행, 별도 빌드/타입체크 없음
+- `troubleshooting.md` 협업 팁에는 `PROCESS.md`와 `plan mode`를 언제 쓰는지, 작업을 한 세션에 얼마나 묶는 게 좋은지, Playwright/브라우저 확인을 빠르게 끝내는 요청 방식까지 추가로 정리
+- 수정 파일: `troubleshooting.md`, `PROCESS.md`
+- 확인: 문서 작업만 수행, 별도 빌드/타입체크 없음
+- `/stopcard` 리스트 상세 카드 시안 3종 모두에 `Must Visit` 별 토글과 삭제 액션을 다시 넣어, 저장 리스트의 핵심 관리 기능이 디자인 탐색 과정에서 빠지지 않도록 정리
+- Gemini 일정 생성 프롬프트에는 `must_visit` 필드를 명시하고 must-visit 장소를 반드시 한 번씩 포함하라고 강화했으며, Gemini 결과가 priority 장소를 누락하면 deterministic planner 슬롯으로 백필해 일정 생성 시 빠지지 않게 보강
+- 수정 파일: `frontend/src/app/(test)/stopcard/_components/list-detail-card-lab.tsx`, `backend/src/lib/geminiOptimizer.js`, `PROCESS.md`
+- 확인: `backend`에서 `npm run check` 통과, `frontend` 전체 검증은 기존 `.next` route cache 이슈 때문에 별도 재실행하지 않음
+- `/stopcard` 리스트 상세 카드 1안 중심으로 별/삭제 액션을 text badge형이 아니라 icon-only(`빈 별 -> filled 별`, `쓰레기통`)로 다시 정리하고, 사진과 같은 덩어리에 묶지 않도록 액션 위치를 분리
+- cover/utility 안의 임의 `top`류 라벨과 상태 카드들은 줄이고, 리스트 저장에서 실제로 존재하는 사용자 메모만 본문 패널로 강조하도록 문구와 레이아웃을 수정
+- 수정 파일: `frontend/src/app/(test)/stopcard/_components/list-detail-card-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck`, `pnpm run build` 통과
+- `(test)/stopcard` 일정 카드 실험안에는 메모가 없는 상태를 따로 확인할 수 있도록 `No Memo State / Empty Memo` 샘플을 추가해, 빈 메모일 때 하단 `메모 추가`만 남는 compact 상태를 페이지에서 바로 비교 가능하게 정리
+- 수정 파일: `frontend/src/app/(test)/stopcard/_components/stopcard-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build` 통과, 첫 `pnpm run typecheck`는 `.next/types` 누락으로 실패 후 재실행 통과
+- `/stopcard` 리스트 상세 카드 시안의 Must Visit 별 버튼은 쓰레기통과 같은 흰 배경 원형 액션으로 맞추고, 기본은 회색 outline star, active는 리뷰 별색 계열 노란 fill로 바꿔 stop 카드보다 덜 튀는 관리 액션 톤으로 정리
+- 리스트 카드 메모 블록은 stop 카드의 `memo` panel UI와 같은 구조로 맞추고, 하단 `지도 보기`는 stop 카드 액션과 같은 bordered ghost pill 스타일로 통일해 `메모 수정`은 memo panel 내부 액션으로만 두는 방향으로 정리
+- 수정 파일: `frontend/src/app/(test)/stopcard/_components/list-detail-card-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build`, `pnpm run typecheck` 통과
+- `(test)/stopcard` 메모 편집 상태 안내 문구는 카드 높이 설명 대신 `기억해둘 게 있다면 가볍게 메모해 보세요` 톤으로 교체하고, 실제 일정 상세 카드 공용 메모 설명 카피도 같은 문구로 맞춰 메모 진입 경험을 일관되게 정리
+- 수정 파일: `frontend/src/app/(test)/stopcard/_components/stopcard-lab.tsx`, `frontend/src/constants/ui-copy.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build` 통과, `pnpm run typecheck`는 `pnpm exec next typegen` 후 통과
+- `/stopcard` 리스트 상세 카드 3안은 `저장한 장소를 다시 찾는 카드 / 왜 저장했는지 기억하는 카드 / 나중에 일정 후보로 비교하는 카드`라는 서로 다른 질문에 답하도록 다시 다듬고, 비교 설명에도 각 안의 `이 안이 답하는 질문`을 추가해 판단 기준이 바로 보이게 정리
+- 1안은 title+quiet meta+memo 균형형, 2안은 cover+memo 중심의 personal guide형, 3안은 photo/map 분리와 info tile을 둔 planning companion형으로 정보 우선순위를 다시 나눔
+- 수정 파일: `frontend/src/app/(test)/stopcard/_components/list-detail-card-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build` 통과, `pnpm exec next typegen` 후 `pnpm run typecheck` 통과
+- `/stopcard` 리스트 상세 1안은 사진 위치 비교를 위해 `1-1 Side Thumb`, `1-2 Photo Strip` 두 갈래로 분리해, 별/삭제 헤더 액션이 있을 때 사진이 오른쪽 식별 썸네일로 붙는 편이 나은지 제목 아래 보조 strip으로 내려가는 편이 나은지 바로 비교 가능하게 정리
+- 수정 파일: `frontend/src/app/(test)/stopcard/_components/list-detail-card-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 해당 시안 파일은 TypeScript transpile parse 통과; 전체 `pnpm run build` / `pnpm run typecheck`는 기존 `frontend/src/app/routes/recommendation/page.tsx` 문법 오류와 `.next/types/routes.d.ts` 생성 실패 때문에 이번 턴에는 통과 못 함
+- `/stopcard` 리스트 상세 1안 비교군에 `1-3 Left Thumb`를 추가해, 1-1의 정보 구조는 유지한 채 사진만 왼쪽 식별 썸네일로 옮긴 배치도 별/삭제 헤더 액션과 함께 바로 비교 가능하게 정리
+- 수정 파일: `frontend/src/app/(test)/stopcard/_components/list-detail-card-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 해당 시안 파일은 TypeScript transpile parse 통과
+- `1-3 Left Thumb`는 요청에 맞춰 사진이 카드 좌상단부터 내려오고, 오른쪽 첫 영역에 `VIEW / 영업 상태 / 타이틀`이 붙도록 다시 다듬고, 메모는 카드 전체 너비를 차지하는 full-width panel로 정리
+- 수정 파일: `frontend/src/app/(test)/stopcard/_components/list-detail-card-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build` 통과, `pnpm exec next typegen` 후 `pnpm run typecheck` 통과
+- `(test)/stopcard`의 `지도 보기` 버튼은 실사용 `RouteStopCard`와 같은 bordered ghost pill + external-link icon 스타일로 맞추고, 리스트 상세 실험안의 `지도 보기` 아이콘도 같은 기준으로 통일
+- 리스트 상세 카드들에서는 주소를 카드 안에서 두 번 반복하지 않도록 정리해, 1-1/1-3의 하단 전체 주소 줄을 제거하고 1-2/2안/3안도 주소 표현을 한 번만 남기도록 조정; 위치 규칙 설명도 `카드에서는 주소 1회, 상세/지도에서 확장` 기준으로 갱신
+- 수정 파일: `frontend/src/app/(test)/stopcard/_components/stopcard-lab.tsx`, `frontend/src/app/(test)/stopcard/_components/list-detail-card-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build`, `pnpm exec next typegen`, `pnpm run typecheck` 통과
+- `/stopcard` 리스트 상세 1안 비교군에는 `1-4 Image Then Title`을 추가해, 1-2 계열에서 배지 아래 사진을 먼저 두고 타이틀/별점은 사진 아래에서 읽는 순서도 함께 비교 가능하게 정리
+- 수정 파일: `frontend/src/app/(test)/stopcard/_components/list-detail-card-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build`, `pnpm exec next typegen`, `pnpm run typecheck` 통과
+- 실사용 `RouteStopCard`와 `(test)/stopcard` 실험안의 `메모 추가`도 `지도 보기`와 같은 ghost pill 셸로 통일하고, 메모 수정/삭제를 포함한 icon+text 액션 전반에 `leading-none`과 icon shrink 정리를 넣어 세로 정렬이 어긋나지 않게 보정
+- 아이콘 방향성은 통일된 버튼 셸 안에서 `메모 추가`는 plus leading, `지도 보기`는 external-link trailing으로 유지해 역할 차이는 남기고 시각 규칙만 맞춤
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `frontend/src/app/(test)/stopcard/_components/stopcard-lab.tsx`, `frontend/src/app/(test)/stopcard/_components/list-detail-card-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 첫 `pnpm run build`는 `.next` 산출물 rename 오류로 일시 실패 후 재실행 통과, `pnpm exec next typegen`, `pnpm run typecheck` 통과
+- `/stopcard` 리스트 상세 비교에서는 2안, 3안을 제거하고 1안 파생안(`1-1`, `1-2`, `1-3`, `1-4`)만 남겨 사진 위치와 정보 순서 비교에 집중하도록 정리; 현재 추천 표시는 `1-3 Left Thumb`에 부여
+- 수정 파일: `frontend/src/app/(test)/stopcard/_components/list-detail-card-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 첫 `pnpm run build`는 `.next` 500.html rename 오류로 실패 후 재실행 통과, `pnpm exec next typegen`, `pnpm run typecheck` 통과
+- `1-3 Left Thumb` 아래에는 메모 없는 상태를 같이 볼 수 있도록 `No Memo State` 샘플을 추가하고, 메모가 없을 때는 full-width memo panel 대신 하단 액션 줄에 같은 ghost pill 스타일의 `메모 추가`가 나타나는 fallback 흐름으로 정리
+- 수정 파일: `frontend/src/app/(test)/stopcard/_components/list-detail-card-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run build`, `pnpm exec next typegen`, `pnpm run typecheck` 통과
+- 실사용 stop 카드와 실험 stop/list 카드의 `메모 추가` leading icon에는 `mr-1.5`를 넣어 `지도 보기` trailing icon과 체감 간격을 맞췄고, 실제 일정 상세 `/routes/[id]`와 추천 결과 `/routes/recommendation`이 모두 `RouteStopCard`를 직접 렌더링하는 것도 함께 확인
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `frontend/src/app/(test)/stopcard/_components/stopcard-lab.tsx`, `frontend/src/app/(test)/stopcard/_components/list-detail-card-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 첫 `pnpm run build`는 `.next/server/pages-manifest.json` 누락으로 실패 후 재실행 통과, `pnpm exec next typegen`, `pnpm run typecheck` 통과; build에는 `frontend/src/app/routes/[id]/page.tsx`의 기존 `react-hooks/exhaustive-deps` warning 1건만 남음
+- Supabase `MyRoute` 프로젝트(`pwmfdcurwpiytdxruzgi`)에 `002_add_schedule_tip_language.sql` 내용 그대로 적용해 `place_lists.language`, `schedules.output_language`, `schedule_stops.visit_tip` 컬럼과 언어 체크 제약을 실제 DB에 반영
+- 수정 파일: `PROCESS.md`
+- 확인: Supabase 스키마 조회로 컬럼 3개와 `place_lists_language_check`, `schedules_output_language_check` 제약 생성 확인
+- 실제 `/routes/recommendation` 페이지를 `(test)/recommendation` UI 기준으로 재구성해, day selector + map/list 전환 + stop card preview + 모바일 하단 CTA 흐름을 실데이터 일정에 연결
+- 추천 화면의 삭제/재추천/확정 액션을 실제 `deleteSchedule`, `regenerateSchedule`, `/routes/[id]` 이동으로 연결하고, recommendation copy도 현재 CTA 문구에 맞게 갱신
+- 수정 파일: `frontend/src/app/routes/recommendation/page.tsx`, `frontend/src/constants/ui-copy.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck`, `pnpm run build` 통과
+- `/routes/recommendation` hero 카피는 `{도시} 여행 코스가 나왔어요` / `이렇게 떠나보는 건 어떠신가요?` 조합으로 다시 정리하고, 페이지에서는 일정 제목 대신 도시명 기반 타이틀을 직접 사용하도록 맞춤
+- 수정 파일: `frontend/src/app/routes/recommendation/page.tsx`, `frontend/src/constants/ui-copy.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과, 첫 `pnpm run build`는 `.next/server/pages-manifest.json` 누락으로 실패 후 재실행 통과
+- `(test)/recommendation` preview hero도 production recommendation과 같은 `{도시} 여행 코스가 나왔어요` / `이렇게 떠나보는 건 어떠신가요?` 카피를 공용 `UI_COPY.routes.recommendation`으로 맞춰 문구 기준을 동기화
+- 수정 파일: `frontend/src/app/(test)/recommendation/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과, 첫 `pnpm run build`는 `.next` cache rename / nft 산출물 누락으로 실패 후 재실행 통과
+- 마이페이지 여행 캘린더 설명 문구를 `여행 일정이 날짜별로 정리돼 있어요. 원하는 날짜를 누르면 바로 확인할 수 있어요`로 다듬어 기존의 어색한 반복 표현을 정리
+- 수정 파일: `frontend/src/constants/ui-copy.ts`, `PROCESS.md`
+- 확인: 문구 상수 변경만 수행, 별도 빌드/타입체크 없음
+- 마이페이지 여행 캘린더 설명 문구는 더 짧고 액션 유도형인 `날짜를 눌러 여행 일정을 확인해 보세요`로 다시 조정
+- 수정 파일: `frontend/src/constants/ui-copy.ts`, `PROCESS.md`
+- 확인: 문구 상수 변경만 수행, 별도 빌드/타입체크 없음
+- `/stopcard` 리스트 상세 비교 영역에서 `1-1`, `1-2` 렌더를 제거하고 `1-3 Left Thumb`만 확정안으로 남긴 뒤, 별 토글·메모 수정·메모 추가·카드 삭제 상태까지 직접 눌러볼 수 있는 로컬 state 데모로 전환; `1-4`는 참고용 비교안으로만 유지
+- 수정 파일: `frontend/src/app/(test)/stopcard/_components/list-detail-card-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck`, `pnpm run build` 통과
+- `/stopcard` 리스트 상세 `1-3` 삭제 데모는 인라인 복원 박스를 걷어내고, 카드가 바로 사라진 뒤 하단에 `장소를 리스트에서 삭제했어요` + `복원` 토스트가 뜨는 흐름으로 바꿔 실제 saved UX에 가까운 안내 메시지 위치를 미리 확인할 수 있게 정리
+- 수정 파일: `frontend/src/app/(test)/stopcard/_components/list-detail-card-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과; `pnpm run build`는 `.next/server/app/_not-found/page.js.nft.json` 누락, `pnpm run verify`는 `.next-verify/types/cache-life.d.ts` 누락으로 실패
+- 실제 `/saved/[listId]`에는 확정한 `1-3 Left Thumb` 리스트 카드 디자인을 전용 `SavedListPlaceCard`로 이식해, 좌상단 사진 + 오른쪽 메타 + full-width memo panel + 별 토글/삭제/지도 보기/장소 상세 액션 구성을 실데이터에 연결
+- 저장 리스트 개별 삭제는 확인 모달 대신 즉시 숨김 후 하단 `장소를 리스트에서 삭제했어요` + `복원` 스낵바로 되돌릴 수 있게 바꾸고, 메모 저장도 optimistic update로 카드 상태가 바로 반영되도록 정리
+- 수정 파일: `frontend/src/components/saved/saved-list-place-card.tsx`, `frontend/src/app/saved/[listId]/page.tsx`, `frontend/src/constants/ui-copy.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run verify` 통과
+- `/routes/[id]`와 `/routes/recommendation`에 공용 `RouteSchedulePageShell`, `RouteDaySelector`, `RouteStopList`, `useRouteStopInteractions`, 이동거리 helper를 도입해 split/list 전환, day selector, map focus, mobile sheet drag 흐름을 한 축으로 정리
+- 실제 route 화면들은 공용 shell을 쓰도록 정리하면서 stop card 메모/CTA 차이만 page 레벨 callback으로 분리했고, `currentDayStops`는 memoized dependency로 바꿔 기존 `react-hooks/exhaustive-deps` 경고도 제거
+- 수정 파일: `frontend/src/app/routes/[id]/page.tsx`, `frontend/src/app/routes/recommendation/page.tsx`, `frontend/src/components/routes/route-schedule-page-shell.tsx`, `frontend/src/components/routes/route-day-selector.tsx`, `frontend/src/components/routes/route-stop-list.tsx`, `frontend/src/components/routes/route-view-mode.ts`, `frontend/src/components/routes/route-travel-icon.tsx`, `frontend/src/hooks/use-route-stop-interactions.ts`, `frontend/src/lib/route-travel.ts`, `PROCESS.md`
+- 공용 taxonomy 기준 파일 `shared/route-taxonomy.json`을 추가하고, 프론트/백 양쪽에서 `START/MORNING/VISIT/AFTERNOON/FINISH`, `MUSTVISIT`, place/theme category 값을 같은 소스로 읽도록 정리
+- 백엔드 일정 엔진/Gemini optimizer/Google Places category 추론과 프론트 badge/theme, route label chip, stop card, 새 일정 theme icon 매핑이 이 공용 기준을 사용하도록 갱신
+- 수정 파일: `shared/route-taxonomy.json`, `backend/src/lib/route-taxonomy.js`, `backend/src/lib/geminiOptimizer.js`, `backend/src/lib/scheduleEngine.js`, `backend/src/lib/googlePlaces.js`, `frontend/src/constants/route-taxonomy.ts`, `frontend/src/lib/badge-theme.ts`, `frontend/src/components/routes/route-label-chip.tsx`, `frontend/src/components/routes/route-stop-card.tsx`, `frontend/src/components/routes/new-route-client.tsx`, `PROCESS.md`
+- 프론트 검증 스크립트를 `clean:build`, `typegen`, `typecheck:stable`, `build:verify`, `verify`로 정리하고, 검증 build는 `NEXT_DIST_DIR=.next-verify`와 별도 wrapper script를 써 dev 산출물과 분리되게 보강
+- `build:verify`를 한 번 돌린 뒤 Next가 `frontend/tsconfig.json` include에 `.next-verify/types/**/*.ts`를 자동 추가했고, 이후 `pnpm run verify`가 stable typecheck + isolated build 순서로 끝까지 통과함
+- 수정 파일: `frontend/package.json`, `frontend/next.config.ts`, `frontend/tsconfig.json`, `frontend/scripts/clean-build-artifacts.mjs`, `frontend/scripts/run-next-verify.mjs`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm run build:verify`, `pnpm run verify` 통과 / `backend`에서 `npm run check` 통과
+- 홈과 저장 리스트의 페이지형 empty를 공용 `PageEmptyState`로 묶고, `/saved` empty도 `내 일정`과 같은 상단 타이틀 + 중앙 CTA 구도로 맞춤
+- 페이지형 empty 마스코트 규칙은 `featured + floating`과 `default + static`으로 분리해 비행기 강아지만 크게 움직이게 두고, 돋보기 강아지 같은 정적 empty는 이전 empty 크기로 유지
+- 홈 `/`, 저장 리스트 `/saved`, `(test)/empty`의 empty 컨테이너 최소 높이를 키워 본문이 조금 더 수직 중앙에 오도록 조정
+- 수정 파일: `frontend/src/components/common/empty-state.tsx`, `frontend/src/components/common/page-empty-state.tsx`, `frontend/src/components/home/home-empty-state.tsx`, `frontend/src/components/saved/saved-empty-state.tsx`, `frontend/src/app/page.tsx`, `frontend/src/app/saved/page.tsx`, `frontend/src/app/(test)/empty/page.tsx`, `frontend/src/constants/ui-copy.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run verify` 통과
+- funnel `StepTitle`과 page empty가 같은 마스코트 size token을 공유하도록 `MASCOT_SIZE_CLASS.compact`를 추가해, 저장 리스트 empty의 돋보기 강아지가 `새 일정` 1단계와 정확히 같은 크기를 쓰도록 정리
+- 공용 empty는 `mascotClassName` override를 지원하게 열어두고, `/saved` empty가 compact token을 명시적으로 사용하도록 연결
+- 수정 파일: `frontend/src/components/layout/mascot.tsx`, `frontend/src/components/common/empty-state.tsx`, `frontend/src/components/common/page-empty-state.tsx`, `frontend/src/components/saved/saved-empty-state.tsx`, `frontend/src/components/routes/new-route-client.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과, 첫 `pnpm run verify`는 `.next-verify/server/pages-manifest.json` 누락으로 실패 후 `pnpm run build:verify` 재실행 통과
+- 홈 `/`, 저장 리스트 `/saved`, `(test)/empty`의 empty 페이지는 고정 `54dvh` 박스 대신 페이지 전체 남는 높이를 차지하는 flex 레이아웃으로 바꿔, empty 본문이 화면 기준으로 더 정확히 수직 중앙에 오도록 조정
+- 수정 파일: `frontend/src/app/page.tsx`, `frontend/src/app/saved/page.tsx`, `frontend/src/app/(test)/empty/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- empty 본문은 추가로 `-translate-y-[calc(var(--bottom-nav-offset)/2)]`를 적용해, 바텀 네비 영역을 제외한 시각적 중앙에 더 가깝게 오도록 위로 보정
+- 확인: `frontend`에서 `pnpm run typecheck:stable`은 기존 incremental 캐시 기준 `ui-copy` 속성 에러로 실패했지만, `pnpm exec tsc --noEmit --incremental false`는 통과
+- 새 일정 funnel의 리스트 단계 empty는 상단 `새 리스트 가져오기` 버튼과 empty CTA가 중복되지 않도록, 리스트가 없을 때는 StepTitle 액션을 숨기고 아래에 텍스트-only `PageEmptyState` CTA 하나만 남기게 정리
+- `PageEmptyState`는 `showMascot` 옵션을 지원하도록 확장해, 저장 리스트 empty와 같은 페이지형 레이아웃을 재사용하면서 funnel 단계에서는 상단 강아지와 중복되지 않게 마스코트를 숨길 수 있게 함
+- 수정 파일: `frontend/src/components/common/page-empty-state.tsx`, `frontend/src/components/routes/new-route-client.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec tsc --noEmit --incremental false` 통과; `pnpm run build:verify`는 기존 `(test)/modal/page.tsx -> ./_components/modal-lab` 파일 누락으로 실패
+- 새 일정 리스트 단계의 `새 리스트 가져오기`는 요청대로 `리스트가 없을 때만` empty CTA 1개로 노출되게 다시 정리하고, 리스트가 있을 때는 상단 버튼과 하단 helper link를 모두 숨김
+- 리스트 단계 empty wrapper는 `flex-1` 중앙 정렬 + 약한 위쪽 보정으로 바꿔, 텍스트-only empty가 좌우/상하 모두 더 안정적으로 가운데 오도록 조정
+- 수정 파일: `frontend/src/components/routes/new-route-client.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec tsc --noEmit --incremental false` 통과
+- `(test)/modal` 참고 페이지를 추가해 입력형 2종, 삭제 확인 3종, 회원 탈퇴 1종 모달을 같은 shell 스타일로 한 화면에서 비교할 수 있게 정리
+- `DialogShell` 내부 카드 UI를 preview에서도 재사용할 수 있게 `DialogShellPreview`를 추가했고, import/add-place/delete/account modal 문구도 붙여넣기 결과와 삭제 범위가 더 직접적으로 읽히도록 다듬음
+- 수정 파일: `frontend/src/app/(test)/modal/page.tsx`, `frontend/src/app/(test)/modal/_components/modal-lab.tsx`, `frontend/src/components/common/dialog-shell.tsx`, `frontend/src/constants/ui-copy.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run verify` 통과
+- `(test)/modal` 상단을 회원 탈퇴 모달 비교 중심으로 재구성하고, OpenAI식 typed confirm / Discord식 credential gate / Figma식 checklist exit 패턴을 참고한 시안 3종을 추가
+- 비교 페이지에는 현재 production 베이스안도 그대로 남겨 새 3안과 바로 비교할 수 있게 했고, 검증 중 드러난 `saved.detail.placesSection.detailAction` 누락 카피도 함께 보강
+- 수정 파일: `frontend/src/app/(test)/modal/_components/modal-lab.tsx`, `frontend/src/constants/ui-copy.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run verify` 통과
+- 회원 탈퇴 모달 3안은 dark/tool 전용 톤을 걷어내고, 마이루트 카드 시스템에 맞는 white/soft-blue 계열 surface와 출시용 문구로 다시 정리; 세 안 모두 강아지가 프레임 없이 자연스럽게 들어가도록 재구성
+- 공용 `Mascot`에는 `sad` 변형을 추가했고, 실제 `/mypage` 회원 탈퇴 모달도 같은 방향으로 강아지 배치와 문구를 정리해 baseline 자체를 더 현재 디자인 시스템에 맞게 보정
+- 수정 파일: `frontend/src/app/(test)/modal/_components/modal-lab.tsx`, `frontend/src/components/layout/mascot.tsx`, `frontend/src/app/mypage/page.tsx`, `frontend/src/constants/ui-copy.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run verify` 통과
+- 저장 리스트 실제 카드에서 `메모 추가`, `지도 보기` 보조 액션은 하단 왼쪽이 아니라 이전 `장소 상세`가 있던 오른쪽 정렬 영역으로 이동시켜 카드 시선이 한쪽으로 덜 퍼지게 정리
+- 수정 파일: `frontend/src/components/saved/saved-list-place-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- `useRequireAuth`에 redirect 일시 중지 옵션을 추가해, 명시적 로그아웃 중에는 자동 `/login?next=...` 리다이렉트가 겹치지 않도록 정리
+- 마이페이지 로그아웃은 `/login` prefetch + `cancelQueries()` 후 local signOut + signOut error 확인 순서로 다듬어, 로그아웃 로딩이 길어지는 경쟁 상태를 줄이도록 조정
+- 수정 파일: `frontend/src/hooks/use-require-auth.ts`, `frontend/src/app/mypage/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과
+- 남은 확인: 로컬 임시 dev 인스턴스에서 `/signup` hydration/404 문제가 있어 브라우저 자동 재현은 끝까지 못 했고, 실제 로그아웃 체감은 기존 사용 흐름에서 한 번 더 확인 필요
+- `(test)/modal` 회원 탈퇴 3안은 테스트 페이지 전용으로 다시 정리해, 헤더 아이콘 없이 강아지 위치를 다듬고 이메일 placeholder 확인만 남긴 간결한 모달 비교안 3종만 보이도록 정리
+- 비교 페이지의 production 베이스안/과한 설명 카드는 제거했고, 각 탈퇴 모달에서 삭제 범위와 복구 불가 안내가 중복되던 부분은 한 블록으로 합쳐 피로감을 줄임
+- 실제 `/mypage` 회원 탈퇴 모달은 테스트 페이지와 분리되도록 framed image baseline으로 되돌렸고, 검증 중 막히던 `SavedListPlaceCard`의 `isEditingNote` 선언 순서 타입 에러도 함께 수정
+- 수정 파일: `frontend/src/app/(test)/modal/_components/modal-lab.tsx`, `frontend/src/app/mypage/page.tsx`, `frontend/src/components/saved/saved-list-place-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과; `pnpm run verify`는 `.next-verify/types/validator.ts` 누락 후 `pnpm run build:verify` 재시도 중 타임아웃으로 끝까지 확인하지 못함
+- `(test)/modal` 회원 탈퇴 3안의 강아지는 떠 있는 하단 장식 대신 헤더 타이틀 영역의 오른쪽으로 옮겨, `justify-between` 구도에서 제목과 같이 읽히도록 재배치
+- `Soft Guide` 안에 남아 있던 분리 안내도 한 문장 안내 카드로 합쳐, 세 안 모두 삭제 범위와 복구 불가 정보가 한 번만 읽히게 정리
+- 수정 파일: `frontend/src/app/(test)/modal/_components/modal-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과
+- `(test)/modal` 회원 탈퇴 섹션은 요청대로 1안만 남겨 선택안으로 정리했고, 경고 카드는 `안내` 라벨 대신 warning triangle 아이콘 + 한 문장 경고로 교체
+- 이메일 필드 문구는 `가입한 이메일` 라벨 대신 `탈퇴하려면 가입한 이메일을 입력해 주세요` 지시형 문구로 수정
+- 수정 파일: `frontend/src/app/(test)/modal/_components/modal-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과
+- `(test)/modal` 회원 탈퇴 warning card는 노란 임시 색 대신 `danger` 계열 빨간 border/background/icon 톤으로 정리
+- 수정 파일: `frontend/src/app/(test)/modal/_components/modal-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과
+- `(test)/modal` 회원 탈퇴 선택안의 `~요.` 문장 끝 마침표를 제거하고, warning row는 아이콘과 텍스트가 `items-center`로 수직 중앙 정렬되게 보정
+- 수정 파일: `frontend/src/app/(test)/modal/_components/modal-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과
+- 실제 `/mypage` 회원 탈퇴 모달은 `(test)/modal`에서 고른 1안 구조로 교체하고, 빨간 warning row + 헤더 오른쪽 강아지 + 이메일 확인 input이 있는 실사용 버전으로 반영
+- placeholder는 로그인한 사용자 이메일(`session.user.email`)을 그대로 보여주게 연결했고, 입력값이 해당 이메일과 일치할 때만 `회원 탈퇴` 버튼이 활성화되도록 처리
+- 회원 탈퇴 카피는 실제 모달 기준으로 `삭제 범위 + 복구 불가`, `이메일 입력 안내`, `이메일 불일치` 문구만 남기게 정리
+- 수정 파일: `frontend/src/app/mypage/page.tsx`, `frontend/src/constants/ui-copy.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과
+- 실제 `/mypage` 회원 탈퇴 이메일 입력은 `react-hook-form + zod` 검증으로 바꿔, 빈 값/이메일 형식 오류/가입 이메일 불일치를 폼 에러로 구분해서 보여주도록 정리
+- 탈퇴 버튼은 기존처럼 현재 계정 이메일과 정확히 일치할 때만 활성화되게 유지했고, placeholder는 계속 로그인한 사용자 이메일을 표시
+- 수정 파일: `frontend/src/app/mypage/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과
+- `(test)/modal` 삭제 확인 섹션은 저장 리스트/개별 장소/일정 예시 3개를 나열하던 방식 대신, 문구만 갈아끼우는 공용 confirm modal UI 시안 3종으로 재구성
+- `Compact Warning`, `Summary Split`, `Soft Focus` 3안 모두 같은 샘플 title/description/삭제 CTA를 쓰고, 적용 예시는 `저장 리스트 / 개별 장소 / 일정` 배지로만 보여 공용 슬롯 구조가 보이게 정리
+- 수정 파일: `frontend/src/app/(test)/modal/_components/modal-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과
+- `(test)/modal` 삭제 확인 섹션에는 공용 confirm 시안 3종 아래에 기존 케이스별 현재 모달(`저장 리스트 / 개별 장소 / 일정`)도 다시 붙여, 새 시안과 현재 상태를 같은 페이지에서 비교할 수 있게 복원
+- 수정 파일: `frontend/src/app/(test)/modal/_components/modal-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과
+- `(test)/modal` 공용 삭제 확인 `Soft Focus` 3안은 본문 `적용 예시` 카드를 제거하고, 헤더 타이틀 오른쪽에 `surprise` 강아지를 붙여 회원 탈퇴 선택안과 비슷한 구도로 재배치
+- 수정 파일: `frontend/src/app/(test)/modal/_components/modal-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과
+- 공용 삭제 확인 실제 컴포넌트 `ConfirmDialog`는 버튼을 `sm` 사이즈 + 최소 너비로 줄여, 모든 일반 삭제 confirm이 우하단의 작은 CTA 위계를 쓰도록 통일
+- 실제 `/mypage` 회원 탈퇴 모달과 `(test)/modal` 회원 탈퇴/삭제 확인 시안도 같은 기준으로 맞춰, 버튼을 full-width 대신 우하단 정렬의 작은 버튼으로 정리
+- 수정 파일: `frontend/src/components/common/confirm-dialog.tsx`, `frontend/src/app/mypage/page.tsx`, `frontend/src/app/(test)/modal/_components/modal-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과
+- 공용 삭제 확인은 `(test)/modal`에서 `Soft Focus` 3안만 남겨 확정했고, 실제 `ConfirmDialog`도 surprise 강아지 + warning row + 공통 title/description/CTA를 쓰는 단일 모달로 정리
+- 저장 리스트/개별 장소/일정 삭제는 모두 `UI_COPY.common.deleteConfirm`의 같은 텍스트를 쓰도록 통일했고, 테스트 페이지 현재 적용 섹션도 케이스별 3개 대신 실제 적용 버전 1개만 남김
+- 입력형 가져오기 모달 헤더는 공용 `DialogShell`을 회원 탈퇴/삭제 확인과 비슷한 구도로 다시 잡아, boxed mascot을 걷고 오른쪽 강아지 + 설명 유지형 헤더로 정리
+- 수정 파일: `frontend/src/constants/ui-copy.ts`, `frontend/src/components/common/confirm-dialog.tsx`, `frontend/src/components/common/dialog-shell.tsx`, `frontend/src/app/routes/[id]/page.tsx`, `frontend/src/app/routes/recommendation/page.tsx`, `frontend/src/app/(test)/recommendation/page.tsx`, `frontend/src/app/saved/[listId]/page.tsx`, `frontend/src/app/(test)/modal/_components/modal-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과
+- 공용 `DialogShell`은 `showCloseButton`, `headerClassName` 옵션을 지원하게 확장했고, 가져오기 계열 modal은 이 옵션으로 `X`를 숨기고 더 선명한 soft-blue 헤더 그라데이션을 적용
+- 실제 `ImportListModal`, 저장 리스트 상세 `장소 추가` modal, `(test)/modal` 입력형 프리뷰 2종 모두 같은 헤더 스타일로 맞춤
+- 수정 파일: `frontend/src/components/common/dialog-shell.tsx`, `frontend/src/components/import/import-list-modal.tsx`, `frontend/src/app/saved/[listId]/page.tsx`, `frontend/src/app/(test)/modal/_components/modal-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과
+- 가져오기 계열 modal 헤더 그라데이션은 임의 값 대신 실제 회원 탈퇴 모달과 같은 `bg-[linear-gradient(135deg,rgba(232,244,255,0.94),rgba(255,255,255,1)_72%)]` 값으로 다시 통일
+- 수정 파일: `frontend/src/components/import/import-list-modal.tsx`, `frontend/src/app/saved/[listId]/page.tsx`, `frontend/src/app/(test)/modal/_components/modal-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과
+- 공용 `DialogShell`에 파란 eyebrow 슬롯을 추가하고, 가져오기 계열 modal 헤더에는 title 위에 `Import List` / `Add Place` 멘트를 얹어 헤더 비율을 보정
+- 실제 `ImportListModal`, 저장 리스트 상세 `장소 추가` modal, `(test)/modal` 입력형 프리뷰 2종 모두 같은 eyebrow 구성을 사용
+- 수정 파일: `frontend/src/components/common/dialog-shell.tsx`, `frontend/src/components/import/import-list-modal.tsx`, `frontend/src/app/saved/[listId]/page.tsx`, `frontend/src/app/(test)/modal/_components/modal-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과
+- 공용 삭제 확인 `ConfirmDialog`는 확정한 공통 모달 디자인에 맞춰 `Delete Confirm` eyebrow, 동일 헤더 그라데이션, `surprise` 강아지, `X` 없는 헤더로 다시 정리
+- `(test)/modal`에는 공통 모달 shell 자체를 확인하는 `공통 모달 껍데기` 프리뷰를 추가했고, 현재 적용 삭제 확인 프리뷰도 실제 공용 삭제 확인과 같은 헤더 조건으로 맞춤
+- 수정 파일: `frontend/src/components/common/confirm-dialog.tsx`, `frontend/src/app/(test)/modal/_components/modal-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과
+- 실제 `/saved/[listId]` 카드와 `/stopcard`의 `1-3 Left Thumb` 실험안 썸네일은 세로로 길어지지 않도록 `120x120` 정사각형으로 다시 맞춤
+- 수정 파일: `frontend/src/components/saved/saved-list-place-card.tsx`, `frontend/src/app/(test)/stopcard/_components/list-detail-card-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 저장 리스트 실제 카드에서 메모가 없는 상태의 `메모 추가`는 상단 memo 슬롯으로 튀지 않도록, 버튼이 있던 하단 액션 자리에서 바로 editor가 열리게 분기해 같은 자리에서 입력을 이어갈 수 있게 정리
+- 수정 파일: `frontend/src/components/saved/saved-list-place-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 저장 리스트 상세 아이템 정렬에는 `priority desc`, `created_at asc`만 쓰고 있어 같은 시각에 들어온 장소들이 refetch 때 흔들릴 수 있었고, 메모 저장 후 카드가 아래로 이동해 보이던 문제를 막기 위해 `id asc` tie-breaker를 추가해 순서를 고정
+- 수정 파일: `backend/src/resolvers.js`, `PROCESS.md`
+- 확인: `backend`에서 `npm run check` 통과
+- 저장 리스트 장소는 별/메모 수정과 무관하게 처음 들어온 순서를 유지하도록 `place_list_items.sort_order`를 추가하고, 리스트 조회/preview/candidate fetch가 모두 `sort_order asc`를 기준으로 읽게 변경
+- 새 장소 추가는 기존 item이면 정렬을 건드리지 않고 note/priority만 갱신하고, 새 item일 때만 다음 `sort_order`를 부여하며, 크롤러 import는 스크랩 순서대로 `sort_order`를 저장하도록 정리
+- 수정 파일: `backend/src/resolvers.js`, `backend/supabase/sql/001_init_requirements.sql`, `backend/supabase/sql/003_add_place_list_item_sort_order.sql`, `backend/테이블.md`, `PROCESS.md`
+- 확인: `backend`에서 `npm run check` 통과, Supabase `MyRoute` 프로젝트(`pwmfdcurwpiytdxruzgi`)에 `add_place_list_item_sort_order` 마이그레이션 적용, `place_list_items` 38건 모두 `sort_order` non-null 확인
+- 새 일정 funnel 리스트 단계에서 리스트가 이미 있어도 다시 크롤러 import를 열 수 있도록, 목록 아래 파란 언더라인 helper action `원하는 리스트가 없나요? 새 리스트 가져오기`를 다시 노출
+- 수정 파일: `frontend/src/components/routes/new-route-client.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 새 일정 funnel 리스트 단계 helper link는 `inline-flex` 대신 `flex w-fit mx-auto`로 바꿔, 리스트가 있을 때 보이는 파란 언더라인 액션이 수평 중앙에 안정적으로 오도록 정렬 보정
+- 수정 파일: `frontend/src/components/routes/new-route-client.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 실제 `/mypage` 회원 탈퇴 모달도 공통 `DialogShell` 기준으로 재구성해 `Delete Account` eyebrow, 동일 헤더 그라데이션, `X` 없는 헤더, 작은 우하단 버튼 구조로 삭제 확인/입력형 모달과 같은 틀로 통일
+- 수정 파일: `frontend/src/app/mypage/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과
+- 실제 입력형 modal 2종(`Import List`, `Add Place`)의 footer 버튼도 삭제 확인과 같은 작은 우하단 액션 규격(`size="sm"`, `min-w-[88px]`)으로 통일했고, `(test)/modal` 프리뷰도 같은 버튼 스타일을 쓰도록 정리
+- 수정 파일: `frontend/src/components/import/import-list-modal.tsx`, `frontend/src/app/saved/[listId]/page.tsx`, `frontend/src/app/(test)/modal/_components/modal-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과
+- 입력형 modal 2종에 필드 라벨을 추가하고, input 하단 helper 문구는 `리스트 이름`의 `비워두면 도시 이름으로 저장돼요`만 남기고 나머지는 제거; `/modal` 프리뷰도 같은 필드 구조로 맞춤
+- 수정 파일: `frontend/src/constants/ui-copy.ts`, `frontend/src/components/import/import-list-modal.tsx`, `frontend/src/app/saved/[listId]/page.tsx`, `frontend/src/app/(test)/modal/_components/modal-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과
+- 입력형 modal 라벨은 필수 `*`와 선택 표시를 라벨 줄로 올리고, 라벨-입력 간격은 더 촘촘하게 조정; placeholder는 예시형으로 구체화했고 `Google 지도 링크` 문구는 `Google Maps 장소 링크`로 통일, `/modal` 프리뷰는 placeholder가 보이도록 샘플 값 대신 placeholder 기준으로 정리
+- 수정 파일: `frontend/src/constants/ui-copy.ts`, `frontend/src/components/import/import-list-modal.tsx`, `frontend/src/app/saved/[listId]/page.tsx`, `frontend/src/app/(test)/modal/_components/modal-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과
+- 회원 탈퇴 modal의 이메일 입력 블록도 입력형 modal과 같은 `space-y-1` 간격으로 맞췄고, `(test)/modal` 회원 탈퇴 프리뷰도 동일 간격으로 정리
+- 수정 파일: `frontend/src/app/mypage/page.tsx`, `frontend/src/app/(test)/modal/_components/modal-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과
+- 입력형 modal의 header copy는 `title=행동`, `description=입력 방법`으로 다시 분리해 `저장 리스트 가져오기 / Google Maps 저장 리스트 링크를 붙여넣고 리스트 이름과 도시를 확인해 주세요`, `이 리스트에 장소 추가 / Google Maps 장소 링크를 붙여넣어 현재 리스트에 넣을 장소를 불러와요`로 다듬었고, `(test)/modal` 설명도 같은 기준으로 정리
+- 수정 파일: `frontend/src/constants/ui-copy.ts`, `frontend/src/app/(test)/modal/_components/modal-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과
+- `리스트 이름` helper 문구 `비워두면 도시 이름으로 저장돼요`는 input과 바로 같은 시작선에 붙어 보이지 않도록 helper 상태에서만 `pl-1`로 살짝 들여써 정렬 보정; 실제 `Import List` modal, `/routes/import`, `(test)/modal` 프리뷰에 동일 적용
+- 수정 파일: `frontend/src/components/import/import-list-modal.tsx`, `frontend/src/app/routes/import/page.tsx`, `frontend/src/app/(test)/modal/_components/modal-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과
+- 테스트 modal UI를 실제 modal과 같은 기준으로 고정하기 위해 `DialogFieldLabel`/`DialogFieldHint` 공용 컴포넌트를 추가하고, 실제 `Import List`/`Add Place`/`Delete Account`와 `(test)/modal` 프리뷰가 모두 같은 필드 라벨, 필수/선택 표시, helper 정렬을 쓰도록 통일; 삭제 확인은 기존 공용 `ConfirmDialog` 사용처를 다시 확인해 동일 shell 유지 확인
+- 수정 파일: `frontend/src/components/common/dialog-field.tsx`, `frontend/src/components/import/import-list-modal.tsx`, `frontend/src/app/saved/[listId]/page.tsx`, `frontend/src/app/mypage/page.tsx`, `frontend/src/app/routes/import/page.tsx`, `frontend/src/app/(test)/modal/_components/modal-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck` 통과
+- `(test)/my` 참고 페이지를 추가해 출시 시점의 마이페이지 계정 정보/설정을 `출시 포함 / 준비된 경우만 / 후순위` 기준으로 정리하고, 추천 출시안 preview에서 `로그인 이메일 + 로그인 방식 + 조건부 언어 + 로그아웃/회원 탈퇴` 구조를 한 화면에서 검토할 수 있게 구성
+- 실제 `/mypage`는 아직 건드리지 않고, 현재 화면과 비교할 수 있도록 테스트 페이지에서만 출시용 구조와 제외 후보(`알림 토글`, `user id` 등)를 분리해 정리
+- 수정 파일: `frontend/src/app/(test)/my/page.tsx`, `frontend/src/app/(test)/my/_components/my-page-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- `(test)/my`는 피드백에 맞춰 settings 섹션을 제거하고, `로그인 이메일 + 로그인 방식 + 로그아웃/회원 탈퇴`를 한 `Account` 블록에 묶는 account-only 구조로 다시 정리
+- 후순위 목록도 `언어 설정`, `알림 토글`, `user id` 중심으로 재정리해 지금 제품 상태에서는 settings 제목 자체를 두지 않는 방향을 명확히 반영
+- 수정 파일: `frontend/src/app/(test)/my/page.tsx`, `frontend/src/app/(test)/my/_components/my-page-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 실제 `/mypage`도 출시용 기준으로 settings 섹션을 제거하고, 계정 정보(`이메일`, `로그인 방식`)와 account action(`로그아웃`, `회원 탈퇴`)을 하나의 계정 카드로 통합
+- account 카드 타이틀은 `계정`으로 정리했고, 출시 우선순위가 낮은 `user id` 노출은 제거
+- 수정 파일: `frontend/src/app/mypage/page.tsx`, `frontend/src/constants/ui-copy.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- `/mypage` 계정 카드의 action 영역은 별도 박스로 한 번 더 감싸지 않고, `로그아웃` 버튼과 `회원 탈퇴` 링크를 카드 본문에 직접 배치하도록 정리
+- 수정 파일: `frontend/src/app/mypage/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 저장 리스트 crawler import 중에는 입력형 modal 내부 스피너 대신 전면 `LoadingPanel`을 띄워 다른 클릭을 막고, `장소가 많을수록 시간이 조금 더 걸릴 수 있어요` 안내 문구를 함께 노출하도록 변경
+- `/routes/import` 페이지의 리스트/장소 가져오기 진행 중에도 같은 전면 로딩 패널을 사용하고, submit 버튼은 import 중복 실행이 되지 않게 `isImporting` 기준으로 함께 잠금
+- 수정 파일: `frontend/src/components/common/loading-panel.tsx`, `frontend/src/components/import/import-list-modal.tsx`, `frontend/src/app/routes/import/page.tsx`, `frontend/src/constants/ui-copy.ts`, `PROCESS.md`
+- 추천 일정 생성에서 한글 도시명(`오사카`)과 영어 주소(`Osaka`)가 섞인 리스트도 과하게 탈락하지 않도록 도시 alias 토큰과 완화 fallback을 추가했고, `hotel`/`lodging` 계열 장소는 추천 후보에서 제외하도록 정리
+- Gemini 일정이 일부 날짜를 비우거나 stop 수가 지나치게 적게 나오면 선택된 stop을 먼저 날짜별로 재분배하고, 필요 시 deterministic planner 결과로 부족한 날짜를 채워 최소 일자 커버리지가 유지되게 보강
+- 추천 결과 hero 제목은 `오사카 여행 코스가 나왔어요`처럼 한 줄로 유지되도록 no-wrap 처리
+- 수정 파일: `backend/src/resolvers.js`, `backend/src/lib/geminiOptimizer.js`, `frontend/src/app/routes/recommendation/page.tsx`, `frontend/src/app/(test)/recommendation/page.tsx`, `PROCESS.md`
+- recommendation 페이지의 재추천 mutation은 GraphQL 응답에서 반환된 `scheduleId`를 받도록 바꾸고, 향후 재추천이 새 schedule row를 만들더라도 화면 state와 URL이 응답 ID를 따라가게 보강
+- 수정 파일: `frontend/src/lib/graphql/api.ts`, `frontend/src/app/routes/recommendation/page.tsx`, `PROCESS.md`
+- crawler import는 메모가 있더라도 `priority=false`로 저장해 backend가 임의로 `Must Visit`를 만들지 않게 수정했고, 현재는 API에 `stayPlaceId`가 와도 일정 생성/재추천에서 숙소 anchor를 무시하도록 정리
+- deterministic fallback planner는 무조건 전체 리스트를 다 넣지 않고 `여행 일수 x 페이스별 목표 stop 수` 범위 안에서 후보를 고르며, 장소가 너무 많을 때만 테마/메모/평점을 tie-breaker로 사용하도록 변경
+- Gemini prompt도 `리스트 우선, 테마는 과다 후보 정리용 보조 기준`으로 문구를 완화
+- 수정 파일: `backend/src/resolvers.js`, `backend/src/lib/scheduleEngine.js`, `backend/src/lib/geminiOptimizer.js`, `PROCESS.md`
+- 현재 오사카 테스트 리스트(`5b07a7ce-6875-4d5d-9bf4-e3a8be1011d9`)에 남아 있던 과거 import 기반 auto `priority=true` 24건도 모두 `false`로 정리해, 기존 데이터가 새 추천 결과를 왜곡하지 않게 보정
+- route label taxonomy에 `LUNCH`를 추가하고, Gemini가 `BREAKFAST/BRUNCH/LUNCH/SUPPER/CAFE/SNACK`처럼 변형 라벨을 내도 backend에서 허용 라벨로 정규화해 저장하도록 보강
+- 수정 파일: `shared/route-taxonomy.json`, `frontend/src/constants/route-taxonomy.ts`, `frontend/src/components/routes/route-label-chip.tsx`, `backend/src/lib/geminiOptimizer.js`, `PROCESS.md`
+- route label 기본 체계에서 `AFTERNOON`을 제거하고 `START / MORNING / LUNCH / VISIT / DESSERT / FINISH`로 재정의했으며, backend canonical label과 view-spot tip 기준도 같은 체계에 맞춰 정리
+- 수정 파일: `shared/route-taxonomy.json`, `backend/src/lib/route-taxonomy.js`, `backend/src/lib/scheduleEngine.js`, `backend/src/lib/geminiOptimizer.js`, `frontend/src/constants/route-taxonomy.ts`, `frontend/src/components/routes/route-label-chip.tsx`, `frontend/src/app/(test)/badge/page.tsx`, `frontend/src/app/(test)/recommendation/page.tsx`, `frontend/src/app/(test)/stopcard/_components/stopcard-lab.tsx`, `frontend/README.md`, `PROCESS.md`
+- 일정 상세 모바일 split 바텀 시트의 내부 여백을 `일정만` 보기와 같은 가로 패딩 기준으로 맞추기 위해 공용 `PAGE_CONTENT_X_PADDING_CLASS`를 추가하고, 모바일 시트 컨텐츠 간격도 `gap-4`로 정리
+- 추천 일정 페이지의 모바일 하단 고정 액션 바도 같은 공용 가로 패딩 상수를 쓰게 맞춰, 일정 관련 화면의 좌우 정렬 기준을 통일
+- 수정 파일: `frontend/src/components/layout/page-container.tsx`, `frontend/src/components/routes/route-mobile-split-layout.tsx`, `frontend/src/app/routes/recommendation/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 장소 상세 공용 `PlaceDetailContent`의 PC 최대 폭을 `780px`에서 다른 상세 화면과 같은 `max-w-4xl` 기준으로 넓혀, `/places/[placeId]`와 `/saved/[listId]/[placeId]`가 동일한 상세 폭을 쓰도록 정리
+- 사진 hero의 `sizes` 힌트도 새 최대 폭에 맞춰 조정
+- 수정 파일: `frontend/src/components/places/place-detail-content.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 추천 일정 생성기를 provider 선택 구조로 확장해 `AI_PROVIDER=openai`일 때 OpenAI Chat Completions로도 JSON itinerary를 생성할 수 있게 했고, 미설정 시에는 기존 Gemini를 유지하되 `OPENAI_API_KEY`만 있는 환경에서는 OpenAI를 자동 선택하도록 정리
+- 백엔드 env 예시와 README에 `OPENAI_API_KEY`, `OPENAI_MODEL`, `OPENAI_FALLBACK_MODELS`, `OPENAI_ORGANIZATION`, `OPENAI_PROJECT` 설정을 추가해 GPT 연결 방법을 문서화
+- 수정 파일: `backend/src/lib/geminiOptimizer.js`, `backend/src/resolvers.js`, `backend/.env.example`, `backend/README.md`, `PROCESS.md`
+- 확인: `backend`에서 `npm run check` 통과
+- OpenAI 기본 추천 모델을 비용 우선으로 `gpt-5-nano`로 낮추고, fallback 순서도 `gpt-4.1-nano -> gpt-4o-mini -> gpt-4.1-mini`로 재정렬해 실제 `.env`와 `.env.example`, backend 기본 모델 후보 순서를 일치시킴
+- 수정 파일: `backend/src/lib/geminiOptimizer.js`, `backend/.env`, `backend/.env.example`, `PROCESS.md`
+- 확인: `backend`에서 `npm run check` 통과
+- 새 일정 `new?step=style` 단계는 여행 페이스/테마 선택을 각각 별도 섹션 카드로 나누고, 필수/선택 표시는 pill로 분리해 제목 줄이 덜 빽빽하게 보이도록 정리
+- style 단계 선택 버튼은 더 큰 카드 폭, 여유 있는 내부 패딩, 완화된 grid 배치와 caption 줄간격을 적용해 중간 폭 화면에서도 문구가 덜 답답하게 읽히게 조정
+- 수정 파일: `frontend/src/components/routes/new-route-client.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- `/mypage` 여행 캘린더는 월간 표시용 정렬을 분리해, 같은 날짜에 시작하는 일정이 겹치면 더 긴 일정이 먼저 보이도록 정리
+- 캘린더 월 데이터는 `시작일 오름차순 + 같은 시작일이면 종료일 내림차순` 기준을 써 긴 일정 바가 위에서 더 자연스럽게 이어지도록 보정
+- 수정 파일: `frontend/src/lib/schedule-status.ts`, `frontend/src/app/mypage/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- `new?step=style` 가독성 비교용 테스트 페이지 `/style-step`을 추가해 `Section Split / Editorial Rows / Summary Board` 3안을 한 화면에서 직접 눌러 비교할 수 있게 구성
+- 2안은 세로 리스트 기반 가독성 우선안으로, 3안은 상단 선택 요약 strip 기반 압축안으로 정리했고 현재 production과 가까운 1안도 함께 남겨 바로 비교 가능하게 구성
+- 수정 파일: `frontend/src/app/(test)/style-step/page.tsx`, `frontend/src/app/(test)/style-step/_components/style-step-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과, Playwright CLI로 `http://localhost:3000/style-step` 렌더 확인
+- 확정 방향인 1안 기준으로 실제 `new?step=style`의 여행 페이스 카드는 카드별 설명 문구를 제거하고 아이콘+라벨만 남겨 세로 높이와 시선 분산을 줄임
+- 비교용 `/style-step` 1안 preview도 같은 조건으로 맞춰, 현재 적용안과 테스트안이 같은 정보 밀도로 보이게 정리
+- 수정 파일: `frontend/src/components/routes/new-route-client.tsx`, `frontend/src/app/(test)/style-step/_components/style-step-lab.tsx`, `PROCESS.md`
+- `new?step=style`은 문항별 내부 박스 래퍼를 제거하고 하나의 카드 안에서 섹션만 나누도록 정리해 불필요한 중첩과 과한 패딩을 줄임
+- 여행 페이스 설명은 실제 추천 엔진 기준에 맞춰 `하루 5곳/3곳/4곳 안팎`의 짧은 정량 문구로 교체했고, `/style-step` 1안 preview도 같은 문구와 밀도로 맞춤
+- 수정 파일: `frontend/src/constants/ui-copy.ts`, `frontend/src/components/routes/new-route-client.tsx`, `frontend/src/app/(test)/style-step/_components/style-step-lab.tsx`, `PROCESS.md`
+- AI 추천 일정 고도화 방향을 루트 문서 `routes_rule.md`로 정리해, `DINNER/NIGHT` 라벨, 식사/디저트 quota, relaxed 시작 시간, 동행자 가중치, 조기 종료 방지, 예약 권장 visitTip 규칙을 구현 우선순위와 함께 기록
+- 아직 구현 전인 합의 문서 성격이라 `COUPLE` 디저트 quota 해석, `DINNER`의 가격/무게 판단 방식, `NIGHT`와 야경 spot 구분은 open question으로 남김
+- 수정 파일: `routes_rule.md`, `PROCESS.md`
+- `/saved` 저장 리스트 목록 그리드는 고정 `248px` 컬럼 대신 화면 구간별 반응형 컬럼 수를 쓰도록 바꿔, 카드가 남는 폭에 맞춰 자연스럽게 배치되게 조정
+- 저장 리스트 카드의 2x2 사진 미리보기는 `100px` 고정을 제거하고 각 셀이 카드 폭을 따라가는 정사각 비율로 바꿔, 모바일/태블릿/데스크탑에서 카드 내부 밀도가 덜 깨지게 정리
+- 수정 파일: `frontend/src/app/saved/page.tsx`, `frontend/src/components/common/list-item-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- `/saved` 저장 리스트 목록은 모바일에서도 기본 2열로 보이도록 바꾸고, 모바일 카드 간격은 `gap-3`로 조금 좁혀 한 화면에 더 안정적으로 들어오게 조정
+- 수정 파일: `frontend/src/app/saved/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- `/saved` 저장 리스트 목록 브레이크포인트는 `모바일 2열 -> sm 3열 -> xl 4열`로 다시 정리해, 작은 화면부터 점진적으로 열 수가 늘어나게 조정
+- 수정 파일: `frontend/src/app/saved/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- `/saved` 저장 리스트 카드의 2x2 사진은 카드가 작아지는 모바일에서 덜 둥글게 보이도록 `10px -> 12px -> 16px` 단계 보더레디어스를 적용해, 브레이크포인트별 카드 크기 변화에 맞게 모서리 인상을 조정
+- 수정 파일: `frontend/src/components/common/list-item-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 루트 메모 `나중에 요청할 것.md`에 데스크탑 100% 배율에서 크게 느껴지는 화면들의 전반 스케일 점검 TODO를 추가하고, 장소 상세부터 시작해 마지막에 타입/패딩/히어로 높이를 함께 줄일지 판단하는 메모를 남김
+- 수정 파일: `나중에 요청할 것.md`, `PROCESS.md`
+
+### 2026-03-16
+- `new?step=style` 여행 페이스 정량 캡션은 `하루 5곳/3곳/4곳` 뒤에서 한 번 줄바꿈되도록 바꿔, `안팎으로 ...` 구간이 두 번째 줄로 내려가게 정리
+- 실제 `style` 단계와 `/style-step` 1안 preview의 선택 카드 패딩과 최소 높이를 한 단계 더 줄여, 선택지 밀도를 조금 더 컴팩트하게 조정
+- 수정 파일: `frontend/src/constants/ui-copy.ts`, `frontend/src/components/routes/new-route-client.tsx`, `frontend/src/app/(test)/style-step/_components/style-step-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 추천 일정 규칙 문서 `routes_rule.md`에 `NIGHT`의 야경 포함, `DINNER`의 타입/가격 우선, `COUPLE` 디저트 일일 보장, 프롬프트/토큰 절약 원칙을 확정 규칙으로 반영
+- deterministic planner를 식사/디저트/밤 슬롯 중심으로 재구성해 `MORNING / LUNCH / VISIT / DESSERT / DINNER / NIGHT` 라벨, relaxed 늦은 시작, 커플 디저트 보장, 가격/타입 기반 dinner 우선, 예약 권장 visitTip, night-view 후보를 실제 fallback 일정에 반영하도록 변경
+- AI 프롬프트는 긴 주소/영업시간 대신 좌표 요약, 태그(`meal`, `dessert`, `night`, `night_view`), `price_level`, `reservation_risk` 중심의 압축 payload를 보내도록 줄이고, `LUNCH/DINNER`, `COUPLE` 디저트, `RELAXED` 늦은 시작, `DINNER/NIGHT` 규칙을 짧은 규칙 세트로 재작성
+- 라벨 taxonomy와 프런트 샘플/문서도 새 체계에 맞게 갱신하고, `START/FINISH`는 legacy 표시만 남기도록 정리
+- 수정 파일: `routes_rule.md`, `shared/route-taxonomy.json`, `backend/src/lib/route-taxonomy.js`, `backend/src/lib/scheduleEngine.js`, `backend/src/lib/geminiOptimizer.js`, `backend/src/resolvers.js`, `frontend/src/constants/route-taxonomy.ts`, `frontend/src/components/routes/route-label-chip.tsx`, `frontend/src/app/(test)/badge/page.tsx`, `frontend/src/app/(test)/recommendation/page.tsx`, `frontend/src/app/(test)/stopcard/_components/stopcard-lab.tsx`, `frontend/README.md`, `PROCESS.md`
+- 확인: `backend`에서 `npm run check`, `frontend`에서 `pnpm run typecheck` 통과
+- 여행 페이스 캡션 줄바꿈 위치는 요청대로 `안팎으로` 뒤에서 끊기게 다시 조정
+- 수정 파일: `frontend/src/constants/ui-copy.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 여행 페이스 캡션은 강제 개행을 제거하고, 카드 캡션 렌더를 `break-keep` 기준으로 바꿔 카드 너비에 따라 자연스럽게 단어 단위 줄바꿈되도록 정리
+- 수정 파일: `frontend/src/constants/ui-copy.ts`, `frontend/src/components/routes/new-route-client.tsx`, `frontend/src/app/(test)/style-step/_components/style-step-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 숙소 여부를 묻는 새 funnel 기획 검토용 테스트 페이지 `/stay-step`을 추가해, 권장 funnel 순서(`list -> date -> stay -> companions -> style`), `숙소 있음/없음` 분기, 숙소 라벨/Google 추가, 추천 일정·상세의 marker/overlay 토글 방향을 한 화면에서 확인할 수 있게 정리
+- 추천 일정 규칙 문서 `routes_rule.md`에도 숙소 입력/숙소 추천 초안을 추가해 `stay` 단계 동작, AI 동선 반영, 추천 영역 노출, MVP/고도화 범위를 합의 문서로 남김
+- 수정 파일: `frontend/src/app/(test)/stay-step/page.tsx`, `frontend/src/app/(test)/stay-step/_components/stay-step-lab.tsx`, `routes_rule.md`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 숙소 분류와 실제 선택 상태를 분리하기 위해 `숙소`는 장소 성격 badge, `이번 여행 숙소`는 이번 일정 상태 badge로 정리하고, user-facing 표현은 `anchor` 대신 `동선 기준 숙소`로 바꾸는 방향을 문서와 테스트 페이지에 반영
+- `/stay-step`은 설명 카드 위주 구성에서 실제 `new?step=stay` 풀 페이지 목업 2종(`숙소 있음` / `숙소 없음`)으로 재구성했고, `hotel_dog` mascot과 출시용 copy를 추가해 progress, header, 선택 카드, helper, 결과 지도 preview까지 한 번에 검토할 수 있게 정리
+- 수정 파일: `frontend/src/components/layout/mascot.tsx`, `frontend/src/constants/ui-copy.ts`, `frontend/src/app/(test)/stay-step/_components/stay-step-lab.tsx`, `routes_rule.md`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- `/stay-step` funnel 헤더는 실제 `new` funnel과 같은 `ProgressHeader + 중앙 mascot + 제목/설명` 구조로 다시 맞춰 통일성을 높였고, 메인 설명/선택지 문구도 더 짧고 자연스럽게 다듬음
+- 숙소 카드는 AI 요약처럼 보이는 설명 대신 `주소 + 사용자 메모` 톤으로 바꾸고, 사진 자리 mock을 왼쪽에 추가했으며 `Must Visit`는 별 아이콘 대신 badge로만 표시하도록 정리; helper 문구와 불필요한 보조 박스도 함께 제거
+- `아직 안 정했어요` 흐름의 단계 번호 원형은 primary 색으로 올리고, 추천 위치 안내는 하단 결과 preview에만 남겨 step 본문은 더 가볍게 정리
+- 수정 파일: `frontend/src/constants/ui-copy.ts`, `frontend/src/app/(test)/stay-step/_components/stay-step-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- `/stay-step` 질문 제목은 `예약한 숙소가 있나요?`로 바꾸고, 설명/선택지/helper copy도 더 짧고 자연스럽게 다시 정리
+- 숙소 카드에서는 `숙소`/`이번 여행 숙소` badge와 별 아이콘을 제거하고, 선택은 체크로만 표현; `Must Visit`와 `Google 추가`만 예외 상태 badge로 남김
+- 예시 메타는 `도보 몇 분`처럼 계산된 정보 대신 일반 주소와 `리스트 메모` 톤으로 바꿔, 실제 구현에선 place photo + saved list note를 쓰는 방향이 드러나게 정리
+- 수정 파일: `frontend/src/constants/ui-copy.ts`, `frontend/src/app/(test)/stay-step/_components/stay-step-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- `/stay-step`은 추가 피드백에 맞춰 질문/설명 copy를 더 짧게 다듬고, `예약한 숙소를 바로 고를 수 있어요` / `일정을 먼저 만들고 위치를 볼 수 있어요` 같은 선택지 설명 기준으로 다시 정리
+- 숙소 카드 예시는 역 기준 도보 시간 대신 일반 주소로 바꾸고, 사진 mock + `리스트 메모` 기준을 더 명확히 드러내도록 조정
+- 수정 파일: `frontend/src/constants/ui-copy.ts`, `frontend/src/app/(test)/stay-step/_components/stay-step-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- `/stay-step`의 `아직 안 정했어요` 선택지 설명은 `일정을 먼저 만들고, 숙소 추천 위치를 알려드릴게요`로 다시 다듬어 의미가 바로 읽히게 정리
+- 수정 파일: `frontend/src/constants/ui-copy.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 추천 일정 규칙 문서 `routes_rule.md`에 영업시간/휴무를 하드 제약으로 명시하고, 긴 영업시간 원문 대신 `day_slots` 요약만 프롬프트에 보내는 규칙으로 정리
+- deterministic planner는 `opening_hours.periods`를 날짜+슬롯 시간 기준으로 판정해 휴무/마감 임박 후보를 제외하거나 감점하고, 식사/디저트/밤 라벨에 맞지 않는 후보를 억지로 배치하지 않도록 보강
+- AI 프롬프트 payload에는 날짜별 압축 `day_slots`(`1:MLVCDN`, `2:-`)를 추가하고, AI가 영업시간을 어긴 stop을 내면 저장 전에 드롭한 뒤 기존 fallback planner가 메우도록 후처리를 추가
+- 새 일정 생성 성공 직후 `createMutation`의 pending 해제와 `router.push` 사이 틈에서 `style` 퍼널이 다시 보이던 문제를 막기 위해, 추천 완료 페이지로 라우팅 중에는 별도 transition 상태를 유지해 로딩 패널이 계속 남도록 수정
+- 수정 파일: `frontend/src/components/routes/new-route-client.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 수정 파일: `routes_rule.md`, `backend/src/lib/scheduleEngine.js`, `backend/src/lib/geminiOptimizer.js`, `PROCESS.md`
+- 확인: `backend`에서 `npm run check` 통과, mock `node -` 스크립트로 `closed day` 제외와 `day_slots` 요약 동작 확인
+- 출시 준비용 `checklist.md`를 새로 추가해 배포/운영, 유저 플로우, 접속자 분석, Sentry, SEO/AI 검색 노출, 접근성, 성능, 보안/DDoS 점검 항목을 체크박스 형식으로 정리
+- 현재 코드 기준 우선 확인 포인트로 비인증 Supabase privileged key fallback, crawler SSRF/남용 방어, proxy/rate limit, Sentry/SEO 부재를 체크리스트 상단 P0로 명시
+- 수정 파일: `checklist.md`, `PROCESS.md`
+- `routes_rule.md` 맨 끝에 현재 AI 추천 일정 플로우와 내부 메커니즘 요약, 면접 설명 포인트를 추가하고, 중간에 섞여 있던 메모성 문장을 정리
+- 수정 파일: `routes_rule.md`, `PROCESS.md`
+- 출시 전 최소 속도 방어선으로, AI 추천에 넘기는 후보는 작은 리스트에서는 그대로 두고 큰 리스트에서만 보수적으로 cap 하도록 추가; `must_visit`와 user note 후보는 우선 보존하고, 실제 AI payload가 줄어들면 backend 로그에 원본/축소 개수를 남기게 함
+- 규칙 문서 `routes_rule.md`에도 큰 리스트에서만 느슨한 AI candidate cap을 두고 정교한 cluster pruning은 출시 후 고도화로 미루는 원칙을 반영
+- 수정 파일: `backend/src/lib/scheduleEngine.js`, `backend/src/lib/geminiOptimizer.js`, `routes_rule.md`, `PROCESS.md`
+- 확인: `backend`에서 `npm run check` 통과, mock `node -` 스크립트로 `58개 -> 32개`, `28개 유지` candidate cap 동작 확인
+- 숙소가 `Must Visit`로 표시돼 있어도 추천 일정 stop 후보에는 절대 들어가지 않도록 엔진 내부 방어선을 추가해, resolver 필터를 놓쳐도 AI payload와 deterministic planner 양쪽에서 lodging 후보를 제거하도록 보강
+- 숙소 규칙 문서에도 “stay funnel에서 고른 숙소 1개만 일정 계산에 별도 반영하고, 숙소 must-visit는 stop 후보에서 제외” 원칙을 명시
+- 수정 파일: `backend/src/lib/scheduleEngine.js`, `backend/src/lib/geminiOptimizer.js`, `routes_rule.md`, `PROCESS.md`
+- 확인: `backend`에서 `npm run check` 통과, mock `node -` 스크립트로 `mustVisit hotel`이 AI 후보/plan 양쪽에서 빠지는 것 확인
+- `routes_rule.md` 맨 끝에 candidate cap 이해용 메모를 추가해, 왜 큰 리스트에서만 32개 안팎으로 줄이고 `must_visit`/메모가 없을 때는 어떤 단순 기준으로 남기는지 사용자 관점 설명을 문서화
+- 수정 파일: `routes_rule.md`, `PROCESS.md`
+- 보호 페이지 인증 상태를 전역 `AuthSessionProvider`로 올려, 페이지 이동 때마다 `getSession()` 로딩 패널이 다시 뜨던 병목을 줄임
+- `/mypage` 로그아웃은 쿼리 취소 대기를 제거하고 로컬 세션 정리 후 바로 라우팅하도록 순서를 단순화해 체감 지연을 줄임
+- GraphQL의 `myPlaceLists`, `placeList`, `mySchedules`, `schedule`는 place list/item/day/stop/place를 bulk preload 하도록 바꿔 리스트·상세 진입 시 발생하던 resolver N+1 쿼리를 완화
+- 수정 파일: `frontend/src/components/auth/auth-session-provider.tsx`, `frontend/src/app/providers.tsx`, `frontend/src/hooks/use-auth-session.ts`, `frontend/src/app/mypage/page.tsx`, `backend/src/resolvers.js`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `backend`에서 `npm run check` 통과
+- `troubleshooting.md`에 이번 성능 개선 2건을 새 사례로 추가해, `/mypage` 로그아웃 지연과 보호 페이지 전환 지연의 증상/원인/해결/면접 포인트를 각각 정리
+- 일정 stop trait 판정을 더 보수적으로 바꿔 `shopping_mall`/`tourist_attraction` 같은 복합 장소는 meal로, `snack_bar`는 night로 오분류되지 않게 정리했고 `scheduleStopSanitizer`는 이제 `LUNCH`/`DINNER`를 함께 재조정해 같은 날 meal 라벨 중복을 줄이도록 보강
+- AI 프롬프트에는 `하루 1회 LUNCH + 1회 DINNER`, `같은 날 full meal restaurant 2곳 초과 금지`, `같은 시간 중복 금지` 규칙을 추가했고, AI 결과에 duplicate lunch/dinner·duplicate time·late lunch 같은 구조 문제가 남으면 deterministic planner로 fallback 하게 검증을 넣음
+- 문제 일정 `4b6cfa40-2a9d-4ba8-a2ef-c1ce719d057c` 기준으로 응답 단계에서 `돈카츠 와카바 -> VISIT`, `캐널시티 하카타 -> VISIT`, `스시 아츠가 -> VISIT`, `원조 하카타 멘타이쥬 -> VISIT`로 조정돼 `LUNCH/DINNER` 중복이 사라지는 것 확인
+- 수정 파일: `backend/src/lib/scheduleEngine.js`, `backend/src/lib/scheduleStopSanitizer.js`, `backend/src/lib/geminiOptimizer.js`, `PROCESS.md`
+- 확인: `backend`에서 `npm run check` 통과, `backend`의 `node -` 검증 스크립트로 문제 schedule 보정 결과 확인
+- 추가 확인에서 같은 문제 일정 Day3의 `멘야 카네토라 텐진 본점 -> 디스카운트 드러그 코스모스 토코지점` 구간이 실제 직선거리 `3.358km`인데 저장된 `transport_to_next`는 `도보 7분 / 497m`로 남아 있는 회귀를 확인했고, 원인은 AI plan에 fallback/backfill stop을 섞으며 순서가 바뀐 뒤 이동 메타데이터를 재계산하지 않던 흐름이었음
+- 저장 직전 `sanitizePlanDaysForPersistence`와 상세 응답 `preloadScheduleDetail` 양쪽에서 현재 stop 순서 기준으로 `transportToNext`를 다시 계산하도록 바꿔, 기존 일정도 응답 단계에서 즉시 올바른 이동 시간/거리로 보이게 정리
+- 문제 일정 `4b6cfa40-2a9d-4ba8-a2ef-c1ce719d057c` 기준으로 Day3 2->3은 이제 `TRANSIT / 3.4km / 10분`, 3->4는 `TRANSIT / 2.8km / 8분`, 4->5는 `WALK / 1.0km / 14분`으로 재계산되는 것 확인
+- 수정 파일: `backend/src/lib/scheduleEngine.js`, `backend/src/resolvers.js`, `PROCESS.md`
+- 확인: `backend`에서 `npm run check` 통과, `backend`의 `node -` 검증 스크립트로 문제 schedule transport 재계산 결과 확인
+- 보호 페이지 전환 사례에는 전역 auth 상태 도입과 GraphQL resolver N+1 preload 개선을 함께 묶어, 프런트 체감 이슈 뒤의 서버 병목도 설명 가능하게 정리
+- 수정 파일: `troubleshooting.md`, `PROCESS.md`
+- `/stay-step` 숙소 카드 주소 줄에는 파란 위치 아이콘을 추가해 사진-이름-주소 위계가 더 바로 읽히게 정리했고, step 설명/helper copy도 한 단계 더 짧고 자연스럽게 다듬음
+- 추천완료/일정 상세 preview는 실제 페이지에 붙을 UI를 기준으로 다시 구성해, 숙소 marker와 추천 영역을 청록 계열 persistent overlay로 분리하고 `이 근방에서 숙소를 찾아보세요` 문구, 토글 위치, 지도 안내 문구까지 한 화면에서 검토할 수 있게 확장
+- `routes_rule.md`에는 `place_list_items.is_stay_candidate`, `schedules.stay_place_id`, `schedules.stay_recommendation` 기준의 권장 DB 구조와 서버 계산 방식(거리 penalty는 서버, 추천 영역은 중심점+반지름 계산)을 숙소 규칙 문서에 반영
+- 수정 파일: `frontend/src/constants/ui-copy.ts`, `frontend/src/app/(test)/stay-step/_components/stay-step-lab.tsx`, `routes_rule.md`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- `/stay-step` 지도 preview 오른쪽 상단 안내 badge는 단순 pill 대신 floating legend 카드로 다시 구성해, 숙소 overlay의 의미가 더 제품형 UI처럼 읽히게 조정
+- 수정 파일: `frontend/src/app/(test)/stay-step/_components/stay-step-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- `/stay-step` 추천완료/일정상세 지도 우측 상단 overlay 안내는 실제 제품처럼 판단할 수 있게 switch형 control로 다시 바꾸고, 토글 상태에 따라 숙소 marker/추천 영역이 실제로 켜지고 꺼지도록 인터랙션을 추가
+- 토글 아래 보조 문구도 on/off 상태에 따라 달라지게 정리해, 기본값을 켜 둘지 말지 UX 판단을 바로 할 수 있게 만듦
+- 수정 파일: `frontend/src/app/(test)/stay-step/_components/stay-step-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- `/stay-step` 지도 우측 상단 overlay control은 면적이 크다는 피드백에 맞춰 한 단계 더 컴팩트하게 줄이고, 부연 설명 줄을 제거해 실제 출시용 floating toggle처럼 정리
+- 수정 파일: `frontend/src/app/(test)/stay-step/_components/stay-step-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- `/stay-step` 지도 overlay toggle은 `켜짐/꺼짐` 상태 텍스트를 제거하고, `추천 위치`도 숙소와 같은 집 아이콘으로 통일해 더 조용하고 일관된 제품형 control로 정리
+- 수정 파일: `frontend/src/app/(test)/stay-step/_components/stay-step-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- `/stay-step`의 `Google 링크로 숙소 추가`는 버튼 클릭 즉시 선택되는 테스트 흐름 대신 실제 `DialogShell` 모달로 바꿔, Google Maps 링크 입력, 검증, 추가될 숙소 preview, `추가하고 선택` 액션까지 출시형 플로우로 확인할 수 있게 정리
+- 수정 파일: `frontend/src/app/(test)/stay-step/_components/stay-step-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 숙소 detail preview 상단의 `Day를 바꿔도...` / `추천 위치는...` 보조 문구는 제거해 지도 자체와 하단 안내에만 집중되도록 정리했고, 더 이상 쓰지 않는 `숙소/이번 여행 숙소/동선 기준 숙소/noHotelHint` copy 키도 `ui-copy`에서 함께 정리
+- 링크 입력은 공용 `LinkInput` 컴포넌트로 추출해 실제 페이지의 리스트 import 모달, 저장 리스트 장소 추가 모달, `/routes/import`의 리스트/장소 링크 입력에 공통 적용하고, 테스트용 stay-step/route-edit도 같은 스타일로 맞춤
+- 수정 파일: `frontend/src/constants/ui-copy.ts`, `frontend/src/components/common/link-input.tsx`, `frontend/src/components/import/import-list-modal.tsx`, `frontend/src/app/saved/[listId]/page.tsx`, `frontend/src/app/routes/import/page.tsx`, `frontend/src/app/(test)/stay-step/_components/stay-step-lab.tsx`, `frontend/src/app/(test)/route-edit/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 로그인 기본 세션 저장소를 `sessionStorage` 기반으로 바꿔, `로그인 유지`를 켜지 않으면 브라우저 종료 후 자동으로 세션이 복구되지 않도록 정리
+- `/login`에 기본값 off인 `로그인 유지` 옵션을 추가하고 이메일 로그인/Google OAuth 모두 같은 persistence 선택을 따르도록 연결; 기존 persistent session은 legacy Supabase key를 읽어 가능한 범위에서 이어받게 처리
+- 로그아웃/회원탈퇴 뒤에는 auth storage marker와 legacy key까지 함께 정리하도록 보강했고, `checklist.md`에는 출시용 Supabase Auth 세션 정책 권장값(`JWT 1시간`, `30일 inactivity`, `90일 time-box`) 확인 항목을 추가
+- 수정 파일: `frontend/src/lib/supabase/browser.ts`, `frontend/src/app/login/page.tsx`, `frontend/src/app/mypage/page.tsx`, `frontend/src/constants/ui-copy.ts`, `checklist.md`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 실행; 기존 `src/app/routes/[id]/page.tsx`, `src/components/routes/route-schedule-page-shell.tsx`, `src/components/routes/route-stop-card.tsx` 타입 오류로 전체 통과는 미완료, 이번 변경 파일 관련 추가 오류는 출력되지 않음
+- `routes_rule.md` 숙소 추천 영역 규칙은 수치까지 확정해, 중심점은 `geometric median`, 반경은 `70 percentile + 0.4km`, clamp는 `1.2km~3.0km`로 정리하고 `wide_spread` 판정 조건과 유저 문구 후보를 함께 문서화
+- 수정 파일: `routes_rule.md`, `PROCESS.md`
+- 숙소 추천 영역 유저 문구는 후보 상태를 정리해 기본 `이 근방에서 숙소를 찾아보세요`, `wide_spread` 보조 문구 `일정이 여러 구역에 나뉘어 있어요`로 확정
+- 수정 파일: `routes_rule.md`, `PROCESS.md`
+- 일정 편집 UI 검토용 `/route-edit` 테스트 페이지를 추가하고, 실제 `/routes/[id]`와 같은 상세 레이아웃 위에서 `편집 모드`, `위/아래 이동`, `다른 날로 이동`, `장소 추가`, `stop 삭제`, 편집된 day의 메타 숨김 흐름을 mock state로 바로 확인할 수 있게 구성
+- 일정 상세 본문은 공용 `RouteDetailView`로 분리해 실제 `/routes/[id]`도 같은 뷰를 재사용하게 정리했고, `RouteStopCard`/`RouteStopList`/`RouteSchedulePageShell`은 편집 액션·day 상단 slot·커스텀 header action을 받을 수 있게 확장
+- 리스트 연결 장소 선택용 `RoutePlacePickerDialog`와 프런트 라벨 재계산용 `buildCanonicalRouteStopLabel` 유틸을 추가해, 승인 후 실제 mutation만 붙이면 되는 구조로 편집 UI 뼈대를 맞춤
+- 수정 파일: `frontend/src/app/(test)/route-edit/page.tsx`, `frontend/src/components/routes/route-detail-view.tsx`, `frontend/src/components/routes/route-place-picker-dialog.tsx`, `frontend/src/components/routes/route-stop-card.tsx`, `frontend/src/components/routes/route-stop-list.tsx`, `frontend/src/components/routes/route-schedule-page-shell.tsx`, `frontend/src/app/routes/[id]/page.tsx`, `frontend/src/lib/route-stop-label.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm run build:verify` 통과
+- `/route-edit` 삭제 확인 문구는 `이번 여행 일정에서만 빠진다 / 저장 리스트에서는 유지된다` 톤으로 다시 다듬고, 편집된 day 안내도 `추천 시간·이동 정보·AI 팁 숨김`까지 한 번에 읽히게 수정
+- 장소 추가 모달은 다른 공용 모달과 톤을 맞추기 위해 `X` 버튼을 제거하고 헤더/푸터 스타일을 통일했으며, 테스트용 `Google 장소 추가` 버튼을 넣어 mock Google 장소 1개를 리스트+현재 day에 바로 추가할 수 있게 구성
+- 수정 파일: `frontend/src/app/(test)/route-edit/page.tsx`, `frontend/src/components/routes/route-place-picker-dialog.tsx`, `frontend/src/components/routes/route-detail-view.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm run build:verify` 통과
+- `/route-edit` 편집된 day에서는 route label도 함께 숨기도록 바꿔, 수동 편집 후에는 시간/라벨/이동 정보/AI 팁이 모두 사라지는 정책을 테스트 페이지에서 바로 확인할 수 있게 정리
+- 장소 추가 플로우는 `장소 추가 모달 -> Google 장소 추가 모달 -> 링크 입력 -> 일정 반영` 2단계로 보이게 바꾸고, `day 1` 대신 `1일차` 표기로 바꿔 영어 헤더 인상을 줄임; 장소 추가 모달 안내 문구와 stop 삭제 문구도 더 짧고 자연스럽게 다시 다듬음
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `frontend/src/components/routes/route-place-picker-dialog.tsx`, `frontend/src/components/routes/route-detail-view.tsx`, `frontend/src/app/(test)/route-edit/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm run build:verify` 통과
+- 루트/`backend`/`frontend`의 `.gitignore`를 현재 스택 기준으로 정리해 공통 Node 로그, local env, Playwright CLI 캐시, Next 빌드 산출물, `tsconfig.tsbuildinfo`, coverage/report 출력을 각 위치에 맞게 ignore
+- `frontend/.gitignore`에 들어 있던 잘못된 `.src/app/(test)` 줄은 제거해 테스트 소스 경로가 실수로 제외될 여지를 없앰
+- 수정 파일: `.gitignore`, `backend/.gitignore`, `frontend/.gitignore`, `PROCESS.md`
+- 확인: `git check-ignore -v`로 `.playwright-cli`, `output/playwright/next-start-3022.log`, `frontend/.next*`, `frontend/tsconfig.tsbuildinfo`가 새 규칙에 걸리는 것 확인
+- `frontend/.gitignore`에 `src/app/(test)/`를 추가해 프론트엔드의 테스트용 App Router 페이지 묶음 전체를 Git 추적 대상에서 제외
+- 수정 파일: `frontend/.gitignore`, `PROCESS.md`
+- 확인: `git check-ignore -v`로 `frontend/src/app/(test)/route-edit/page.tsx`, `frontend/src/app/(test)/stay-step/page.tsx`가 새 규칙에 걸리는 것 확인
+- 루트 `.gitignore`에 `/*.md`와 `!/README.md`를 추가해 루트의 Markdown 문서는 README만 예외로 두고 앞으로 생기는 다른 `.md`도 자동으로 ignore 되게 정리
+- 수정 파일: `.gitignore`, `PROCESS.md`
+- 확인: `git check-ignore -v -n`로 `badge.md`, `PROCESS.md`, `나중에 요청할 것.md`는 ignore 되고 `README.md`, `frontend/README.md`는 예외/비대상으로 남는 것 확인
+- `backend/테이블.md`는 이미 Git 추적 중이라 `.gitignore`만으로는 제외되지 않아 `git rm --cached`로 index에서만 제거했고, 이후 작업 트리 파일은 `backend/.gitignore`의 `/*.md` 규칙으로 ignore 되게 정리
+- 수정 파일/영역: Git index의 `backend/테이블.md`, `PROCESS.md`
+- 확인: `git status --short --ignored`에서 `backend/테이블.md`가 staged deletion(`D`) + ignored working tree(`!!`)로 보이는 것 확인
+- AI quota UI 검토용 `/quota` 테스트 페이지를 추가해 하루 총 5회, 같은 일정 재추천 2회, 재추천 cooldown 45초, 총량/일정별 초과 모달을 한 화면에서 상태별로 비교할 수 있게 구성
+- 생성 CTA 아래 잔여 횟수 노출, 추천 결과 상단 `새 추천받기` 잔여량 표시, 초과 시 설명형 CTA + 모달 패턴을 실제 제품 톤으로 정리
+- 수정 파일: `frontend/src/app/(test)/quota/page.tsx`, `frontend/src/app/(test)/quota/_components/quota-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- `/route-edit` 장소 추가 모달의 카드 badge를 공용 `CategoryBadge` 스타일로 맞추고, `리스트 메모` 문구 대신 메모 아이콘만 남겨 저장 리스트 카드 톤을 실제 제품과 가깝게 정리
+- Google 장소 추가는 예시 고정 장소 대신 실제 Google Maps 링크 입력 흐름으로 바꿔, 유효한 링크만 받도록 검증하고 일정과 저장 리스트에 함께 반영되게 정리; 안내 문구도 테스트용 표현을 지우고 출시형 카피로 교체
+- 다른 날짜로 이동 모달은 공통 `DialogShell` 헤더/푸터 스타일에 맞추고, 삭제 확인 문구도 더 중립적인 제품형 표현으로 다듬음
+- 수정 파일: `frontend/src/app/(test)/route-edit/page.tsx`, `frontend/src/components/routes/route-place-picker-dialog.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm run build:verify` 통과
+- `/route-edit` Google 장소 추가 입력은 `zod` 스키마 기반으로 바꿔 링크 형식과 Google Maps 도메인을 함께 검사하고, 정적 helper 문구는 제거한 뒤 에러가 있을 때만 인라인 메시지를 보여주게 정리
+- 이동 모달 카피는 더 짧게 줄여 `옮길 날짜를 골라주세요 / 선택한 날짜 끝에 먼저 들어가요`로 바꾸고, 장소 추가·삭제·편집 안내와 mock 메모/추천 문구에서 `요.` 마침표를 제거해 전체 톤을 맞춤
+- 수정 파일: `frontend/src/app/(test)/route-edit/page.tsx`, `frontend/src/components/routes/route-place-picker-dialog.tsx`, `frontend/src/components/routes/route-detail-view.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm run build:verify` 통과
+- `/stay-step` Google 숙소 추가 모달의 설명/preview 문구 끝 마침표를 제거해 링크 입력 모달 톤을 다른 출시형 모달과 맞춤
+- 숙소 선택 카드의 `리스트 메모` 텍스트 라벨은 제거하고 메모 아이콘만 남겨 주소/메모 행을 같은 수직 정렬 흐름으로 정리했으며, stay-step 랩의 카드 설명 preview도 같은 아이콘형 표현으로 통일
+- 수정 파일: `frontend/src/app/(test)/stay-step/_components/stay-step-lab.tsx`, `frontend/src/constants/ui-copy.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- `/route-edit` 다른 날짜로 이동 모달 보조 문구를 `선택한 날짜 마지막에 추가돼요`로 다시 다듬어, 임시 정렬 느낌 없이 더 바로 읽히게 정리
+- 수정 파일: `frontend/src/app/(test)/route-edit/page.tsx`, `PROCESS.md`
+- `/stay-step` 숙소 카드와 카드 설명 preview의 메모 아이콘을 `RouteStopCard`/`RoutePlacePickerDialog`와 같은 `NotebookPen`으로 통일해 저장 리스트 메모 표현을 기존 제품 UI와 맞춤
+- 숙소 기능 적용 시 추천 완료 상단 두 번째 줄은 기존 범용 카피 대신 `숙소 있음/없음` 상태별 설명 카피로 대체하는 방향으로 확정
+- 수정 파일: `frontend/src/app/(test)/stay-step/_components/stay-step-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 실제 `/routes/new` funnel에 `stay` step을 추가해 `예약한 숙소가 있나요?` 분기, STAY 라벨 숙소 선택, Google 링크로 숙소 추가 후 즉시 STAY 저장+선택 플로우를 연결하고 store/query/createSchedule input까지 실제 데이터로 wiring
+- 저장 리스트 item에는 `item_label='STAY'`를 노출하도록 GraphQL/domain/UI를 확장했고, backend는 `place_list_items.item_label`과 `schedules.stay_recommendation`용 SQL migration/초기 스키마를 추가했으며 기존/신규 lodging 항목은 자동 STAY 라벨이 붙도록 정리
+- create/regenerate는 더 이상 `stayPlaceId`를 버리지 않고 실제 숙소를 planner/AI prompt에 전달하며, 숙소가 없을 때는 `centerLat/centerLng/radiusKm/wideSpread` 형태의 추천 영역을 계산해 schedule 전용 필드에 저장
+- 추천완료/일정상세 지도에는 숙소 marker 또는 추천 영역 overlay와 우상단 토글을 실제 페이지에 붙였고, 추천 완료 hero 둘째 줄도 숙소 있음/없음 상태별 카피로 교체
+- 수정 파일: `backend/src/schema.js`, `backend/src/resolvers.js`, `backend/src/lib/scheduleEngine.js`, `backend/src/lib/geminiOptimizer.js`, `backend/src/lib/stayRecommendation.js`, `backend/supabase/sql/001_init_requirements.sql`, `backend/supabase/sql/004_add_stay_item_label_and_schedule_recommendation.sql`, `frontend/src/components/routes/new-route-client.tsx`, `frontend/src/app/routes/recommendation/page.tsx`, `frontend/src/app/routes/[id]/page.tsx`, `frontend/src/components/routes/google-route-map.tsx`, `frontend/src/components/routes/route-mobile-split-layout.tsx`, `frontend/src/components/routes/route-schedule-page-shell.tsx`, `frontend/src/components/routes/route-detail-view.tsx`, `frontend/src/components/routes/route-stay-map-ui.tsx`, `frontend/src/lib/route-stay.ts`, `frontend/src/components/saved/saved-list-place-card.tsx`, `frontend/src/constants/funnel.ts`, `frontend/src/constants/ui-copy.ts`, `frontend/src/lib/graphql/documents.ts`, `frontend/src/lib/graphql/api.ts`, `frontend/src/stores/create-schedule-store.ts`, `frontend/src/types/domain.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과, `backend`에서 `node -e "require(...)"`로 schema/planner/resolver 로드 확인
+- 루트 레거시 정리로 더 이상 쓰지 않는 `package.json`, `package-lock.json`, `legacy/crawler_click_strategy.js`, 루트 `.env`를 제거해 실행 기준을 `backend/`, `frontend/` 하위 프로젝트로만 남김
+- 수정 파일: `package.json`, `package-lock.json`, `legacy/crawler_click_strategy.js`, `.env`, `PROCESS.md`
+- 남은 이슈: 루트 `README.md`는 별도 수정 중이고, 비어 있는 `legacy/` 디렉터리는 필요 없으면 이후 폴더째 삭제 가능
+- 루트 `README.md`에 Routy 서비스 소개와 저장소 구조 설명을 추가해 첫 진입 시 프로젝트 성격을 바로 파악할 수 있게 정리했고, 실제 마스코트 이미지인 `frontend/public/hotel_dog.png`도 저장소에 포함
+- 수정 파일: `README.md`, `frontend/public/hotel_dog.png`, `PROCESS.md`
+- 확인: `backend`에서 `npm run check`, `frontend`에서 `pnpm run typecheck:stable` 통과
+- 실제 `/routes/new` 숙소 추가 모달과 `/stay-step` 테스트 모달에서 링크 입력 아래 preview 블록을 제거해, 링크 입력 후 바로 `추가하고 선택`으로 끝나는 더 단순한 출시형 흐름으로 정리
+- 수정 파일: `frontend/src/components/routes/new-route-client.tsx`, `frontend/src/app/(test)/stay-step/_components/stay-step-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 숙소 추천 원 반경은 `70 percentile + 0.3km`, 최대 `2.5km`로 줄이고, 프런트에서도 기존 저장 일정의 추천 반경을 같은 값으로 clamp해 바로 덜 크게 보이도록 정리
+- 추천완료 CTA는 `내 일정으로 담기`로 되돌리고 설명 문구도 담기 흐름에 맞게 조정했으며, 모바일 추천완료/상세에서 바텀시트가 지도를 충분히 덮으면 숙소 토글과 추천 위치 callout이 함께 숨겨지도록 변경
+- PC `일정만` 뷰는 본문 `max-w-4xl` 제한을 제거해 split 뷰 폭만큼 넓히고, 상단 헤더 정렬도 `lg:flex-nowrap` 기준으로 다시 맞춤
+- 수정 파일: `backend/src/lib/stayRecommendation.js`, `frontend/src/lib/route-stay.ts`, `frontend/src/components/routes/route-mobile-split-layout.tsx`, `frontend/src/components/routes/route-schedule-page-shell.tsx`, `frontend/src/constants/ui-copy.ts`, `routes_rule.md`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `backend`에서 `npm run check` 통과
+- 추천 일정 AI 결과의 stop label을 장소 타입과 시간대 기준으로 다시 검증하는 `scheduleStopSanitizer`를 추가해, `Nana Seafood` 같은 식당이 `DESSERT`로 저장되던 케이스를 `DINNER` 등 호환 라벨로 교정하고 교정 시 `reason`/`visitTip`도 안전한 기본 문구로 다시 생성하도록 보강
+- `schedule` 상세 preload에도 같은 교정 로직을 연결해 이미 저장된 잘못된 일정도 응답 단계에서 바로잡히게 했고, 현재 문제 일정(`b5ed6d11-734c-44e1-b93e-350510cd3d27`) 기준으로 `Nana Seafood -> DINNER`, `몬 놈쏫 -> DESSERT`, `므엉 보란 -> VISIT` 교정 결과를 로컬 확인
+- 수정 파일: `backend/src/lib/scheduleStopSanitizer.js`, `backend/src/lib/geminiOptimizer.js`, `backend/src/lib/scheduleEngine.js`, `backend/src/resolvers.js`, `PROCESS.md`
+- 확인: `backend`에서 `npm run check` 통과, `backend`의 `node -` 검증 스크립트로 현재 schedule의 교정 label/문구 확인
+- AI 프롬프트에도 `DESSERT`는 실제 디저트/카페/베이커리 후보가 있을 때만 쓰고, seafood restaurant·landmark·market·museum·shopping은 `DESSERT`로 라벨링하지 말라는 하드 규칙을 추가해 `므엉 보란` 같은 오분류를 프롬프트 단계에서도 더 강하게 방지
+- 수정 파일: `backend/src/lib/geminiOptimizer.js`, `PROCESS.md`
+- 확인: `backend`에서 `npm run check` 통과
+- `/routes/[id]` 상세의 `visitTip`는 `영업시간 한 번 확인` 계열의 저신호 문구가 너무 자주 보여 실제 도움이 되지 않아, 새 일정 생성 시에는 마감 임박/예약 권장/긴 이동처럼 행동을 바꿀 정보가 있을 때만 tip을 만들고 나머지는 `null`로 두도록 축소
+- 이미 저장된 일정도 응답 단계에서 같은 저신호 `visitTip`를 비워 `reason`이 대신 보이게 했고, 문제 일정 `36b153f4-8cd6-4091-8339-b4efe79a9ab0` 기준으로 generic 운영시간 안내 tip들이 사라지고 예약 팁만 남는 것 확인
+- 수정 파일: `backend/src/lib/scheduleEngine.js`, `backend/src/lib/scheduleStopSanitizer.js`, `PROCESS.md`
+- 확인: `backend`에서 `npm run check` 통과, `backend`의 `node -` 검증 스크립트로 schedule detail 기준 `visitTip` 정리 결과 확인
+- AI 추천 품질이 token 절약용 candidate 축약과 압축 payload 때문에 흔들리던 문제를 줄이기 위해, AI 후보는 `57개` 규모 리스트에서도 숙소를 뺀 거의 전체를 그대로 보게 threshold/cap을 크게 완화하고, prompt payload에도 `category`/`types`를 다시 포함해 라멘·스시·야키니쿠 같은 meal place를 더 분명히 구분하게 조정
+- AI 프롬프트 규칙에는 `restaurant meal place는 VISIT 금지`, `dessert/cafe/bakery는 MORNING 또는 DESSERT`, `같은 시간 중복 금지`, `meal venue 같은 슬롯 중첩 금지`를 추가했고, 상세 응답 보정 로직도 `VISIT/MORNING` 같은 generic 라벨을 시간+장소 타입 기준으로 `LUNCH/DINNER/DESSERT`로 더 적극적으로 교정하도록 확장
+- 문제 일정 `36b153f4-8cd6-4091-8339-b4efe79a9ab0` 기준으로 응답 단계에서 `산쿠 -> LUNCH`, `무기토 멘스케 -> LUNCH`, `야키니쿠 리키마루 -> DINNER`, `맛타리 푸딩 -> DESSERT`, `황금 육수 샤부샤부... -> DINNER`로 교정되는 것과, 같은 리스트의 AI 후보 선택이 `58개 중 숙소 제외 57개`까지 늘어난 것 확인
+- 수정 파일: `backend/src/lib/geminiOptimizer.js`, `backend/src/lib/scheduleEngine.js`, `backend/src/lib/scheduleStopSanitizer.js`, `PROCESS.md`
+- 확인: `backend`에서 `npm run check` 통과, `backend`의 `node -` 검증 스크립트로 current schedule 교정 결과와 AI candidate count(`57`) 확인
+- 사용자 요청에 맞춰 AI 후보 전달은 이제 `숙소만 제외`하고 나머지 장소는 더 이상 축약하지 않도록 `selectCandidatesForAiPlanning`을 사실상 전체 통과로 바꿨고, 저장 직전과 상세 응답 양쪽 모두 `sanitizeScheduledDayStops`를 태워 `FOODIE -> VISIT` 금지와 같은 날 `DINNER` 중복 보정을 공통 적용
+- 문제 일정 `36b153f4-8cd6-4091-8339-b4efe79a9ab0` 기준으로 상세 응답 단계에서 `스시 사카바 사시스 난바점 -> NIGHT`, `맛타리 푸딩 도톤보리점 -> DESSERT`, `야키니쿠 리키마루 -> DINNER`, `황금 육수 샤부샤부... -> NIGHT`로 정리돼 최소한 `DINNER` 중복과 푸딩집 `VISIT` 문제는 사라지는 것 확인; 다만 같은 시간에 음식점 두 개가 잡힌 기존 일정은 재추천이 필요
+- 수정 파일: `backend/src/lib/geminiOptimizer.js`, `backend/src/lib/scheduleEngine.js`, `backend/src/lib/scheduleStopSanitizer.js`, `backend/src/resolvers.js`, `PROCESS.md`
+- 확인: `backend`에서 `npm run check` 통과, `backend`의 `node -` 검증 스크립트로 현재 schedule day별 보정 label 확인
+- 추가 요청에 맞춰 `NIGHT` 판정에서 `izakaya`를 nightlife 취급하지 않도록 제외하고, day-level 중복 dinner 보정도 원래 `NIGHT`였다는 이유만으로 일반 음식점을 `NIGHT`로 유지하지 않게 조정; AI 프롬프트 규칙도 `normal restaurants`는 저녁이어도 `NIGHT`로 두지 말라고 명시
+- 문제 일정 `36b153f4-8cd6-4091-8339-b4efe79a9ab0` 기준으로 `황금 육수 샤부샤부...`와 `스시 사카바 사시스 난바점`이 더 이상 `NIGHT`로 밀리지 않는 것 확인; 다만 기존 저장 시간표가 꼬여 있어 `17:05 LUNCH`처럼 어색한 라벨은 재추천으로 정리하는 편이 맞음
+- 수정 파일: `backend/src/lib/scheduleEngine.js`, `backend/src/lib/scheduleStopSanitizer.js`, `backend/src/lib/geminiOptimizer.js`, `PROCESS.md`
+- 확인: `backend`에서 `npm run check` 통과, `backend`의 `node -` 검증 스크립트로 current schedule 기준 `NIGHT` 미전환 확인
+- 추천 완료 페이지의 CTA를 실제 동작에 맞춰 `내 일정으로 담기` 대신 `상세 일정 보기`로 바꾸고, 상단 삭제 버튼/확인 모달/토스트도 `추천 일정 삭제` 흐름으로 분리해 preview 상태 인식과 맞추도록 정리
+- 삭제 성공 후에는 기존처럼 홈(`/`)으로 `router.replace` 되도록 유지
+- 수정 파일: `frontend/src/constants/ui-copy.ts`, `frontend/src/app/routes/recommendation/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 추가 요청에 맞춰 route detail stop card는 `visitTip`가 없을 때 `reason`으로 대체하지 않고 안내 패널 자체를 숨기도록 바꿔, 실질 팁이 없는 카드가 더 담백하게 보이게 정리
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 추가 요청에 맞춰 프런트는 schedule detail GraphQL 쿼리에서 `reason`을 더 이상 받아오지 않도록 줄였고, 도메인 타입/`RouteStopCard`/`/route-edit` 테스트 mock에서도 `reason` 필드를 제거해 프런트 payload와 타입 계약을 실제 UI 사용 범위에 맞게 정리
+- 수정 파일: `frontend/src/lib/graphql/documents.ts`, `frontend/src/types/domain.ts`, `frontend/src/components/routes/route-stop-card.tsx`, `frontend/src/app/(test)/route-edit/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 저장 리스트 장소 카드에서 별 토글이 켜지면 별 색상만 바뀌는 대신 상단 badge row에도 `Must Visit` 뱃지가 바로 나타나도록 정리
+- 배지 색상 매칭은 `Must Visit`, `MUSTVISIT`, `must-visit`처럼 공백/구분자가 다른 표기도 같은 머스트비지트 색으로 인식하게 보강
+- 수정 파일: `frontend/src/components/saved/saved-list-place-card.tsx`, `frontend/src/lib/badge-theme.ts`, `PROCESS.md`
+- 추가 요청에 맞춰 저장 리스트와 새 일정 숙소 선택 카드의 뱃지 표기를 모두 canonical 값 `MUSTVISIT`으로 통일
+- 수정 파일: `frontend/src/constants/ui-copy.ts`, `frontend/src/components/routes/new-route-client.tsx`, `PROCESS.md`
+- 저장 리스트 별 토글은 요청 중 버튼을 완전히 막던 단일 mutation 패턴 대신 item별 queue 기반 optimistic update로 바꿔, 저장 중 다시 눌러도 마지막 토글 의도가 이어서 반영되게 정리
+- 카드 별 버튼은 `disabled`를 제거하고 저장 중에는 옅은 ring만 보여주게 바꿔, 색은 즉시 반영하면서도 재클릭이 막힌 느낌을 줄임
+- 수정 파일: `frontend/src/app/saved/[listId]/page.tsx`, `frontend/src/components/saved/saved-list-place-card.tsx`, `PROCESS.md`
+- 추가 요청에 맞춰 `place_list_items.priority`와 `schedule_stops.badges`는 각각 `is_must_visit` boolean으로 정리하고, GraphQL/domain/UI도 모두 `isMustVisit` 필드명으로 통일
+- 기존 stop `badges`의 `MUSTVISIT` 값은 신규 SQL migration에서 `schedule_stops.is_must_visit`로 이관되게 구성했고, route stop 카드의 머스트비짓 표시는 badge 배열이 아니라 boolean 렌더로 단순화
+- `(test)` recommendation/route-edit mock도 새 타입 계약에 맞춰 `isMustVisit` 기반으로 보정했으며, `STAY/item_label` 구조는 이번 작업에서 유지하고 별도 결정 이슈로 남김
+- 수정 파일: `backend/supabase/sql/001_init_requirements.sql`, `backend/supabase/sql/003_add_place_list_item_sort_order.sql`, `backend/supabase/sql/005_rename_must_visit_and_replace_stop_badges.sql`, `backend/src/schema.js`, `backend/src/resolvers.js`, `backend/src/lib/scheduleEngine.js`, `backend/src/lib/geminiOptimizer.js`, `backend/src/lib/scheduleStopSanitizer.js`, `backend/README.md`, `frontend/src/types/domain.ts`, `frontend/src/lib/graphql/documents.ts`, `frontend/src/lib/graphql/api.ts`, `frontend/src/app/saved/[listId]/page.tsx`, `frontend/src/components/saved/saved-list-place-card.tsx`, `frontend/src/components/routes/new-route-client.tsx`, `frontend/src/components/routes/route-place-picker-dialog.tsx`, `frontend/src/components/routes/route-stop-card.tsx`, `frontend/src/app/(test)/recommendation/page.tsx`, `frontend/src/app/(test)/route-edit/page.tsx`, `PROCESS.md`
+- 확인: `backend`에서 `npm run check`, `frontend`에서 `pnpm run typecheck:stable` 통과
+- Google Places category 정규화에 `STAY`를 추가하고, `store`를 곧바로 `SHOPPING`으로 확정하던 기존 규칙을 `dessert/cake/pastry` 계열 타입과 소수의 이름 힌트 우선으로 재구성해 테이크아웃 디저트 가게 오분류를 줄이도록 보강
+- backend는 저장된 `places` row를 읽을 때도 같은 분류 함수를 다시 적용해 기존 데이터 응답/일정 후보에도 즉시 반영되게 했고, scheduler의 `SHOPPING`/`DESSERT` 패턴도 generic `store`를 빼고 `cheesecake`/`pudding` 등을 추가해 분류 일관성을 맞춤
+- frontend는 `STAY`를 정식 place category badge로 추가하고, 숙소 선택 step은 `place.category === 'STAY'`를 우선 보되 기존 `itemLabel === 'STAY'`도 fallback으로 유지했으며, 저장 리스트 카드에서는 category badge와 legacy `itemLabel` badge가 중복 노출되지 않게 정리
+- 수정 파일: `shared/route-taxonomy.json`, `backend/src/lib/googlePlaces.js`, `backend/src/resolvers.js`, `backend/src/lib/scheduleEngine.js`, `frontend/src/constants/route-taxonomy.ts`, `frontend/src/lib/badge-theme.ts`, `frontend/src/components/routes/new-route-client.tsx`, `frontend/src/components/saved/saved-list-place-card.tsx`, `PROCESS.md`
+- 확인: `backend`에서 `npm run check`, `frontend`에서 `pnpm run typecheck:stable` 통과, `backend`의 `node -` 검증 스크립트로 `Mattari Pudding -> FOODIE`, `Daddys Cheese Cake -> FOODIE`, `APA Hotel Namba -> STAY`, `Random Gift Store -> null` 확인
+- `place_list_items.item_label`은 GraphQL/schema/domain/UI에서 완전히 제거하고, 숙소 후보 판단은 이제 `place.category === 'STAY'`와 lodging types만 사용하도록 정리; stay step의 Google 추가도 `STAY`로 분류된 장소만 성공 처리하게 보강
+- 기존 데이터 정리를 위해 `006_drop_item_label_and_backfill_place_category.sql`을 추가해 `item_label='STAY'` 흔적과 Google types/name 규칙을 기준으로 `places.category`를 backfill한 뒤 `item_label` 컬럼을 drop하도록 구성했고, 초기 스키마에서도 `item_label` 정의를 제거
+- 숙소 구조 문서는 `is_stay_candidate` 제안 대신 `places.category = STAY` 기준으로 갱신했고, Supabase 프로젝트 `pwmfdcurwpiytdxruzgi`에는 migration `drop_item_label_and_backfill_place_category`를 실제 적용해 `item_label`이 사라진 것과 category 분포(`STAY 5`, `FOODIE 89`, `SHOPPING 14`, `LANDMARK 9`)를 확인
+- 수정 파일: `backend/src/schema.js`, `backend/src/resolvers.js`, `backend/src/lib/scheduleEngine.js`, `backend/supabase/sql/001_init_requirements.sql`, `backend/supabase/sql/006_drop_item_label_and_backfill_place_category.sql`, `frontend/src/types/domain.ts`, `frontend/src/lib/graphql/documents.ts`, `frontend/src/lib/graphql/api.ts`, `frontend/src/components/routes/new-route-client.tsx`, `frontend/src/components/saved/saved-list-place-card.tsx`, `frontend/src/constants/ui-copy.ts`, `frontend/src/app/(test)/route-edit/page.tsx`, `routes_rule.md`, `PROCESS.md`
+- 확인: `backend`에서 `npm run check`, `frontend`에서 `pnpm run typecheck:stable` 통과, Supabase migration 목록에 `drop_item_label_and_backfill_place_category` 추가 및 `public.place_list_items.item_label` 삭제 확인
+
+### 2026-03-17
+- 로그인 페이지의 `로그인 유지` UI를 요청대로 체크박스와 텍스트만 남기고, 둘러싼 카드형 wrapper와 설명 문구를 제거
+- 수정 파일: `frontend/src/app/login/page.tsx`, `frontend/src/constants/ui-copy.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 실행; 기존 `(test)/stopcard` mock의 `PlaceCategoryValue` 타입 오류(`list-detail-card-lab.tsx`, `stopcard-lab.tsx`)로 전체 통과는 미완료
+- 로그인/회원가입 카드 컨테이너를 `min-h-dvh + place-items-center` 기준으로 바꿔, auth 화면이 뷰포트 상하좌우 정중앙에 오도록 정리
+- 수정 파일: `frontend/src/app/login/page.tsx`, `frontend/src/app/signup/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 실행; 기존 `(test)/stopcard` mock의 `PlaceCategoryValue` 타입 오류(`list-detail-card-lab.tsx`, `stopcard-lab.tsx`)로 전체 통과는 미완료
+- 로그인 유지 체크박스는 기본 브라우저 스타일 대신 input 톤의 custom box로 교체하고, 체크 시 `primary` 배경과 흰 체크 아이콘이 나오도록 보강
+- 수정 파일: `frontend/src/app/login/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 실행; 기존 `(test)/stopcard` mock의 `PlaceCategoryValue` 타입 오류(`list-detail-card-lab.tsx`, `stopcard-lab.tsx`)로 전체 통과는 미완료
+- 일정 장소 카테고리를 `MEAL/BRUNCH/CAFE/SNACK/NIGHT/LANDMARK/NATURE/SHOP/STAY`로 재정의하고, Google Places 정규화/프런트 badge·copy도 새 분류 체계에 맞춰 갱신
+- 추천 엔진은 하루를 `LUNCH/DINNER` 필수 구조로 다시 짜고, FOODIE일 때만 `MORNING`을 추가하며, 랜드마크·자연·쇼핑 테마는 anchor가 충분할 때만 주간 anchor로 쓰고 부족하면 soft fallback 하도록 조정; 후보가 부족하면 뒤 날짜는 빈 day로 남기고, `Must Visit`는 테마보다 우선 반영
+- sanitizer/AI planner는 식당을 `VISIT`로 강등하지 않도록 바꾸고, `NIGHT`는 최대 2개까지 허용하며, `MEAL`의 fame score·`NIGHT` subtype·slot availability를 프롬프트와 선택 점수에 반영
+- `(test)/stopcard` mock의 legacy `FOODIE/SHOPPING/VIEW` category 예시도 새 enum에 맞춰 정리해 프런트 타입체크가 다시 닫히게 수정
+- 수정 파일: `shared/route-taxonomy.json`, `backend/src/lib/googlePlaces.js`, `backend/src/lib/scheduleEngine.js`, `backend/src/lib/scheduleStopSanitizer.js`, `backend/src/lib/geminiOptimizer.js`, `backend/src/resolvers.js`, `frontend/src/constants/route-taxonomy.ts`, `frontend/src/constants/ui-copy.ts`, `frontend/src/lib/badge-theme.ts`, `frontend/src/app/(test)/stopcard/_components/list-detail-card-lab.tsx`, `frontend/src/app/(test)/stopcard/_components/stopcard-lab.tsx`, `PROCESS.md`
+- 확인: `backend`에서 `npm run check`, `frontend`에서 `pnpm run typecheck:stable` 통과, `backend`의 `node -` synthetic 검증 스크립트로 `FOODIE` 일정이 `MORNING/LUNCH/DESSERT/DINNER/NIGHT` + 뒤 빈 day로 생성되는 것, sparse 랜드마크 테마에서 `Must Visit`만 방문 슬롯으로 남는 것, extra meal이 더 이상 `VISIT`로 내려가지 않고 제거되는 것 확인
+- 추가 요청에 맞춰 로그인 유지 체크박스는 input 톤은 유지하되 크기를 기존 체크박스 수준으로 다시 줄이고, 체크 시 primary 색과 작은 체크 아이콘만 남도록 균형을 조정
+- 수정 파일: `frontend/src/app/login/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 추가 요청에 맞춰 로그인 유지 체크박스의 기본 상태는 `bg-card` 채움과 inset shadow를 빼고, 더 중립적인 `bg-background + border-border-strong` 조합으로 정리해 auth UI와의 톤 차이를 줄임
+- 수정 파일: `frontend/src/app/login/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 추가 요청에 맞춰 로그인 유지 체크박스는 기본 상태를 다시 `input` 톤(`border-border + bg-card/92 + inset shadow`)으로 맞추고, 체크 시에는 border를 투명 처리해 파란 채움과 보더가 따로 노는 느낌을 제거; 라벨에는 `select-none`과 tap highlight 제거를 넣어 반복 클릭 시 텍스트가 드래그된 것처럼 보이던 문제도 함께 방지
+- 수정 파일: `frontend/src/app/login/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- Google 소셜 로그인 재현 확인 결과, `/login`의 Google 버튼은 실제로 Google Accounts 페이지까지 정상 리다이렉트되고 Supabase auth 로그에도 `google /authorize`, `/callback`, `login` 성공 기록이 남는 것을 확인
+- 사용자 입장에서 원인 파악이 가능하도록 OAuth 에러 매핑을 보강해 `provider disabled`, `redirect mismatch`, `사용자 취소`, `callback exchange 실패`를 구분해 토스트로 보여주도록 정리
+- 수정 파일: `frontend/src/lib/supabase/auth-errors.ts`, `frontend/src/app/login/page.tsx`, `frontend/src/app/auth/callback/page.tsx`, `frontend/src/constants/ui-copy.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과, Playwright로 `http://localhost:3000/login -> Google 계정으로 로그인` 이동 시 Google 로그인 페이지 도달 확인, Supabase `MyRoute` auth 로그에서 Google `/callback` 성공 기록 확인
+- 모바일에서 Google OAuth 중 브라우저/앱 전환 뒤 `sessionStorage` 기반 PKCE verifier가 사라져 callback 교환이 깨질 수 있는 흐름을 보완하기 위해, Google 로그인 시작 전에는 verifier를 항상 `localStorage`에 두고 callback 성공 후에만 사용자가 고른 최종 세션 모드(`로그인 유지` 여부)에 맞춰 auth token을 `localStorage` 또는 `sessionStorage`로 정리하도록 변경
+- callback 실패·취소 시에는 임시 OAuth persistence marker와 verifier를 정리해 다음 로그인에서 저장소 모드가 꼬이지 않도록 복구 로직도 추가
+- 수정 파일: `frontend/src/lib/supabase/browser.ts`, `frontend/src/app/login/page.tsx`, `frontend/src/app/auth/callback/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 휴대폰 테스트에서 `NEXT_PUBLIC_AUTH_CALLBACK_URL`와 `NEXT_PUBLIC_GRAPHQL_ENDPOINT`가 `localhost`로 고정돼 callback/백엔드 요청이 휴대폰 자신에게 향하던 문제를 줄이기 위해, 브라우저 origin이 localhost가 아닐 때는 auth callback과 GraphQL/사진/지도 proxy endpoint의 host를 현재 접속 host로 자동 치환하도록 보강
+- backend는 기존 `server.listen(port)` 그대로 모든 인터페이스에서 수신 가능하므로, 같은 LAN에서 접속하면 프런트 `:3000`과 백엔드 `:4000` 모두 현재 PC IP 기준으로 붙게 정리
+- 수정 파일: `frontend/src/lib/env.ts`, `frontend/src/app/login/page.tsx`, `frontend/src/lib/graphql/client.ts`, `frontend/src/lib/maps.ts`, `frontend/src/lib/photos.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과, `frontend/.env.local`에서 callback/GraphQL endpoint가 localhost로 설정된 상태 확인
+- 추가 요청에 맞춰 모바일 로컬 테스트용 `localhost -> 현재 접속 host` 자동 치환은 다시 롤백하고, auth callback/GraphQL/지도 proxy 해석을 원래 env 값(`NEXT_PUBLIC_AUTH_CALLBACK_URL`, `NEXT_PUBLIC_GRAPHQL_ENDPOINT`) 기준으로 복귀
+- 모바일 소셜 로그인 검증은 배포 도메인 기준으로 진행하기로 정리
+- 수정 파일: `frontend/src/lib/env.ts`, `frontend/src/app/login/page.tsx`, `frontend/src/lib/graphql/client.ts`, `frontend/src/lib/maps.ts`, `frontend/src/lib/photos.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 기존 place category 레거시 호환(`FOODIE -> MEAL`, `SHOPPING -> SHOP`, `VIEW -> NIGHT`)은 더 이상 런타임에서 매핑하지 않도록 제거하고, badge/theme copy에서도 old category alias를 걷어냄
+- 새 환경이나 남은 구 DB를 위해 `007_normalize_legacy_place_categories.sql`을 추가해 `places.category`의 old 값만 일괄적으로 `MEAL/SHOP/NIGHT`로 정규화하도록 보강; README와 route rule 문서의 category 예시도 현재 taxonomy 기준으로 수정
+- 수정 파일: `backend/src/lib/googlePlaces.js`, `backend/supabase/sql/007_normalize_legacy_place_categories.sql`, `frontend/src/lib/badge-theme.ts`, `frontend/src/constants/ui-copy.ts`, `backend/README.md`, `routes_rule.md`, `PROCESS.md`
+- 확인: `backend`에서 `npm run check`, `frontend`에서 `pnpm run typecheck:stable` 통과
+- 장소 카테고리 분류에서 `NIGHT` 이름 힌트를 너무 공격적으로 쓰던 문제를 수정해, `난바/사카바/우메시바`처럼 단어 안의 `바` 한 글자만으로 `NIGHT`가 되지 않게 보수화; explicit food 타입이 있으면 `SNACK/MEAL/CAFE`를 먼저 확정하도록 우선순위도 재정렬
+- `93930774-d40c-4665-8e1f-4134ce7bbce6` 리스트에서 문제로 지적된 `스시 사카바 사시스 난바점`, `리쿠로 오지상노 미세 난바 본점`, `멘야 카치도키 오사카 우메시바`가 각각 `MEAL`, `SNACK`, `MEAL`로 내려오도록 확인했고, 같은 규칙으로 전체 `places`를 재분류해 27개 row의 저장 category도 함께 보정
+- 수정 파일: `backend/src/lib/googlePlaces.js`, `PROCESS.md`
+- 확인: `backend`에서 `npm run check`, `frontend`에서 `pnpm run typecheck:stable` 통과, Supabase `pwmfdcurwpiytdxruzgi`에서 해당 리스트 재조회 시 문제 장소 3건의 category 수정 확인 및 `restaurant/bakery/store` 계열이 `NIGHT`로 남아 있는 row 없음 확인
+- 추가 합의에 따라 `japanese_izakaya_restaurant`/`izakaya` raw type은 음식 타입이 함께 있어도 장소 category를 기본적으로 `NIGHT`로 분류하도록 조정; 일정 엔진에서는 여전히 `isMeal=true`, `mealFit=DINNER`, `nightSubtype=BAR`로 해석되도록 맞춰 dinner/night 양쪽 후보로 유지
+- `008_classify_izakaya_as_night.sql`을 추가하고 Supabase `pwmfdcurwpiytdxruzgi`에 실제 적용해, DB에 저장된 이자카야 계열 place도 전부 `NIGHT`로 정규화
+- 수정 파일: `backend/src/lib/googlePlaces.js`, `backend/src/lib/scheduleEngine.js`, `backend/supabase/sql/008_classify_izakaya_as_night.sql`, `PROCESS.md`
+- 확인: `backend`에서 `npm run check` 통과, `node -` 검증 스크립트로 `japanese_izakaya_restaurant + sushi_restaurant` 조합이 `category=NIGHT`, `isMeal=true`, `isNight=true`, `nightSubtype=BAR`로 해석되는 것 확인, Supabase 재조회로 이자카야 타입 place들의 DB category가 `NIGHT`로 반영된 것 확인
+- 추가 피드백에 따라 `izakaya` 혼합형 분류를 다시 세분화해 `japanese_izakaya_restaurant`가 있어도 `sushi/ramen/yakiniku/tonkatsu/okonomiyaki` 같은 강한 메인 음식 타입이나 이름 신호가 함께 있으면 `MEAL`로 되돌리고, 메인 음식 신호가 없는 이자카야형만 `NIGHT`로 남기도록 조정
+- 일정 엔진도 같은 기준으로 맞춰 혼합형 이자카야가 더 이상 `isNight=true`로 새지 않게 보정했고, `category=NIGHT`면 전부 `nightSubtype=VIEW`로 보던 부가 버그도 제거
+- `009_reclassify_mixed_izakaya_places.sql`을 추가하고 Supabase `pwmfdcurwpiytdxruzgi`에 실제 적용해 `규카츠 토미타`, `스시사카바 사시스 텐진점`, `신신라멘 텐진본점`, `Umeda Okonomiyaki Izakaya Fuwatoro`는 `MEAL`, `쿠시야키 마츠스케`는 `NIGHT`로 재분류된 것 확인
+- 수정 파일: `backend/src/lib/googlePlaces.js`, `backend/src/lib/scheduleEngine.js`, `backend/supabase/sql/009_reclassify_mixed_izakaya_places.sql`, `PROCESS.md`
+- 확인: `backend`에서 `npm run check` 통과, `node -` 검증 스크립트로 혼합형 이자카야 케이스들이 `category=MEAL`, `isNight=false`, `isMeal=true`로 해석되는 것 확인, Supabase 재조회로 대상 place들의 DB category 반영 확인
+- 장소 taxonomy에 `ACTIVITY`를 추가하고, Google Places 분류는 `amusement_center`, `video_arcade`, `bowling_alley`, `sports_activity_location`, `public_bath` 같은 raw type을 `ACTIVITY`로 읽도록 확장
+- `NIGHT` 분류는 이제 이름/type만이 아니라 `opening_hours`도 함께 보고, 강한 식사 신호가 있거나 오전·점심 영업이 있는 곳은 `MEAL`로 두고, 저녁 늦게 열어 밤 늦게 닫는 술집형만 `NIGHT`로 남기도록 재정리
+- 일정 엔진과 sanitizer에도 `ACTIVITY`를 `VISIT` 계열 후보로 반영하고, 같은 날 `ACTIVITY`는 최대 1개까지만 남도록 제한; AI 프롬프트/검증에도 `ACTIVITY 1/day` 규칙을 추가
+- 기존 `places` row는 새 분류 함수로 재검사해 `Ba hao 八號 -> NIGHT`, `라운드 원 우메다점/라운드원 스타디움 센니치마에점/나미하노유 온천 -> ACTIVITY`까지 총 4건을 실제 DB에 backfill
+- 수정 파일: `shared/route-taxonomy.json`, `backend/src/lib/googlePlaces.js`, `backend/src/resolvers.js`, `backend/src/lib/scheduleEngine.js`, `backend/src/lib/scheduleStopSanitizer.js`, `backend/src/lib/geminiOptimizer.js`, `frontend/src/constants/route-taxonomy.ts`, `frontend/src/lib/badge-theme.ts`, `frontend/src/constants/ui-copy.ts`, `PROCESS.md`
+- 확인: `backend`에서 `npm run check`, `frontend`에서 `pnpm run typecheck:stable` 통과, `node -` synthetic 검증으로 `ACTIVITY`가 하루 1개만 선택되는 것과 sanitizer가 같은 날 복수 `ACTIVITY`를 1개로 줄이는 것 확인, Supabase 재조회로 저장 category와 런타임 분류 차이 0건 확인
+- 추가 분류 조정으로 `cafe + pastry/dessert` 신호를 함께 가진 티룸형은 `SNACK`보다 `CAFE`를 우선하게 바꿔 `고칸 키타하마`, `After You Dessert Cafe`, `쇼콜라티에 팔레 도르` 같은 착석형 디저트 카페가 `CAFE`로 올라가도록 정리
+- `izakaya` 혼합형은 강한 음식 이름이 있더라도 모든 요일이 저녁 영업만 하고 낮 영업이 전혀 없으면 `NIGHT`로 분류되도록 보정해 `Umeda Okonomiyaki Izakaya Fuwatoro`와 `스시사카바 사시스 텐진점`이 `NIGHT`로 내려오게 수정
+- 새 규칙으로 전체 `places`를 다시 검사해 7건을 DB에 backfill했고, 핵심 대상 `고칸 키타하마 -> CAFE`, `Umeda Okonomiyaki Izakaya Fuwatoro -> NIGHT`, `스시사카바 사시스 텐진점 -> NIGHT`를 재조회로 확인
+- 수정 파일: `backend/src/lib/googlePlaces.js`, `PROCESS.md`
+- 확인: `backend`에서 `npm run check` 통과, Supabase `pwmfdcurwpiytdxruzgi` 재조회로 대상 3건 category 반영 확인
+- 추가 요청에 맞춰 숙소 추천 원 반경을 한 번 더 보수적으로 줄여 `70 percentile + 0.2km buffer`, `0.8km ~ 1.8km clamp`로 재조정했고, 프런트 clamp와 규칙 문서도 같은 값으로 맞춤
+- 수정 파일: `backend/src/lib/stayRecommendation.js`, `frontend/src/lib/route-stay.ts`, `routes_rule.md`, `PROCESS.md`
+- 확인: `backend`에서 `npm run check`, `frontend`에서 `pnpm run typecheck:stable` 통과, `backend`의 `node -` synthetic 검증으로 `tight 0.8km`, `medium 1.12km`, `wide 1.8km(wideSpread=true)` 확인
+- 모바일 UI 스케일 조정 1차로 `PageContainer/PageTitle/BottomNav/Mascot/DialogShell/EmptyState/LoadingPanel/Button`과 홈·저장·마이·상세·추천·route shell/card의 크기를 전반적으로 낮췄고, `360x780` 기준에서도 기존 디자인 톤은 유지한 채 더 조밀하게 보이도록 조정
+- 상단 action은 모바일에서 아래 줄로 내리되 full-width/grid 확장은 제거해 intrinsic width 버튼/토글 느낌을 복구했고, `/saved/[listId]`, `/saved`, `/mypage`, route detail/shell, `SectionHeader` 공통 패턴을 같은 규칙으로 정리
+- `(test)/my`, `(test)/stay-step`, `(test)/badge`의 모바일 overflow를 `min-w-0`, `max-w-full`, code block/pill clamp로 수정했고, `app-shell`의 `pb-(--bottom-nav-offset)` 오타를 `pb-[var(--bottom-nav-offset)]`로 바로잡음
+- 수정 파일: `frontend/src/app/globals.css`, `frontend/src/components/layout/page-container.tsx`, `frontend/src/components/common/page-title.tsx`, `frontend/src/components/ui/button-styles.ts`, `frontend/src/components/layout/mascot.tsx`, `frontend/src/components/layout/bottom-nav.tsx`, `frontend/src/components/common/dialog-shell.tsx`, `frontend/src/components/common/empty-state.tsx`, `frontend/src/components/common/loading-panel.tsx`, `frontend/src/components/common/section-header.tsx`, `frontend/src/components/layout/app-shell.tsx`, `frontend/src/components/routes/route-schedule-page-shell.tsx`, `frontend/src/components/routes/route-detail-view.tsx`, `frontend/src/components/routes/route-mobile-split-layout.tsx`, `frontend/src/components/routes/route-view-mode-slider-toggle.tsx`, `frontend/src/components/routes/route-stop-card.tsx`, `frontend/src/components/saved/saved-list-place-card.tsx`, `frontend/src/components/places/place-detail-content.tsx`, `frontend/src/app/page.tsx`, `frontend/src/components/home/home-schedule-header.tsx`, `frontend/src/components/home/home-empty-state.tsx`, `frontend/src/components/saved/saved-empty-state.tsx`, `frontend/src/app/saved/page.tsx`, `frontend/src/app/saved/[listId]/page.tsx`, `frontend/src/app/mypage/page.tsx`, `frontend/src/app/login/page.tsx`, `frontend/src/app/signup/page.tsx`, `frontend/src/app/routes/recommendation/page.tsx`, `frontend/src/app/(test)/my/_components/my-page-lab.tsx`, `frontend/src/app/(test)/stay-step/_components/stay-step-lab.tsx`, `frontend/src/app/(test)/badge/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과, Playwright `360x780` sweep으로 `/route-edit`, `/recommendation`, `/my`, `/stay-step`, `/badge`, `/modal`, `/empty`, `/login`, `/signup`의 `scrollWidth`를 재확인했고 overflow가 사라진 것 확인; `/route-edit`에서 `지도+일정 ↔ 일정만` 토글, day 변경, 바텀시트 `peek -> full` 드래그 smoke test 확인
+- S23(360x780) 기준 후속 조정으로 공통 `PageTitle`/subtitle, `SectionHeader`, `Button` 모바일 수치를 한 단계 더 줄이고 header action용 `xs` 버튼 사이즈를 추가; 저장 리스트 상단과 장소 추가 헤더는 모바일에서도 below-stack 대신 same-row between으로 유지되게 정리
+- 홈 `내 일정`의 상태 말풍선은 모바일에서 숨기고, 바텀 내비게이션은 icon-text 간격과 아이콘 크기를 더 줄였으며, 장소 상세 photo slider의 counter/review badge와 indicator dot도 한 단계 축소
+- 새 일정 funnel은 `ProgressHeader` 높이, `StepTitle` 타이틀/설명, 동행/페이스/스타일 선택지 패딩·아이콘·내부 gap을 더 줄였고, 숙소 step은 바깥 radial gradient wrapper를 제거해 단일 카드 구조로 정리
+- 전역 폰트를 `Noto Sans KR` 하나로 통일하기 위해 `next/font`의 `Space Grotesk` 로딩을 제거하고, `h1~h4`도 body와 같은 `--font-body`를 사용하도록 정리
+- 수정 파일: `frontend/src/app/layout.tsx`, `frontend/src/app/globals.css`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 수정 파일: `frontend/src/app/globals.css`, `frontend/src/components/common/page-title.tsx`, `frontend/src/components/common/section-header.tsx`, `frontend/src/components/ui/button-styles.ts`, `frontend/src/components/home/home-schedule-header.tsx`, `frontend/src/components/layout/bottom-nav.tsx`, `frontend/src/components/layout/progress-header.tsx`, `frontend/src/components/routes/route-view-mode-slider-toggle.tsx`, `frontend/src/components/routes/route-schedule-page-shell.tsx`, `frontend/src/components/routes/route-detail-view.tsx`, `frontend/src/components/routes/new-route-client.tsx`, `frontend/src/components/places/place-detail-content.tsx`, `frontend/src/app/saved/page.tsx`, `frontend/src/app/saved/[listId]/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 후 추가 수정 뒤 `pnpm run typecheck` 재통과, Playwright S23 viewport(`360x780`)로 `/route-edit`, `/stay-step` 재확인해 헤더 액션/토글/진행도/선택지 축소가 반영된 것 확인
+- 추가 피드백에 맞춰 바텀 내비게이션은 icon-text 세로 gap을 `4px`로 되돌리고 아이콘은 `15px`로 복귀; 모바일 floating mascot은 전역 mobile keyframe을 따로 둬 상하 이동 범위를 `10px -> 6px`로 줄임
+- category badge는 공통 `xxs(8px)` 텍스트와 더 작은 padding으로 통일하고, `CAFE` badge 컬러를 갈색 계열로 전면 교체; 장소 상세 photo slider의 `4/5`, 평점, 리뷰 badge와 indicator dot도 같은 기준으로 추가 축소
+- 저장 리스트/route stop 카드의 제목, 평점·리뷰·주소, 메모/지도 버튼, memo panel typography를 한 단계 더 줄여 계층을 분명히 하고, 저장 리스트 상세 상단의 편집/삭제 action은 모바일에서 icon-only로 바꿔 제목 옆 same-row between 패턴으로 정리
+- 새 일정 funnel은 mobile title을 기본 `text-2xl` 수준으로 맞추고, pace/style 선택지의 고정 min-height를 제거한 뒤 vertical padding과 title-description 간격만으로 높이가 잡히게 조정; `DialogShell` description은 모바일에서 숨김
+- 수정 파일: `frontend/src/app/globals.css`, `frontend/src/components/layout/bottom-nav.tsx`, `frontend/src/lib/badge-size.ts`, `frontend/src/components/common/category-badge.tsx`, `frontend/src/lib/badge-theme.ts`, `frontend/src/components/common/dialog-shell.tsx`, `frontend/src/components/routes/new-route-client.tsx`, `frontend/src/components/places/place-detail-content.tsx`, `frontend/src/components/saved/saved-list-place-card.tsx`, `frontend/src/components/routes/route-stop-card.tsx`, `frontend/src/app/saved/[listId]/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과, Playwright S23 viewport(`360x780`)로 `/route-edit`, `/stay-step`, `/modal`을 재확인해 바텀 내브 gap, funnel title/선택지 밀도, modal description 숨김이 반영된 것 확인
+- 추가 피드백에 맞춰 funnel title은 mobile `text-2xl -> text-xl`로 한 단계 더 줄이고 `SectionHeader`/funnel choice caption·label은 Tailwind 기본 `text-xs/sm/base` 스케일로 가능한 범위부터 교체
+- 마이페이지 달력 헤더의 월 표시와 좌우 버튼은 모바일에서 `min-w-30` 고정폭을 제거하고 `text-xs + h-6.5/w-6.5` 기준으로 축소해 action row가 자체 폭 안에서 정리되게 조정
+- 수정 파일: `frontend/src/components/routes/new-route-client.tsx`, `frontend/src/components/common/section-header.tsx`, `frontend/src/app/mypage/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 추가 요청에 맞춰 funnel `StepTitle` description은 `text-sm -> text-xs(12px)`로 낮추고, 퍼널 5개 step의 내부 텍스트도 title > 카드 제목 > 설명/본문 > 보조 링크/카운트 계층에 맞춰 한 단계씩 축소
+- 리스트 step은 리스트명/도시 `text-sm sm:text-base`, 카운트 `text-xs sm:text-sm`, helper link `text-xs sm:text-sm`; 날짜 step은 월 타이틀 `text-base sm:text-lg`, 선택 범위 요약 `text-sm sm:text-base md:text-lg`; 숙소 step은 section title `text-sm sm:text-base`, 설명/empty/step copy를 `text-xs sm:text-sm`로 정리
+- 동행 step은 choice 기본 label이 `text-xs sm:text-sm`를 타도록 맞추고, 스타일 step의 section label은 `text-sm`, required/optional과 option caption은 `text-xs`로 정리해 Tailwind 기본 스케일 위주로 통일
+- 수정 파일: `frontend/src/components/routes/new-route-client.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 추가 피드백에 맞춰 퍼널 달력 day number는 mobile 기준 selected `text-base/h-11 -> text-sm/h-10`, 나머지 day는 `text-sm -> text-xs`로 한 단계 더 줄였고, 숙소 step의 booked/unbooked 선택 박스는 `24/28px` 계열 radius를 `20/24px`로 낮춰 다른 선택지와 더 비슷한 모서리로 통일
+- `정해졌어요` 숙소 카드는 mobile 사진을 `112px -> 96px`로 낮추고 title/address/note를 `text-xs` 중심으로 정리해 레이아웃이 덜 깨지게 했으며, `찾는 숙소가 없나요?` helper 영역은 title `text-sm font-black`, description `text-xs`로 다시 계층을 분리
+- 공통 모달은 supporting copy가 없을 때 header를 `items-center`로 바꿔 title이 수직 가운데 정렬되게 했고, footer 버튼은 공통 descendant rule로 `h-8`, `px-3`, `text-xs` 기준으로 축소; 퍼널 mascot은 step header에서 높이 `80px` 공통으로 맞추고 variant별 width만 따로 두도록 정리
+- 수정 파일: `frontend/src/components/routes/new-route-client.tsx`, `frontend/src/components/common/dialog-shell.tsx`, `frontend/src/app/mypage/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과, Playwright S23 viewport(`360x780`)로 `/stay-step`, `/modal`을 재확인해 퍼널 copy 축소와 modal preview 밀도 조정 반영 확인
+- 퍼널 5개 step의 축소된 폰트에 맞춰 spacing/padding 리듬도 다시 조정해 `PageContainer` `space-y-7`, `ProgressHeader` gap/높이 축소, 각 step section 간격 `space-y-7 sm:space-y-8`, 하단 CTA grid gap `2.5` 기준으로 통일
+- 리스트/날짜 step은 카드·리스트 shell padding을 `p-4~5 -> p-3.5~4`, empty CTA는 `h-12/min-w-56 -> h-11/min-w-48`, 달력 월 grid gap은 `6 -> 4~5`, 날짜 요약/에러 박스는 폰트 축소 후에도 답답하지 않게 내부 패딩만 유지
+- 숙소/동행/스타일 step은 outer card를 `p-3.5 sm:p-4 md:p-5` 계열로 낮추고 내부 block `space-y`와 option gap을 `2~2.5`로 재정렬; booked/unbooked, helper panel, pace/theme option은 과한 여백을 줄이되 버튼 간격이 너무 좁아지지 않게 맞춤
+- companions step의 별도 mascot height override를 제거해 funnel header mascot이 전 step에서 `80px` 높이 규칙을 그대로 타도록 정리
+- 수정 파일: `frontend/src/components/routes/new-route-client.tsx`, `frontend/src/components/layout/progress-header.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과, Playwright `360x780`로 `/stay-step`, `/style-step` 랩을 재확인해 spacing이 과하게 마르지 않은 것 확인; 실제 `/routes/new`는 로그인 확인 로딩까지만 접근됨
+- 추가 피드백에 맞춰 퍼널 숙소 카드 썸네일은 mobile `96x80 -> 64x64`, `sm+ 112x96 -> 80x80`의 정사각형으로 더 줄였고, 카드 내부 gap도 `3 -> 2.5`, text stack `2 -> 1.5`로 조정
+- 퍼널 선택지 typography는 공통 `title 12px(text-xs) / description 10px(text-[10px])` 기준으로 통일했고, `StayModeChoice`와 `ChoiceButton` 모두 같은 체급을 타도록 맞춤
+- `Google 링크로 숙소 추가` 모달은 `DialogShell` header row를 `items-center`로 고정하고 footer 버튼 좌우 패딩을 `3 -> 2.5`로 축소; 해당 모달의 취소/추가 버튼 min-width도 같이 줄였고 title/field hint/content는 `break-keep`으로 단어 단위 줄바꿈을 유지하게 정리
+- 수정 파일: `frontend/src/components/routes/new-route-client.tsx`, `frontend/src/components/common/dialog-shell.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 퍼널 `숙소 예약 여부` 선택은 별도 `StayModeChoice`를 걷고 `ChoiceButton` 공통 카드로 통일해 동행자 선택과 같은 div 패턴을 타도록 정리
+- 숙소 선택 카드는 mobile 썸네일 `64x64` 정사각형, 더 작은 check badge(`20px`), title/badge/address/note를 세로 스택으로 재배치해 텍스트 폭을 확보했고 shadow/padding도 한 단계 눌러 레이아웃을 더 단단하게 다듬음
+- `어떤 리스트를 불러올까요` step의 리스트 item도 mobile 기준 `title 12px / count 10px`로 맞춰 퍼널 선택지 체급을 통일했고, 공통 모달 footer 버튼은 좌우 패딩을 `2.5 -> 2`로 한 번 더 줄임
+- 수정 파일: `frontend/src/components/routes/new-route-client.tsx`, `frontend/src/components/common/dialog-shell.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 퍼널 선택지 공통화를 위해 `frontend/src/components/routes/selectable-option-card.tsx`를 추가하고 인터페이스를 `title + icon? + description?`로 고정; typography는 `12px/10px`, radius/padding/active 상태도 한 군데서 관리하게 정리
+- `new-route-client`에서는 기존 `ChoiceButton` local 구현과 stay 전용 분기를 걷고 `동행/숙소 여부/페이스/테마` 네 군데를 모두 새 공통 카드로 교체해 같은 쉘 스타일을 타게 변경
+- 수정 파일: `frontend/src/components/routes/selectable-option-card.tsx`, `frontend/src/components/routes/new-route-client.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 퍼널 리스트 선택 item도 custom button markup을 걷고 `SelectableOptionCard`로 교체해 `어떤 리스트를 불러올까요` step까지 같은 선택 카드 체계를 타도록 통일
+- 수정 파일: `frontend/src/components/routes/new-route-client.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- `SelectableOptionCard` 내부에서 title/description을 공통 `flex-col` wrapper로 묶고 고정 gap(`0.5`)을 주도록 바꿔 텍스트 스택 간격이 카드별로 흔들리지 않게 정리
+- 수정 파일: `frontend/src/components/routes/selectable-option-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 퍼널 숙소 step의 `예약한 숙소가 있다면 선택해 주세요`, `괜찮아요` helper, `아직 안 정했어요` block과 숙소 카드 내부 텍스트를 `text-foreground / text-foreground/60` 계열로 통일해 다른 funnel step과 같은 폰트 색 논리를 타도록 정리
+- 저장 리스트 인덱스 카드(`ListItemCard` preview layout)의 제목/설명을 mobile 기준 `14px / 12px`로 조정
+- 수정 파일: `frontend/src/components/routes/new-route-client.tsx`, `frontend/src/components/common/list-item-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 숙소 step의 `1, 2, 3` 번호 옆 안내 문구는 `text-foreground/60 -> text-foreground/80`로 올려 숫자 badge 옆에서 더 또렷하게 읽히도록 조정
+- 수정 파일: `frontend/src/components/routes/new-route-client.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 저장 리스트 상세 화면 리워크로 상단 헤더는 title/meta/action 비율을 다시 정리해 제목 크기를 한 단계 낮추고 city·장소 수를 `12px` 메타 라인으로 재구성; action icon button도 `34px` 원형 버튼 기준으로 정리
+- `SavedListPlaceCard`는 mobile 기준 `72px` 썸네일 + 본문 + 우측 세로 action column의 3열 구조로 다시 잡고, title/평점·리뷰/주소 계층을 분리해 가독성을 높였으며 과한 파란 border/shadow와 카드 내부 여백도 한 단계 눌러 더 조밀하게 정리
+- 메모 패널과 note editor도 card 비율에 맞춰 radius/shadow/text 색을 같은 톤으로 맞췄고, 저장 리스트 섹션 헤더는 title `14px`, description `12px` 기준으로 조정
+- 수정 파일: `frontend/src/app/saved/[listId]/page.tsx`, `frontend/src/components/saved/saved-list-place-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 저장 리스트 상세 카드의 star/delete action은 `30px -> 28px`로 줄이고 border/shadow/색 대비를 낮춰 콘텐츠보다 덜 튀게 조정; active star도 옅은 badge처럼 보이게 재정리
+- 장소 삭제 undo 토스트는 `max-w 340 -> 300`, `text-sm -> 12px`, padding/gap/icon을 함께 줄이고 복구 액션은 작은 pill 버튼으로 바꿔 더 가볍고 덜 부담스러운 피드백으로 정리
+- 수정 파일: `frontend/src/components/saved/saved-list-place-card.tsx`, `frontend/src/app/saved/[listId]/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 공통 모달 typography hierarchy를 다시 정리해 `DialogShell` header title을 `text-lg / sm:text-xl`, supporting copy를 `text-sm`, eyebrow/field hint를 `text-xs` 체계로 통일했고, close icon과 mascot 비중도 한 단계 줄임
+- `ConfirmDialog`는 warning body box의 radius/padding을 줄이고 description을 `text-sm leading-5`로 정리했으며 footer action min-width도 낮춰 삭제 확인 모달이 덜 크고 계층이 더 분명하게 보이게 조정
+- 수정 파일: `frontend/src/components/common/dialog-shell.tsx`, `frontend/src/components/common/dialog-field.tsx`, `frontend/src/components/common/confirm-dialog.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 리스트 상세에서 compact 리워크가 전 breakpoint에 먹었던 문제를 되돌려 `saved/[listId]` 헤더 액션은 mobile만 icon-only, `sm+`에서는 라벨형 버튼으로 복구했고 title/meta 간격도 `sm+`에서 다시 여유를 주도록 조정
+- `SavedListPlaceCard`도 compact 수치는 base에만 두고 `sm+`에서는 카드 radius/padding, 이미지 크기, 제목/메타/주소, action button 크기를 한 단계씩 다시 키워 desktop/tablet이 모바일처럼 눌려 보이지 않게 scope 분리
+- 수정 파일: `frontend/src/app/saved/[listId]/page.tsx`, `frontend/src/components/saved/saved-list-place-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 저장 리스트 인덱스 `ListItemCard` preview layout의 기본 그림자를 한 단계 낮추고 hover shadow도 완만하게 줄여 `/saved` 리스트 그리드가 덜 무겁게 보이도록 조정
+- 저장 리스트 상세 `SavedListPlaceCard`는 hover 전에도 얕은 중성 shadow가 남도록 다시 잡고, hover shadow도 과하게 뜨지 않게 눌러 카드가 살짝만 떠 보이도록 정리
+- 새 일정 funnel list step에서는 `원하는 리스트가 없나요?` 액션과 `다음` 버튼을 하나의 flex row로 묶고, mobile/sm gap과 버튼 폭 비율을 조정해 둘이 더 붙어 보이게 정리
+- 수정 파일: `frontend/src/components/common/list-item-card.tsx`, `frontend/src/components/saved/saved-list-place-card.tsx`, `frontend/src/components/routes/new-route-client.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 저장 리스트 인덱스 `ListItemCard` preview layout shadow 강약이 반대로 느껴지던 부분을 다시 조정해, 기본 상태는 더 얕게 두고 hover 시에는 더 진한 중성 shadow가 올라오도록 수정
+- 수정 파일: `frontend/src/components/common/list-item-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 저장 리스트 상세 롤백 요청에 맞춰 `frontend/src/app/saved/[listId]/page.tsx`가 이미 HEAD와 일치함을 확인했고, `frontend/src/components/saved/saved-list-place-card.tsx`의 남아 있던 차이도 HEAD 기준으로 정렬해 리스트 상세 전용 리워크를 철회
+- 리스트 상세가 여전히 이전과 다르게 보일 수 있는 공통 의존성(`section-header`, `button-styles`, `category-badge`, `dialog-shell`, `confirm-dialog`, `dialog-field`, `page-container`, `bottom-nav`, `globals.css`, `badge-size`, `badge-theme`, `empty-state`, `loading-panel`)은 다른 화면에 걸쳐 있어 이번 롤백 범위에서 유지
+- 수정 파일: `frontend/src/components/saved/saved-list-place-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 새 일정 funnel list step의 `원하는 리스트가 없나요?` 액션은 버튼 스타일 변경 없이 원래 텍스트 링크로 되돌리고, `다음` 버튼과는 `flex-col` wrapper로만 묶어 간격만 조정
+- 수정 파일: `frontend/src/components/routes/new-route-client.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 새 일정 funnel list step의 helper link와 `다음` 버튼 묶음 gap은 요청에 맞춰 `gap-4`로 다시 넓힘
+- 수정 파일: `frontend/src/components/routes/new-route-client.tsx`, `PROCESS.md`
+- Tailwind v4 CSS-first 구성에 맞춰 `globals.css`의 `@theme inline`에 `--breakpoint-sm/md/lg/xl/2xl`를 명시해, 반응형 기준을 repo가 직접 소유하도록 정리
+- 수정 파일: `frontend/src/app/globals.css`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- AI 협업 기반 개인 프로젝트를 이력서와 면접에서 어떻게 포지셔닝할지 정리한 루트 문서 `help.md`를 추가하고, 마이루트의 실제 설계·구현·검증 내역을 바탕으로 resume bullet, 면접 답변, 공백기 설명, AI 사용 서사를 구체화
+- 수정 파일: `help.md`, `PROCESS.md`
+- 확인: 문서 작업만 수행 (테스트 없음)
+- 반응형 디자인 시스템 v5 1차 적용으로 `globals.css`에 px breakpoint, 고정 text/radius/shadow scale, role typography/layout/mascot 토큰을 추가하고 `PageContainer` 기본 max-width를 `1200px`로 낮춤
+- `button-styles`, `Input`, `Textarea`, `Card`, `DialogShell`, `ConfirmDialog`, `Badge`, `badge-size`, `Mascot`, `PageTitle`, `SectionHeader`, `EmptyState`, `LoadingPanel`을 새 토큰 기준으로 재구성해 `base/md` 중심 반응형, `w-full` surface/input 규칙, 고정 radius + 컴포넌트별 `md:rounded-*` 패턴으로 정리
+- 저장 리스트 인덱스, 추천 완료, route shell/day toggle/stay toggle, 선택 카드, 로그인/회원가입 카드까지 공용 규칙을 연결했고 mobile footer CTA는 full-width action 규칙으로 통일
+- 수정 파일: `frontend/src/app/globals.css`, `frontend/src/components/ui/button-styles.ts`, `frontend/src/components/ui/input.tsx`, `frontend/src/components/ui/textarea.tsx`, `frontend/src/components/ui/card.tsx`, `frontend/src/components/common/dialog-shell.tsx`, `frontend/src/components/common/confirm-dialog.tsx`, `frontend/src/components/common/dialog-field.tsx`, `frontend/src/components/common/page-title.tsx`, `frontend/src/components/common/section-header.tsx`, `frontend/src/components/common/empty-state.tsx`, `frontend/src/components/common/loading-panel.tsx`, `frontend/src/components/common/list-item-card.tsx`, `frontend/src/components/layout/page-container.tsx`, `frontend/src/components/layout/mascot.tsx`, `frontend/src/components/layout/celebration-mascot.tsx`, `frontend/src/components/routes/route-day-selector.tsx`, `frontend/src/components/routes/route-view-mode-slider-toggle.tsx`, `frontend/src/components/routes/route-stay-map-ui.tsx`, `frontend/src/components/routes/route-schedule-page-shell.tsx`, `frontend/src/components/routes/selectable-option-card.tsx`, `frontend/src/app/saved/page.tsx`, `frontend/src/app/routes/recommendation/page.tsx`, `frontend/src/app/login/page.tsx`, `frontend/src/app/signup/page.tsx`, `frontend/src/lib/badge-size.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 남은 이슈: `new-route-client`, `route-stop-card`, `saved/[listId]`, `place-detail-content`, `mypage` 쪽의 page-local arbitrary radius/shadow/text가 아직 많아서 체감 변화가 약함. 다음 패스에서 flagship 화면 위주로 직접 걷어내야 함
+- 2차 패스로 `mypage`의 상단 다음 일정 카드, summary 카드, 캘린더, 계정 카드, 삭제 계정 모달을 공용 text/radius/shadow/button 규칙에 맞춰 재정렬하고 `sm:` 의존을 `md` 기준으로 정리
+- `place-detail-content`의 photo slider 상단 overlay patch 흔적을 정리하고 slider 높이 breakpoint를 `base/md/lg/xl` 축으로 재배치했으며, place header title/address도 모바일 체급을 한 단계 낮춰 정리
+- `route-stop-card`의 남은 `sm:` 정렬 분기 1건도 `md` 기준으로 맞춤
+- 수정 파일: `frontend/src/app/mypage/page.tsx`, `frontend/src/components/places/place-detail-content.tsx`, `frontend/src/components/routes/route-stop-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 남은 이슈: `new-route-client`와 일부 home/route detail 계열에 page-local arbitrary spacing/text가 아직 남아 있어, 체감 변화를 더 키우려면 다음 패스에서 대표 화면을 추가로 직접 눌러야 함
+- 추가 패스로 `bottom-nav`, `home-schedule-header`, `home-empty-state`, `route-mobile-split-layout`, `route-detail-view`의 남은 custom shadow/radius/button 수치를 공용 토큰 기준으로 교체하고, 퍼널 step container max-width도 `--page-content-max-width` 기준으로 통일
+- 홈/route detail chrome은 `sm` 의존을 `md` 기준으로 옮기고 active nav/item shadow를 공용 `shadow-subtle`/`shadow-floating`으로 재정렬해 전체 톤을 더 통일
+- 수정 파일: `frontend/src/components/layout/bottom-nav.tsx`, `frontend/src/components/home/home-schedule-header.tsx`, `frontend/src/components/home/home-empty-state.tsx`, `frontend/src/components/routes/route-mobile-split-layout.tsx`, `frontend/src/components/routes/route-detail-view.tsx`, `frontend/src/components/routes/new-route-client.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 남은 이슈: home/route 계열 일부 세부 컴포넌트와 `new-route-client` 내부엔 아직 자잘한 page-local spacing/text 조정 여지가 남아 있어, 다음엔 viewport QA와 함께 화면별 마감 다듬기가 필요함
+- 추가 정리로 `progress-header`, `route-view-mode-toggle`, `route-day-empty-state`, `route-stop-list`, `route-place-picker-dialog`, `route-label-chip`, `d-day-badge`, `preference-badge-chip`의 custom shadow/radius/text 값을 공용 토큰으로 교체
+- route 보조 컴포넌트의 `11px` 텍스트와 arbitrary radius/shadow를 줄여 detail/list/card 주변의 작은 부품 톤을 더 통일
+- 수정 파일: `frontend/src/components/layout/progress-header.tsx`, `frontend/src/components/routes/route-view-mode-toggle.tsx`, `frontend/src/components/routes/route-day-empty-state.tsx`, `frontend/src/components/routes/route-stop-list.tsx`, `frontend/src/components/routes/route-place-picker-dialog.tsx`, `frontend/src/components/routes/route-label-chip.tsx`, `frontend/src/components/common/d-day-badge.tsx`, `frontend/src/components/common/preference-badge-chip.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 남은 이슈: production 전역에 남은 `max-w-[...]`, 브랜드 색 직접 지정, 일부 landing/import 화면의 `sm:` 분기처럼 의도적으로 남겨둔 수치가 있어, 다음엔 viewport QA 기준으로 정말 필요한 것만 마지막 정리하면 됨
+- 아이콘/버튼 내부 `ml-*`, `mr-*` 간격 클래스를 production 범위에서 제거하고 spacing은 버튼/링크의 기본 `gap`으로 통일; `route-stop-card`의 `ml-auto` 정렬과 mobile split layout의 `-ml/-mr`도 각각 `justify-*` 분기와 `-translate-x-1/2`로 대체
+- 같이 `saved/[listId]`, `saved` index, `mypage`, `route-detail-view`, `route-schedule-page-shell`, `new-route-client`, `import`, `place-detail-content`의 액션 아이콘 spacing을 같은 규칙으로 정리
+- 수정 파일: `frontend/src/app/mypage/page.tsx`, `frontend/src/components/routes/new-route-client.tsx`, `frontend/src/app/routes/import/page.tsx`, `frontend/src/app/saved/page.tsx`, `frontend/src/components/routes/route-schedule-page-shell.tsx`, `frontend/src/components/saved/saved-list-place-card.tsx`, `frontend/src/components/routes/route-stop-card.tsx`, `frontend/src/components/routes/route-detail-view.tsx`, `frontend/src/app/saved/[listId]/page.tsx`, `frontend/src/components/places/place-detail-content.tsx`, `frontend/src/components/routes/route-mobile-split-layout.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 남은 이슈: production 코드에서 `ml/mr`은 제거됐고, 다음은 viewport QA를 돌리면서 정말 필요한 `max-w`, `sm` 분기, 브랜드 직접색만 마지막으로 정리하면 됨
+- 공용 버튼 QA용 `/buttons` 테스트 페이지를 `(test)` 라우트에 추가해 variant 4종, size alias 포함 전체 size, shape, full-width, icon-only, footer/header 액션 row 패턴을 한 화면에서 비교할 수 있게 정리
+- 수정 파일: `frontend/src/app/(test)/buttons/page.tsx`, `frontend/src/app/(test)/buttons/_components/button-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- viewport QA 패스로 local dev 서버(`127.0.0.1:3001`)를 띄워 Playwright CLI로 `/login`, `/signup` 모바일 뷰(`390x844`)를 캡처해 확인했고 큰 layout break 없이 보이는 것 확인
+- QA 반영으로 `home`의 past-only action row를 `md` 기준으로 정리하고 `otherSchedulesLabel`을 `12px`로 올렸으며, `import` 최근 장소 카드의 `sm:flex-row`/thumbnail breakpoint를 `md` 기준으로 맞춤; `login/signup` auth card max-width도 `max-w-sm`로 통일
+- 수정 파일: `frontend/src/app/page.tsx`, `frontend/src/app/routes/import/page.tsx`, `frontend/src/app/login/page.tsx`, `frontend/src/app/signup/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과, Playwright screenshot 산출물은 `output/playwright/viewport-qa/.playwright-cli/`에 저장
+- 남은 이슈: auth 외 production 화면은 로그인 상태가 필요해 자동 QA 범위가 제한적이었고, 다음엔 인증 상태를 준비하거나 수동 QA로 `saved/route/mypage` viewport를 확인하면서 남은 직접색/`max-w`만 마지막으로 다듬으면 됨
+
+### 2026-03-18
+- 새 일정 funnel에서 리스트 가져오기 후 중복으로 뜨던 info toast는 제거하고, 공용 import success toast만 남기도록 정리
+- 수정 파일: `frontend/src/components/routes/new-route-client.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 리스트 가져오기 loading hint는 줄바꿈이 보이도록 `LoadingPanel` detail에 `whitespace-pre-line`을 적용하고, 문구를 `장소가 많을수록 시간이 조금 더 걸릴 수 있어요\n잠시만 기다려 주세요`로 나눠 모바일에서도 덜 답답하게 정리
+- 수정 파일: `frontend/src/components/common/loading-panel.tsx`, `frontend/src/constants/ui-copy.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 입력/선택 성격의 production 모달은 header `description`과 `mascot`을 제거하고, 삭제/탈퇴 계열만 강아지를 유지하도록 정리해 모바일에서 헤더 답답함을 줄임
+- 수정 파일: `frontend/src/components/import/import-list-modal.tsx`, `frontend/src/components/routes/new-route-client.tsx`, `frontend/src/components/routes/route-place-picker-dialog.tsx`, `frontend/src/app/saved/[listId]/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 공용 `DialogShell` footer는 small 화면에서 wrap 가능하도록 `flex-wrap + sm:flex-nowrap`로 조정하고, 홈/저장/새 일정 page empty CTA는 모두 `large + pill + mobile full-width / md auto min-width` 규칙으로 통일
+- 수정 파일: `frontend/src/components/common/dialog-shell.tsx`, `frontend/src/components/saved/saved-empty-state.tsx`, `frontend/src/components/routes/new-route-client.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 리스트 가져오기 모달 footer 버튼에 남아 있던 `min-w-[88px]`를 제거해, 취소/가져오기 버튼이 padding 기준 intrinsic width로 보이도록 정리
+- 수정 파일: `frontend/src/components/import/import-list-modal.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 새 일정 funnel empty 카피를 확정안으로 조정해 title은 `어디로 떠나볼까요?`, description은 `여행 장소를 모은 리스트를 가져와 주세요`로 반영
+- 수정 파일: `frontend/src/constants/ui-copy.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 새 일정 funnel empty 설명문을 `리스트가 없어요` 톤에서 `일정을 만들려면 리스트가 필요해요` 톤으로 바꿔, funnel 목적과 더 직접적으로 연결되게 정리
+- 수정 파일: `frontend/src/constants/ui-copy.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 새 일정 empty에서 `ProgressHeader` wrapper가 `PageTitle` 헤더 블록과 같은 높이를 차지하도록 `--page-title-block-height` 토큰을 추가하고 해당 wrapper에 적용해, 브레이크포인트별 title/subtitle scale 변화도 함께 따라가게 정리
+- 수정 파일: `frontend/src/app/globals.css`, `frontend/src/components/routes/new-route-client.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 새 일정 `List + empty`는 퍼널 본문 내부 분기 대신 early return으로 분리해, `PageContainer -> ProgressHeader -> PageTitle -> centered empty body` 순서가 홈/저장리스트 empty와 최대한 같게 보이도록 구조 자체를 재정렬
+- 수정 파일: `frontend/src/components/routes/new-route-client.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 새 일정 `List` step empty는 홈/저장리스트와 같은 `PageTitle + centered empty body` 구조로 재정렬하고, 상단 임시 spacing 대신 동일한 `-translate-y-[calc(var(--bottom-nav-offset)/2)]` wrapper를 적용
+- 수정 파일: `frontend/src/components/routes/new-route-client.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 새 일정 `List` step empty의 `리스트 선택` 라벨형 header는 제거하고, 확보해 둔 상단 spacing만 유지해 본문 기준선만 맞추도록 단순화
+- 수정 파일: `frontend/src/components/routes/new-route-client.tsx`, `frontend/src/constants/ui-copy.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 새 일정 `List` step empty 본문 wrapper에 `PageTitle` 블록 높이 상당의 상단 여백을 추가해, 홈/저장리스트처럼 헤더 자리를 실제 spacing으로 예약하도록 미세 조정
+- 수정 파일: `frontend/src/components/routes/new-route-client.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 새 일정 `List` step empty는 대형 `StepTitle`을 작은 라벨형 header로 축소하고, 메인 마스코트/타이틀은 `PageEmptyState`가 맡도록 재구성해 홈/저장리스트 empty와 더 비슷한 위계와 위치감을 갖게 정리
+- 수정 파일: `frontend/src/components/routes/new-route-client.tsx`, `frontend/src/constants/ui-copy.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 장소 상세 상단에 남아 있던 `장소 정보` 라벨 텍스트는 제거하고, `backAction`이 있을 때만 헤더 row가 렌더되도록 정리
+- 더 이상 쓰지 않는 `UI_COPY.places.detail.title` 항목 정리
+- 수정 파일: `frontend/src/components/places/place-detail-content.tsx`, `frontend/src/constants/ui-copy.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 장소 상세의 `리뷰 요약` 설명문과 `위치 확인` 카드 상단 `지도` eyebrow는 제거하고, `리뷰 더 보기` 링크는 제목과 같은 줄의 `justify-between` 헤더에 배치
+- 더 이상 쓰지 않는 `UI_COPY.places.detail.reviews.description`, `UI_COPY.places.detail.map.eyebrow`, `UI_COPY.places.detail.actions.moreReviewsSub` 항목 정리
+- 일정 상세 stop 카드 모바일 레이아웃에서 주소를 사진과 같은 헤더 열 안으로 올려, 카드 높이 고정이 아니라 썸네일 행 높이 때문에 생기던 시각적 빈 공간을 줄이고 `메모 추가`와 `지도 보기/장소 정보` 액션을 분리
+- 메모 편집을 열면 `메모 추가` 행만 사라지고 `지도 보기`와 `장소 정보`는 바로 위 액션 행에 남도록 정리했으며, 두 액션은 모바일에서 카드 좌우 끝으로 벌어지게 조정
+- 일정 상세 헤더는 모바일에서도 제목 옆 오른쪽에 `지도 + 일정` 토글과 삭제 버튼이 붙도록 shell/header flex 구조를 조정하고 토글에 `compactMobile`을 적용
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `frontend/src/components/routes/route-detail-view.tsx`, `frontend/src/components/routes/route-schedule-page-shell.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stop-card.tsx --file src/components/routes/route-detail-view.tsx --file src/components/routes/route-schedule-page-shell.tsx` 통과
+- 후속 동기화로 일정 상세도 추천 완료와 같은 모바일 `compactMobile` 축을 쓰도록 `RouteDaySelector`에 compact 컨테이너 padding/헤더 타이포를 추가하고, 상세 화면에서는 day selector에 해당 옵션을 연결
+- 일정 상세의 상단 `편집/삭제/취소/편집 완료`와 편집 모드 `장소 추가` 버튼도 모바일에서만 높이와 padding을 한 단계 낮춰, 추천 완료 헤더 토글과 더 같은 밀도로 맞춤
+- 수정 파일: `frontend/src/components/routes/route-day-selector.tsx`, `frontend/src/components/routes/route-detail-view.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-day-selector.tsx --file src/components/routes/route-detail-view.tsx` 통과
+- 후속 정정으로 일정 상세 모바일 stop 카드 하단 액션은 카드 전체 `justify-between` 배치 대신 `왼쪽 메모 추가 | 오른쪽 고정 폭 2버튼 그룹` 구조로 다시 맞춰, `지도 보기`가 사진 아래 오른쪽 그룹 안에서 `장소 정보`와 함께 길게 보이도록 정리
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stop-card.tsx` 통과
+- 후속 재정정으로 모바일 stop 카드 하단의 `지도 보기/장소 정보`는 고정 폭 2등분 grid를 제거하고, 스크린샷 기준처럼 오른쪽 자연폭 액션 그룹으로 되돌려 카드 폭이 어색하게 잠기지 않도록 정리
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stop-card.tsx` 통과
+- 후속 구조 복원으로 일정 상세 모바일 stop 카드의 주소는 다시 헤더 행 밖 별도 줄로 내려, 상단은 `(뱃지/장소명/영업 상태 + 이미지)`, 그 아래는 `주소`, 마지막은 `메모/버튼` 흐름으로 읽히게 정리
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stop-card.tsx` 통과
+- 후속 미세 조정으로 일정 상세 모바일 stop 카드 하단 액션 그룹 내부 wrapper의 `ml-auto` margin은 제거하고, 부모 flex 정렬만으로 버튼 위치를 맞추도록 정리
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stop-card.tsx` 통과
+- 후속 정리로 stop 카드 shell은 `h-fit self-start`로, stop list 각 row grid는 `items-start`로 맞춰 카드가 부모 stretch를 따라 늘어나지 않고 실제 콘텐츠 높이에 맞게 붙도록 정리
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `frontend/src/components/routes/route-stop-list.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stop-card.tsx --file src/components/routes/route-stop-list.tsx` 통과
+- 후속 조정으로 일정 상세 stop 카드의 `지도 보기` 액션은 텍스트를 걷고 카드 내부 전용 `Google Maps` 아이콘 버튼으로 교체해, 액션 라벨보다 서비스 브랜드 인지가 먼저 오도록 정리
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stop-card.tsx` 통과
+- 후속 교체로 일정 상세 stop 카드의 `Google Maps` 아이콘 버튼은 임시 inline mark 대신 사용자가 제공한 `icons8-google-maps-new.svg` path 형태로 바꿔, 실제 로고 실루엣이 더 가깝게 보이도록 정리
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stop-card.tsx` 통과
+- 후속 정렬로 일정 상세 모바일 stop 카드에서 `메모 추가`로 여는 편집 UI는 하단 `Google Maps` 버튼과 `장소 정보` 버튼보다 먼저 보이도록 액션 row 위로 이동하고, 데스크톱의 기존 편집 위치는 유지
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stop-card.tsx` 통과
+- 후속 복구로 stop list의 숫자 아래 연결선과 `몇 km` 배지가 이전처럼 row 높이를 타도록, 최근 넣었던 `route-stop-list`의 `items-start`와 `route-stop-card`의 `h-fit self-start`는 원복
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `frontend/src/components/routes/route-stop-list.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file src/components/routes/route-stop-card.tsx --file src/components/routes/route-stop-list.tsx` 통과, `pnpm run typecheck:stable`는 기존 `frontend/src/app/mypage/page.tsx`의 summary card prop 타입 오류로 실패
+- 후속 축소로 일정 상세 모바일 stop 카드 하단의 `메모 추가`, `장소 정보`, `Google Maps` 아이콘 버튼은 카드 전용 override로 높이·padding·폰트·아이콘 크기를 한 단계 낮춰 밀도를 정리
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stop-card.tsx` 통과
+- 후속 축소로 일정 상세 모바일 note editor의 `삭제/취소/저장` 액션도 같은 카드 전용 작은 축으로 맞춰, 하단 액션과 편집 패널 액션의 광학 크기를 통일
+- 추천 완료는 `RouteStopCard`를 공유하므로 `Google Maps/장소 정보` 축소는 같이 반영되지만, 메모 편집 UI는 `showNoteSection={false}`라 노출되지 않음
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `frontend/src/app/routes/recommendation/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stop-card.tsx` 통과
+- 후속 타이포 조정으로 stop 카드 note editor의 `memo edit` 라벨은 모바일 기준 `10px -> 12px`로 올리고, `Textarea` 입력 폰트는 카드 한정 override로 `text-sm -> text-xs` 한 단계 낮춤
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stop-card.tsx` 통과
+- 후속 정렬로 일정 상세 모바일 stop 카드에서 저장된 메모 패널도 `Google Maps` 버튼과 `장소 정보` 버튼보다 먼저 보이도록 액션 row 위로 이동하고, 데스크톱의 기존 note 표시 위치는 유지
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stop-card.tsx` 통과
+- 후속 축소로 일정 상세 헤더의 삭제 버튼은 모바일에서 텍스트를 숨기고 휴지통 아이콘만 보이게 조정해 폭을 줄였고, 데스크톱 라벨은 유지
+- 수정 파일: `frontend/src/components/routes/route-detail-view.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-detail-view.tsx` 통과
+- 버튼 공용 토큰에 카드 전용 `xsmall` size를 추가하고, stop 카드 내부의 하단 액션/메모 editor 액션/편집 모드 액션은 기존 `small + 개별 override` 대신 `xsmall`을 직접 쓰도록 정리
+- 수정 파일: `frontend/src/components/ui/button-styles.ts`, `frontend/src/components/routes/route-stop-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/ui/button-styles.ts --file src/components/routes/route-stop-card.tsx` 통과
+- 수정 파일: `frontend/src/components/places/place-detail-content.tsx`, `frontend/src/constants/ui-copy.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 공용 `EmptyState`의 page variant에 `md/xl` 반응형 `max-width`, `gap`, `padding`, text block spacing, description max-width/line-height를 추가해 태블릿 이상에서도 empty 화면이 답답하지 않게 정리
+- 수정 파일: `frontend/src/components/common/empty-state.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 저장 리스트 상세 `SavedListPlaceCard`에서 카드 전체 `Link`와 액션 버튼이 충돌하던 클릭 처리 문제를 정리하고, 모바일 comparison 헤더의 `isolate` stacking context를 제거해 별/삭제 버튼이 상세 이동 대신 정상 동작하도록 수정
+- 메모 편집/추가와 외부 지도 링크 액션에도 카드 내비게이션 차단 처리를 맞춰, 카드 내부 액션 클릭 시 상세 페이지로 튀지 않도록 정리
+- 수정 파일: `frontend/src/components/saved/saved-list-place-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/saved/saved-list-place-card.tsx` 통과
+- 공용 `EmptyState` page variant 타이틀 전용 토큰 `--page-empty-title-size`를 추가해 페이지 헤더 title보다 한 단계 작게 낮추고, empty description의 `font-semibold`를 제거해 전 empty 화면에 일괄 반영
+- 수정 파일: `frontend/src/app/globals.css`, `frontend/src/components/common/empty-state.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 저장 리스트 index empty 상태의 마스코트 크기를 `compact`에서 `featured`로 올려, 홈(내 일정) empty 상태와 같은 page hero 높이로 통일
+- 수정 파일: `frontend/src/components/saved/saved-empty-state.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 모바일 공용 버튼의 `compact/xs/sm` 축을 `14px` 텍스트 기준으로 올리고, 아이콘 포함 여부와 관계없이 같은 padding·아이콘 크기를 타도록 정리
+- 수정 파일: `frontend/src/components/ui/button-styles.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 후속 요청에 따라 위 전역 `compact/xs/sm` 상향은 철회하고, 같은 `size` 버튼은 아이콘 유무로 별도 padding/text scale을 나누지 않는 기존 공용 규칙으로 복귀
+- 수정 파일: `frontend/src/components/ui/button-styles.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- `/buttons` 테스트 페이지를 usage showcase 위주 구성에서 `size prop -> resolved size -> base/md spec` 중심으로 다시 정리해, 각 props size와 breakpoint 차이를 한 카드에서 바로 읽을 수 있게 보강
+- 수정 파일: `frontend/src/app/(test)/buttons/_components/button-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 공용 버튼 size API를 `small | medium | large` 3단계로 통일하고 `Button` 기본값도 `medium`으로 정리; 기존 `compact/default/prominent`, `sm/md/lg` 호출부는 auth/import/saved/routes 공용 버튼과 `(test)` 랩 페이지 전반에서 새 이름으로 치환
+- `/buttons` 테스트 페이지도 alias 설명을 걷고 3단계 size spec과 `base/md` breakpoint 규칙만 보여주는 구조로 재정리
+- 수정 파일: `frontend/src/components/ui/button-styles.ts`, `frontend/src/components/ui/button.tsx`, `frontend/src/app/(test)/buttons/_components/button-lab.tsx`, `frontend/src/app/routes/import/page.tsx`, `frontend/src/app/routes/recommendation/page.tsx`, `frontend/src/app/saved/page.tsx`, `frontend/src/app/saved/[listId]/page.tsx`, `frontend/src/app/login/page.tsx`, `frontend/src/app/signup/page.tsx`, `frontend/src/app/mypage/page.tsx`, `frontend/src/components/common/confirm-dialog.tsx`, `frontend/src/components/common/page-back-button.tsx`, `frontend/src/components/import/import-list-modal.tsx`, `frontend/src/components/routes/new-route-client.tsx`, `frontend/src/components/routes/route-detail-view.tsx`, `frontend/src/components/routes/route-place-picker-dialog.tsx`, `frontend/src/components/routes/route-schedule-page-shell.tsx`, `frontend/src/components/routes/route-stop-card.tsx`, `frontend/src/components/saved/saved-list-place-card.tsx`, `frontend/src/app/(test)/*`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 공통 modal footer의 2버튼 액션은 `small + medium` 혼용을 걷고 `medium + medium`으로 통일; 삭제 확인, 리스트 가져오기, 저장 리스트 상세 장소 추가, Google 장소/숙소 추가, 장소 선택, 마이페이지 탈퇴 dialog와 `(test)` modal/stay/route-edit 랩 예시를 같은 규칙으로 정리
+- 단일 footer 액션 버튼은 이번 패스에서 유지
+- 수정 파일: `frontend/src/components/common/confirm-dialog.tsx`, `frontend/src/components/import/import-list-modal.tsx`, `frontend/src/components/routes/route-place-picker-dialog.tsx`, `frontend/src/components/routes/new-route-client.tsx`, `frontend/src/app/saved/[listId]/page.tsx`, `frontend/src/app/mypage/page.tsx`, `frontend/src/app/(test)/modal/_components/modal-lab.tsx`, `frontend/src/app/(test)/route-edit/page.tsx`, `frontend/src/app/(test)/stay-step/_components/stay-step-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 저장 리스트 상세 헤더의 2버튼 액션 묶음은 텍스트 버튼 대신 원형 icon-only 버튼으로 정리; 일반 상태의 `편집/삭제`와 편집 상태의 `취소/저장` 모두 `aria-label`/`title`을 유지하고 단일 `장소 추가` CTA는 텍스트 버튼으로 유지
+- 수정 파일: `frontend/src/app/saved/[listId]/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 모바일 헤더 공간 확보를 위해 공용 `PageBackButton`은 `md` 이상에서만 보이도록 조정; 저장 리스트 상세, 저장 장소 상세, 추천 완료, 장소 상세, 일정 상세 등 `PageBackButton` 사용 페이지 전체에 동일 적용
+- 수정 파일: `frontend/src/components/common/page-back-button.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 공용 `Button`에 `iconOnly` 축을 추가해 배경/테두리 없이 아이콘만 남기는 ghost-style action을 지원; variant 의미는 유지한 채 surface만 걷도록 `button-styles`를 확장
+- 저장 리스트 상세 헤더 액션, 공용 뒤로가기 버튼, `DialogShell` 닫기 버튼, `/buttons` 랩의 icon-only 예시를 새 `iconOnly` 규칙으로 전환
+- 수정 파일: `frontend/src/components/ui/button-styles.ts`, `frontend/src/components/ui/button.tsx`, `frontend/src/components/common/page-back-button.tsx`, `frontend/src/components/common/dialog-shell.tsx`, `frontend/src/app/saved/[listId]/page.tsx`, `frontend/src/app/(test)/buttons/_components/button-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- `iconOnly` 색 의미를 variant 기준으로 다시 정리해 `primary`는 파랑, `danger`는 빨강, `secondary`는 본문형 검정으로 보이게 조정
+- 저장 리스트 상세 헤더 title은 `PageTitle`과 같은 `--page-title-size` scale과 tracking/leading을 쓰도록 맞추고, 아래 도시·장소 수 메타 줄은 같은 breakpoint 축의 `--page-subtitle-size`를 쓰되 `font-medium` + 낮은 대비로 보조 정보처럼 정리
+- 수정 파일: `frontend/src/components/ui/button-styles.ts`, `frontend/src/app/saved/[listId]/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 저장 리스트 상세 헤더의 display 상태 title/meta gap은 `PageTitle`과 같은 `space-y-1.5`로 맞추고, edit 상태 필드 간격은 기존 `space-y-3`로 유지
+- 수정 파일: `frontend/src/app/saved/[listId]/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 저장 리스트 상세 편집 상태의 도시 필드는 boxed `Input` 대신 subtitle scale의 inline underline field로 바꿔, 제목 입력과 같은 헤더 맥락 안에서 덜 답답하게 보이도록 정리
+- 수정 파일: `frontend/src/app/saved/[listId]/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- `iconOnly` 버튼 규칙을 추가로 조정해 `secondary`는 기본 검정 + hover primary, `danger`는 기본 빨강 + hover danger-hover로 읽히게 정리하고, `md+`에서는 icon-only svg 크기가 한 단계 더 커지도록 확장
+- 수정 파일: `frontend/src/components/ui/button-styles.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 저장 리스트 상세 헤더의 display 상태 title/meta 간 6px gap(`space-y-1.5`)은 요청에 따라 제거하고, edit 상태 `space-y-3`는 유지
+- 수정 파일: `frontend/src/app/saved/[listId]/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 후속 요청에 따라 저장 리스트 상세 헤더의 display 상태 gap 제거는 원복해 `space-y-1.5`를 다시 적용하고, edit 상태는 outer `space-y-3`를 유지한 채 title input 블록 내부의 `space-y-1.5`만 제거
+- 일반 상태 헤더 액션은 이미 `연필=secondary`, `쓰레기통=danger` variant로 유지
+- 수정 파일: `frontend/src/app/saved/[listId]/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 저장 리스트 상세 헤더 icon-only 액션은 usage 쪽에 색 클래스를 직접 줘 `연필/취소=검정 + hover primary`, `저장=primary`, `삭제=danger`가 확실히 보이도록 정리
+- `ConfirmDialog` footer는 full-width 세로 스택 대신 버튼 본인 너비만 가지는 우측 정렬 row로 바꿔, 취소/삭제 확인 액션이 modal 하단 오른쪽에 더 단정하게 붙도록 조정
+- 수정 파일: `frontend/src/app/saved/[listId]/page.tsx`, `frontend/src/components/common/confirm-dialog.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 후속 조정으로 danger icon-only는 기본 `text-danger/72`에서 hover 시 `text-danger`로 올라오게 바꿔, 삭제 아이콘 hover 변화가 더 분명하게 보이도록 정리
+- 수정 파일: `frontend/src/components/ui/button-styles.ts`, `frontend/src/app/saved/[listId]/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 후속 피드백에 따라 danger icon-only는 다시 기본 `text-danger` + hover `text-danger-hover` 조합으로 복귀
+- 수정 파일: `frontend/src/components/ui/button-styles.ts`, `frontend/src/app/saved/[listId]/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 저장 리스트 상세의 `저장한 장소` 섹션 헤더 텍스트/설명은 제거하고, 우측 `장소 추가` 액션만 남기도록 정리
+- 전 화면 back button 제거 요청에 맞춰 `PageBackButton` 사용처를 production/test 전부 걷고, route shell/장소 상세 콘텐츠는 back slot 없이도 자연스럽게 렌더되도록 조정한 뒤 legacy 컴포넌트 파일도 삭제
+- 수정 파일: `frontend/src/app/saved/[listId]/page.tsx`, `frontend/src/components/routes/route-schedule-page-shell.tsx`, `frontend/src/components/routes/route-detail-view.tsx`, `frontend/src/app/routes/recommendation/page.tsx`, `frontend/src/components/places/place-detail-content.tsx`, `frontend/src/app/saved/[listId]/[placeId]/page.tsx`, `frontend/src/app/places/[placeId]/page.tsx`, `frontend/src/app/(test)/recommendation/page.tsx`, `frontend/src/components/common/page-back-button.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 공용 `DialogShell` footer를 full-width stack 규칙에서 우측 정렬의 intrinsic-width row로 바꿔, 링크로 장소 추가/탈퇴/삭제 확인/가져오기 등 모든 modal footer 버튼이 버튼 본인 크기로 한 줄에 붙도록 정리
+- `ConfirmDialog`는 예외 wrapper를 걷고 공용 footer 규칙만 사용하도록 단순화
+- 수정 파일: `frontend/src/components/common/dialog-shell.tsx`, `frontend/src/components/common/confirm-dialog.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 공용 `ToastViewport`를 재구성해 모바일 상단 중앙 / md 이상 우측 상단 배치, tone별 surface, label, close affordance, 13px base / 14px md+ 메시지 타이포로 정리
+- `(test)/toast` 랩 페이지를 추가해 success/info/error, 긴 문장, 스택 케이스를 실제 viewport에 바로 띄워 보며 토스트 디자인을 검증할 수 있게 구성
+- 수정 파일: `frontend/src/components/layout/toast-viewport.tsx`, `frontend/src/app/(test)/toast/page.tsx`, `frontend/src/app/(test)/toast/_components/toast-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 후속 피드백에 따라 토스트 kind label(`완료/안내/오류`)은 제거하고, 카드 padding·icon·close affordance를 줄여 전체 높이를 더 낮춤
+- success/info/error 차이는 label 대신 gradient surface, accent bar, icon badge 톤 차이로 더 분명하게 보이도록 재조정
+- 수정 파일: `frontend/src/components/layout/toast-viewport.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 후속 피드백에 따라 토스트 좌측 accent bar는 제거하고, 아이콘 badge를 더 작게 줄인 뒤 아이콘·메시지·닫기 버튼이 같은 축에서 정렬되도록 내부 grid 정렬을 조정
+- 수정 파일: `frontend/src/components/layout/toast-viewport.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 저장 리스트 상세의 장소 삭제 후 `복원` 스낵바도 공용 토스트와 같은 카드 언어를 쓰도록 `ToastCard`를 분리하고, 일반 toast viewport와 undo 스낵바가 동일한 surface/icon/message 구조를 공유하게 정리
+- undo 스낵바의 trailing action은 `복원` pill button으로 유지해 기능 차이는 살리고 시각 톤은 공용 toast와 맞춤
+- 수정 파일: `frontend/src/components/layout/toast-card.tsx`, `frontend/src/components/layout/toast-viewport.tsx`, `frontend/src/app/saved/[listId]/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- `/toast` 테스트 페이지에 bottom-aligned mock stage를 추가해 저장 리스트 삭제 후 뜨는 `복원` 스낵바 디자인도 같은 화면에서 확인할 수 있게 구성
+- 수정 파일: `frontend/src/app/(test)/toast/_components/toast-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 후속 피드백에 따라 `/toast`의 복원 미리보기는 카드 단독 preview 대신 `390px mock mobile viewport + inset 16px` 기준의 하단 스낵바 stage로 바꿔 실제 너비 감각을 더 가깝게 보이도록 조정
+- 수정 파일: `frontend/src/app/(test)/toast/_components/toast-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 후속 확인에서 `/toast`의 복원 스낵바 preview가 페이지 아래로 밀려 바로 안 보이는 문제를 줄이기 위해, undo preview 카드를 첫 화면 상단 grid로 끌어올리고 stress 섹션은 아래 단독 카드로 재배치
+- 수정 파일: `frontend/src/app/(test)/toast/_components/toast-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 요청에 따라 `/toast` 테스트 라우트와 전용 랩 컴포넌트는 삭제하고, production에서 쓰는 공용 `ToastCard`/`ToastViewport`만 유지
+- route 삭제 후 `.next-dev` stale type 파일 때문에 `typecheck:stable`이 깨지던 문제를 막기 위해 `clean-build-artifacts.mjs`가 `.next-dev`까지 함께 지우도록 보강
+- 수정 파일: `frontend/src/app/(test)/toast/page.tsx`, `frontend/src/app/(test)/toast/_components/toast-lab.tsx`, `frontend/scripts/clean-build-artifacts.mjs`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 마이페이지 모바일 상단 여백을 줄이기 위해 페이지 헤더 `subtitle`을 제거하고, 더 이상 쓰지 않는 관련 copy도 함께 정리
+- 수정 파일: `frontend/src/app/mypage/page.tsx`, `frontend/src/constants/ui-copy.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- `typecheck:stable`/`clean:build`가 활성 `next dev`의 `.next-dev` 산출물을 지워 `routes-manifest.json`·vendor chunk 누락 500 에러를 만들던 문제를 확인하고, 안정 타입검사는 `.next` 전용 `tsconfig.stable.json`을 쓰도록 분리
+- 수정 파일: `frontend/package.json`, `frontend/scripts/clean-build-artifacts.mjs`, `frontend/tsconfig.stable.json`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과, 실행 전후 `frontend/.next-dev` 보존 확인
+- 저장 리스트 상세 카드가 모바일에서는 새 시안, `md` 이상에서는 기존 카드 레이아웃을 같은 컴포넌트 안에서 쓰도록 `comparison` variant를 hybrid responsive 구조로 재정리하고, 페이지의 1번 비교 preview 중복 렌더는 제거
+- 수정 파일: `frontend/src/components/saved/saved-list-place-card.tsx`, `frontend/src/app/saved/[listId]/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file src/components/saved/saved-list-place-card.tsx --file src/app/saved/[listId]/page.tsx` 통과
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 실행 시 `frontend/src/components/routes/new-route-client.tsx`의 `StepTitle` 누락 오류로 실패
+- 새 일정 funnel의 정상 5-step은 `PageContainer`를 이 페이지에서만 `flex` shell로 쓰고, `ProgressHeader -> FunnelHeader -> FunnelContent` 3레이어 구조로 재정리
+- `List`, `Date`, `Stay`, `Companions`, `Style` step에서 기존 `section + StepTitle + 본문 + CTA` 평면 구조를 걷고, 본문과 CTA를 `FunnelContent` 안으로 묶어 vertical rhythm을 통일
+- 수정 파일: `frontend/src/components/routes/new-route-client.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 마이페이지 통계 비교를 위해 기존 4분할 카드 위에 `새 통계 시안`을 추가하고, 전체 일정 요약 + 다가오는 일정/저장 리스트/저장 장소 보조 카드 구조의 반응형 preview를 구성
+- 새 시안에는 완료/예정 일정 분포 bar, 저장 도시 수, 리스트당 평균 장소 수를 함께 보여줘 모바일에서도 숫자 맥락이 바로 읽히도록 정리하고, 기존 통계는 `현재 통계` 라벨 아래 그대로 유지
+- 수정 파일: `frontend/src/app/mypage/page.tsx`, `frontend/src/constants/ui-copy.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 저장 리스트 인덱스 `/saved` preview 카드는 `md` 이상에서 오른쪽 미니 2x2 콜라주 + 왼쪽 텍스트의 compact layout로 바꾸고, 페이지 usage에 카드별 `max-width`를 줘 넓은 화면에서도 과하게 커지지 않도록 조정
+- 리스트명과 메타를 분리해 title은 `리스트명`, 설명은 `도시 · 장소 수`로 정리
+- 수정 파일: `frontend/src/components/common/list-item-card.tsx`, `frontend/src/app/saved/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file src/components/common/list-item-card.tsx --file src/app/saved/page.tsx`, `pnpm run typecheck:stable` 통과
+- 저장 리스트 인덱스 grid는 `lg` 이상에서 `auto-fit`으로 전환하고, 카드 최대 폭은 `16.25rem`(`260px`)으로 잡아 `236px~260px` 범위 안에서만 커지도록 정리
+- 지난 턴의 카드별 개별 `max-width`는 제거하고, 여백이 각 셀 내부가 아니라 grid 오른쪽 끝으로 남도록 배치 방식 자체를 조정
+- 수정 파일: `frontend/src/app/saved/page.tsx`, `frontend/src/components/common/list-item-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file src/app/saved/page.tsx --file src/components/common/list-item-card.tsx`, `pnpm run typecheck:stable` 통과
+- 후속 피드백에 따라 저장 리스트 인덱스 preview 카드는 `md` 이상에서도 가로형으로 바꾸지 않고 세로 스택을 유지하도록 되돌림
+- `auto-fit + 260px max` grid는 유지하고, 카드 내부 gap과 이미지 sizing만 세로형 기준으로 다시 맞춤
+- 수정 파일: `frontend/src/components/common/list-item-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file src/components/common/list-item-card.tsx --file src/app/saved/page.tsx`, `pnpm run typecheck:stable` 통과
+- 추천 완료 화면의 데스크톱 액션 카드는 제거하고, 상단 헤더를 `왼쪽 뷰 토글 / 오른쪽 새 추천받기·내 일정으로 담기·추천 일정 삭제` 구조로 재배치
+- 모바일 하단 CTA는 `새 추천받기`와 `내 일정으로 담기`가 한 줄 50:50 grid로 고정되도록 정리하고, list mode 하단 여백도 새 높이에 맞춰 축소
+- 수정 파일: `frontend/src/app/routes/recommendation/page.tsx`, `frontend/src/components/routes/route-schedule-page-shell.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/app/routes/recommendation/page.tsx --file src/components/routes/route-schedule-page-shell.tsx` 통과
+- 공용 삭제 확인 모달은 `danger` intent일 때 마스코트를 렌더하지 않도록 바꿔, 추천 일정 삭제·저장 리스트 삭제·일정 삭제 모달에서 강아지를 제거
+- 추천 결과 지도 위 `추천 위치/숙소 표시` 토글은 모바일 기준 패딩, 아이콘, 스위치 크기를 한 단계 줄여 화면 점유를 낮춤
+- 수정 파일: `frontend/src/components/common/confirm-dialog.tsx`, `frontend/src/components/routes/route-stay-map-ui.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/common/confirm-dialog.tsx --file src/components/routes/route-stay-map-ui.tsx` 통과
+- 추천 완료 화면의 `추천 일정 삭제` 액션과 삭제 확인 모달 연결은 제거하고, 좌상단 배경 없는 `X` ghost 버튼으로 홈(`/`) 이동만 하도록 정리
+- 공용 route shell은 custom `headerActions`가 있을 때도 모바일에서 전체 폭을 쓰도록 조정해, 추천 완료 화면의 `X` 상단 배치와 토글/CTA row가 자연스럽게 정렬되게 함
+- 수정 파일: `frontend/src/app/routes/recommendation/page.tsx`, `frontend/src/components/routes/route-schedule-page-shell.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/app/routes/recommendation/page.tsx --file src/components/routes/route-schedule-page-shell.tsx` 통과
+- 후속 조정으로 추천 완료 화면 헤더는 `X`와 `지도/일정 토글`이 같은 줄에서 `justify-between`으로 서도록 재배치하고, 데스크톱의 `새 추천받기/내 일정으로 담기`는 토글 오른쪽 그룹에 유지
+- 수정 파일: `frontend/src/app/routes/recommendation/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/app/routes/recommendation/page.tsx` 통과
+- 후속 미세 조정으로 지도 위 `추천 위치/숙소 위치` 공용 토글은 모바일 기준 padding, gap, 아이콘, 스위치 크기를 한 단계 더 줄여 두 모드에 동일 반영
+- 수정 파일: `frontend/src/components/routes/route-stay-map-ui.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stay-map-ui.tsx` 통과
+- 추천 완료 hero의 설명문은 공용 `PageTitle` subtitle과 같은 `--page-subtitle-size`, `text-foreground/65`, 기본 weight, `leading-[1.5]` 규칙으로 맞춰 반응형 타이포를 통일
+- 수정 파일: `frontend/src/app/routes/recommendation/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/app/routes/recommendation/page.tsx` 통과
+- 추천 완료 화면의 `day` selector에는 모바일 전용 `compactMobile` 규칙을 추가해 day pill 높이, padding, 글자 크기, 칩 간격을 축소하고, 기존 일정 상세 화면 기본 스케일은 유지
+- 추천 완료 헤더 액션 row는 `items-center`로 고정해 `X`와 `지도/일정 토글`이 같은 높이선에 정렬되도록 수정
+- 수정 파일: `frontend/src/components/routes/route-day-selector.tsx`, `frontend/src/app/routes/recommendation/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-day-selector.tsx --file src/app/routes/recommendation/page.tsx` 통과
+- `RouteDaySelector` 상단의 날짜 텍스트는 부모 `font-black`을 상속하지 않도록 `font-normal`로 내려, `day 1` 옆 연도/날짜가 덜 두껍게 보이도록 정리
+- 수정 파일: `frontend/src/components/routes/route-day-selector.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-day-selector.tsx` 통과
+- 후속 조정으로 `day 1` 옆 날짜 텍스트는 `--page-subtitle-size`를 쓰도록 바꿔, 모바일/태블릿 이상에서 한 단계 작은 반응형 크기(12px/14px)로 보이게 정리
+- 수정 파일: `frontend/src/components/routes/route-day-selector.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-day-selector.tsx` 통과
+- 후속 피드백에 따라 추천 완료 화면 `compactMobile` day pill 라벨은 `10px` 대신 `12px`로 올려, 모바일에서도 읽기성이 떨어지지 않게 조정
+- 수정 파일: `frontend/src/components/routes/route-day-selector.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-day-selector.tsx` 통과
+- 추천 완료 hero는 모바일에서만 우측 상단 `Chevron`으로 접고 다시 열 수 있게 했고, 접힌 상태에서는 `추천 요약 보기` trigger만 남도록 정리
+- 추천 완료 화면 상단 `지도/일정` 토글은 모바일 전용 `compactMobile` 규칙으로 segment width, 높이, padding, 라벨 크기를 축소하고, 지도 위 `이 근방에서 숙소를 찾아보세요`/wide spread callout도 모바일 기준 padding·폰트 scale을 낮춤
+- 수정 파일: `frontend/src/app/routes/recommendation/page.tsx`, `frontend/src/components/routes/route-view-mode-slider-toggle.tsx`, `frontend/src/components/routes/route-stay-map-ui.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/app/routes/recommendation/page.tsx --file src/components/routes/route-view-mode-slider-toggle.tsx --file src/components/routes/route-stay-map-ui.tsx` 통과
+- 후속 조정으로 지도 위 `추천 위치/숙소 위치` 공용 토글은 `md+`에서도 padding, gap, icon, switch, label scale을 한 단계 낮춰 모바일에서 넘어갈 때 크기 점프가 덜하게 정리
+- 수정 파일: `frontend/src/components/routes/route-stay-map-ui.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stay-map-ui.tsx` 통과
+- 추천 완료 hero의 모바일 접기 trigger는 텍스트 pill 대신 icon-only `Chevron` 버튼으로 바꾸고, 접힌 상태도 같은 icon-only trigger로 다시 열 수 있게 정리
+- 모바일 split 바텀시트는 peek 상태에서 처음 보이는 시트 영역이 덜 크도록 map peek height를 breakpoint별로 `+12px` 올려 초기 노출 높이를 소폭 축소
+- 수정 파일: `frontend/src/app/routes/recommendation/page.tsx`, `frontend/src/components/routes/route-mobile-split-layout.tsx`, `frontend/src/app/globals.css`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/app/routes/recommendation/page.tsx --file src/components/routes/route-mobile-split-layout.tsx` 통과
+- 추천 완료 모바일 split의 지도 breakout wrapper는 `w-screen + left-1/2 -translate-x-1/2` 대신 `page padding` 기준 negative margin + calc width 방식으로 바꿔, 페이지 자체 좌우 스크롤이 생기지 않도록 정리
+- 수정 파일: `frontend/src/components/routes/route-mobile-split-layout.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-mobile-split-layout.tsx` 통과
+- 후속 조정으로 추천 완료 hero의 모바일 접기 trigger는 섹션 우상단이 아니라 하단 중앙 absolute 배치의 ghost icon-only chevron으로 옮기고, 접힌 상태의 다시 열기 버튼도 같은 ghost chevron 언어로 통일
+- 수정 파일: `frontend/src/app/routes/recommendation/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/app/routes/recommendation/page.tsx` 통과
+- 추천 완료 hero의 모바일 접기/펼치기는 조건부 mount 대신 `grid rows + opacity + translate` 전환으로 바꿔, 카드가 부드럽게 접히고 다시 열리도록 정리
+- 수정 파일: `frontend/src/app/routes/recommendation/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/app/routes/recommendation/page.tsx` 통과
+- 후속 미세 조정으로 추천 완료 hero 접기 전환은 `grid rows`와 카드 본체 `opacity/translate/scale`를 분리하고 easing도 더 강하게 줘, 카드가 위로 슈루룩 말리듯 접히는 느낌으로 다듬음
+- 수정 파일: `frontend/src/app/routes/recommendation/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/app/routes/recommendation/page.tsx` 통과
+- 후속 검토에서 stop list wrapper는 모바일에서 완전 제거보다 약한 surface를 남기는 편이 숫자 라인과 카드 묶음이 덜 풀어져 보여, `rounded/bg/padding`을 삭제 대신 `rounded-lg + bg-primary-soft/55 + p-2.5` 수준으로 얇게 낮춤
+- 수정 파일: `frontend/src/components/routes/route-stop-list.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stop-list.tsx` 통과
+- 후속 조정으로 stop list 왼쪽 숫자 타임라인은 모바일에서 원형 번호를 `44px -> 36px`, 컬럼 폭을 `56px -> 44px`로 줄이고, 거리 pill도 한 단계 축소해 바텀시트 안에서 덜 과장되게 정리
+- 수정 파일: `frontend/src/components/routes/route-stop-list.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stop-list.tsx` 통과
+- 마이페이지 통계의 비교용 preview/progress bar는 제거하고, 원래 4개 카드만 남겨 모바일 2열 compact grid로 다시 정리
+- 각 통계 카드는 padding, icon badge, 숫자/설명 타이포를 줄여 세로 길이를 낮추고 더 아기자기한 density로 조정
+- 수정 파일: `frontend/src/app/mypage/page.tsx`, `frontend/src/constants/ui-copy.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 마이페이지 캘린더 월 이동 버튼은 원형 surface를 제거하고 icon-only 화살표만 남기도록 정리
+- `Next trip` 카드의 상대 일정 라벨은 상단 `next trip` 행 오른쪽으로 옮겨 자기 너비만 차지하게 재배치하고, eyebrow/메타 텍스트 scale도 breakpoint 기준이 드러나게 조정
+- 수정 파일: `frontend/src/app/mypage/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 마이페이지 `Next trip` 아래 4개 통계 카드는 색/tone이 다른 compact dashboard 카드로 다시 디자인하고, 카드별 eyebrow·icon tile·큰 숫자·짧은 설명 구조로 더 퍼스널한 요약 느낌을 주도록 정리
+- 통계 copy는 compact layout에 맞춰 더 짧게 조정했고, 여행 캘린더 헤더는 `title + month navigation`을 같은 상단 row로 묶고 description을 아래 전체 폭으로 내려 모바일에서 잘리지 않게 재구성
+- 수정 파일: `frontend/src/app/mypage/page.tsx`, `frontend/src/constants/ui-copy.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 후속 피드백에 따라 통계 4개는 다시 `개별 카드 4장` 느낌을 줄이고, 하나의 outer panel 안에 들어가는 작은 stats cell 4개 구조로 축소
+- 숫자/라벨/설명 폰트와 icon tile 크기를 더 낮춰 과장된 대시보드 느낌을 줄이고, 한 덩어리의 compact personal snapshot처럼 보이도록 재정리
+- 수정 파일: `frontend/src/app/mypage/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 후속 요청에 따라 `Next trip` 카드 제목은 page title보다 한 단계 작은 `--page-empty-title-size` scale로 낮춰 위계를 정리
+- 수정 파일: `frontend/src/app/mypage/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 후속 요청에 따라 마이페이지 통계 보드는 `eyebrow`와 설명문을 제거하고, `작은 아이콘 + 라벨 + 숫자`만 남는 compact snapshot 구조로 다시 단순화
+- outer panel 안의 4개 cell은 divider grid로 묶어 `카드 4장`보다 한 덩어리 board처럼 읽히게 정리
+- 수정 파일: `frontend/src/app/mypage/page.tsx`, `frontend/src/constants/ui-copy.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 후속 피드백에 따라 통계는 다시 `4 equal split`을 버리고, `전체 일정` hero 1개 + 보조 metric chip 3개가 붙는 비대칭 snapshot 구조로 재정리
+- 모바일에서는 hero 아래에 보조 chip이 2열로 붙고 `저장 장소`는 한 줄 전체를 써, 강제로 네 칸을 균등 분할한 느낌을 줄임
+- 수정 파일: `frontend/src/app/mypage/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 마스코트 floating 애니메이션은 `airplane` variant에만 적용되도록 제한해, 마이페이지 `map` 강아지는 정지하고 홈 empty 비행기만 계속 움직이게 정리
+- 수정 파일: `frontend/src/components/layout/mascot.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 프로덕션 대신 `(test)/my` 상단에 `Next trip` 아래 통계 블록 비교용 lab을 추가하고, 현재안 + `Snapshot Strip`/`Diary Ledger`/`Cluster Board` 3개 대안을 한 화면에서 바로 비교 가능하게 구성
+- 기존 account lab은 유지하되, 테스트 페이지 intro와 metadata는 통계 비교 목적이 먼저 보이도록 문구를 갱신
+- 수정 파일: `frontend/src/app/(test)/my/_components/my-page-lab.tsx`, `frontend/src/app/(test)/my/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 듀오링고/프로필 stats 레퍼런스를 반영해 `(test)/my` 통계 비교안을 다시 손보고, `report ready`형 / `profile statistics`형 / `cute snapshot`형으로 카드 톤과 위계를 재구성
+- 현재안은 유지하되 후보 3개는 더 귀엽고 퍼스널한 느낌이 먼저 나도록 gradient, rounded tile, mascot accent, stats CTA 언어를 강화
+- 수정 파일: `frontend/src/app/(test)/my/_components/my-page-lab.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 후속 조정으로 공용 Google 지도 마커는 번호 원(active/default), 숫자 라벨, 숙소 홈 마커를 모두 한 단계 축소해 추천 완료와 일정 상세에서 덜 과장되게 보이도록 정리
+- 수정 파일: `frontend/src/components/routes/google-route-map.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/google-route-map.tsx` 통과
+- 후속 조정으로 공용 Google 지도 마커 축소는 전역 적용 대신 `768px` 미만 모바일 viewport에서만 작아지도록 바꾸고, 태블릿/데스크톱 marker scale은 기존 크기로 원복
+- 수정 파일: `frontend/src/components/routes/google-route-map.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/google-route-map.tsx` 통과
+- 후속 미세 조정으로 지도 하단 `이 근방에서 숙소를 찾아보세요` callout은 모바일에서만 padding과 폰트를 한 단계 더 줄여 지도 시야를 덜 가리게 정리
+- 수정 파일: `frontend/src/components/routes/route-stay-map-ui.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stay-map-ui.tsx` 통과
+- 모바일 일정 카드 개편 검토용으로 첫 번째 스탑 데이터를 재사용한 `새 카드 시안` 컴포넌트를 추가하고, 일정 상세/추천 완료의 모바일 stop list 상단에만 preview로 노출되도록 연결
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `frontend/src/components/routes/route-stop-list.tsx`, `frontend/src/components/routes/route-detail-view.tsx`, `frontend/src/app/routes/recommendation/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stop-card.tsx --file src/components/routes/route-stop-list.tsx --file src/components/routes/route-detail-view.tsx --file src/app/routes/recommendation/page.tsx` 통과
+- 후속 조정으로 모바일 `새 카드 시안` preview도 기존 stop row와 같은 왼쪽 번호 축을 함께 렌더링해, 기존 카드와 스케일 비교가 바로 되도록 보정
+- 수정 파일: `frontend/src/components/routes/route-stop-list.tsx`, `frontend/src/components/routes/route-detail-view.tsx`, `frontend/src/app/routes/recommendation/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stop-list.tsx --file src/components/routes/route-detail-view.tsx --file src/app/routes/recommendation/page.tsx` 통과
+- 모바일 `새 카드 시안` 상단의 `stop 1` 비교용 pill은 제거하고, `RouteLabelChip`에 compact size를 추가해 meal/lunch/dinner 라벨이 preview 카드 문맥에서 과하게 튀지 않도록 정리
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `frontend/src/components/routes/route-label-chip.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stop-card.tsx --file src/components/routes/route-label-chip.tsx` 통과
+- 후속 공통화로 `Badge`, `CategoryBadge`, `RouteLabelChip`은 같은 badge size map을 공유하도록 정리하고, stop label(`LUNCH`/`DINNER` 등)도 공용 route label chip 기준으로 고정
+- route 카드/추천 hero/새 일정 스타일 단계/장소 picker의 수제 pill 배지는 공용 `Badge` 또는 `CategoryBadge`의 `compact`/`card` size로 치환해 반응형 스케일을 통일
+- 수정 파일: `frontend/src/lib/badge-size.ts`, `frontend/src/components/ui/badge.tsx`, `frontend/src/components/common/category-badge.tsx`, `frontend/src/components/routes/route-label-chip.tsx`, `frontend/src/components/routes/route-stop-card.tsx`, `frontend/src/components/routes/new-route-client.tsx`, `frontend/src/components/routes/route-place-picker-dialog.tsx`, `frontend/src/app/routes/recommendation/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/lib/badge-size.ts --file src/components/ui/badge.tsx --file src/components/common/category-badge.tsx --file src/components/routes/route-label-chip.tsx --file src/components/routes/route-stop-card.tsx --file src/components/routes/new-route-client.tsx --file src/components/routes/route-place-picker-dialog.tsx --file src/app/routes/recommendation/page.tsx` 통과
+- 모바일 `새 카드 시안`의 `지도 보기 / 장소 정보` 하단 액션은 full-width grid 스타일 대신 기존 stop 카드와 같은 우측 정렬 pill 버튼 언어로 되돌려 비교 시 노이즈를 줄임
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stop-card.tsx` 통과
+- 모바일 `새 카드 시안`은 저장 리스트 비교 카드처럼 상단 이미지 헤더 구조로 재배치하고, 평점은 사진 좌하단 overlay pill로 올린 뒤 본문에 시간/라벨/영업상태 메타를 배치하는 하이브리드 구조로 조정
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stop-card.tsx` 통과
+- 후속 피드백에 따라 모바일 `새 카드 시안`은 이미지 헤더 구조를 걷고 다시 메타 우선형으로 되돌려, 시간/라벨/영업상태를 상단에 두고 우측 썸네일에는 평점만 작은 overlay로 남기도록 정리
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stop-card.tsx` 통과
+- 후속 미세 조정으로 모바일 `새 카드 시안` 상단 메타는 `시간+라벨`과 `영업 상태`를 두 줄로 분리해 wrap 노이즈를 없애고, 카드/썸네일 radius도 `28px -> 24px`, `24px -> 20px`로 한 단계 낮춰 메타 우선형 밀도에 맞춤
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stop-card.tsx` 통과
+- 후속 재구성으로 모바일 `새 카드 시안`은 상단에 `메타 패널 + 작은 썸네일`만 두고, 제목을 그 아래 전체 폭으로 내려 이미지와 경쟁하지 않게 정리해 장소명이 더 빨리 읽히도록 보정
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stop-card.tsx` 통과
+- 후속 판단에 따라 추천용 모바일 `새 카드 시안`의 시간 표시는 제거하고, 상단 메타 패널은 `스탑 라벨 + 영업 상태`만 남겨 추천 단계에서 가짜 확정감을 줄이고 가독성을 높임
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stop-card.tsx` 통과
+- 후속 피드백으로 모바일 `새 카드 시안` 상단 메타를 감싸던 미니 패널 wrapper는 제거하고, `라벨 + 영업 상태`를 별도 박스 없이 가벼운 텍스트 블록처럼 보이도록 정리
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stop-card.tsx` 통과
+- 후속 조정으로 추천용 모바일 `새 카드 시안` 상단 메타는 `1줄: 스탑 라벨 + 영업 상태`, `2줄: MUSTVISIT + 장소 카테고리` 구조로 재배치하고, 카테고리와 MUSTVISIT 모두 `compact` size를 써 정보 밀도를 높임
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stop-card.tsx` 통과
+- 후속 미세 조정으로 추천용 모바일 `새 카드 시안`의 badge류는 `compact` 대신 전부 `card` size로 올려, 스탑 라벨과 MUSTVISIT/카테고리 칩이 더 또렷하게 보이도록 통일
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stop-card.tsx` 통과
+- 후속 조정으로 추천용 모바일 `새 카드 시안` 상단 메타는 `1줄: 스탑 라벨 + MUSTVISIT + 카테고리`, `2줄: 영업 상태`로 재배치하고, `LUNCH/DINNER + MEAL`처럼 의미가 겹치는 카테고리는 preview에서 숨기도록 조건부 노출 규칙을 추가
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stop-card.tsx` 통과
+- 후속 피드백에 따라 추천용 모바일 `새 카드 시안`의 카테고리 조건부 숨김 규칙은 제거하고, `LUNCH + MEAL`처럼 스탑 라벨과 장소 카테고리가 겹치더라도 상단 첫 줄에서 함께 보이도록 원복
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stop-card.tsx` 통과
+- 후속 미세 조정으로 추천용 모바일 `새 카드 시안`의 장소명 타이포는 모바일 `24px -> 20px`, `md+ 24px` 축으로 조정해 줄바꿈 압박을 낮추고, 이후 데스크톱/태블릿 재사용 시에는 더 크게 보이도록 정리
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stop-card.tsx` 통과
+- stop list 카드 간격은 `space-y` margin 누적 대신 리스트 컨테이너 자체를 `flex-col + gap`으로 바꿔, 카드 간 리듬을 gap 기반으로 정리
+- 수정 파일: `frontend/src/components/routes/route-stop-list.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stop-list.tsx` 통과
+- 후속 조정으로 추천용 모바일 `새 카드 시안`의 썸네일 radius는 실험값 `18px` 대신 기존 stop 카드 기준인 `rounded-lg / md:rounded-xl`로 맞춰 시각 언어를 통일
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stop-card.tsx` 통과
+- 후속 구조 정리로 추천용 모바일 `새 카드 시안`의 메타데이터 영역은 `mt-*` margin 대신 세로 wrapper의 `flex-col + gap`으로 간격을 관리하도록 바꿔, 배지/상단행/본문 메타 리듬을 gap 기반으로 통일
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stop-card.tsx` 통과
+- 후속 정리로 추천용 모바일 `새 카드 시안` 본문은 `장소명+주소`와 `버튼 영역`을 각각 별도 flex/div 묶음으로 분리해, 이후 각 블록 간격과 정렬을 독립적으로 조정하기 쉬운 구조로 정리
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stop-card.tsx` 통과
+- 후속 구조 정리로 추천용 모바일 `새 카드 시안` DOM은 `1) 사진+메타`, `2) 장소명+주소`, `3) 메모+버튼`의 세 블록이 코드상에서도 명확히 보이도록 다시 정리
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stop-card.tsx` 통과
+- 후속 미세 조정으로 추천용 모바일 `새 카드 시안`의 장소명 타이포는 descender clipping이 덜하도록 line-height를 `1.1 / md:1.06`으로 풀고 tracking도 약간 완화
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stop-card.tsx` 통과
+- 후속 피드백에 따라 추천용 모바일 `새 카드 시안`의 장소명 line-height는 더 여유 있게 `1.2 / md:1.12`로 한 단계 더 올려, descender가 살짝 잘려 보이는 느낌을 줄이도록 보정
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stop-card.tsx` 통과
+- 후속 정리로 추천용 모바일 `새 카드 시안`과 preview 라벨의 임의 픽셀 텍스트 클래스(`text-[...]`)는 `text-xl`/`text-2xl`/`text-2xs`/`text-3xs` 같은 Tailwind size token으로 치환해 타이포 스케일 표기를 통일
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `frontend/src/components/routes/route-stop-list.tsx`, `PROCESS.md`
+- 후속 정리로 공용 `PageTitle`/`SectionHeader`/`EmptyState`/`DialogShell`과 주요 route·saved·place 카드/페이지 제목의 line-height를 `1.2`로 맞춰, 제목 계열만 전반적으로 덜 타이트하게 읽히도록 통일
+- 수정 파일: `frontend/src/components/common/page-title.tsx`, `frontend/src/components/common/section-header.tsx`, `frontend/src/components/common/empty-state.tsx`, `frontend/src/components/common/dialog-shell.tsx`, `frontend/src/components/places/place-detail-content.tsx`, `frontend/src/components/routes/new-route-client.tsx`, `frontend/src/app/routes/recommendation/page.tsx`, `frontend/src/components/routes/route-stop-card.tsx`, `frontend/src/components/saved/saved-list-place-card.tsx`, `frontend/src/app/saved/[listId]/page.tsx`, `frontend/src/app/mypage/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/common/page-title.tsx --file src/components/common/section-header.tsx --file src/components/common/empty-state.tsx --file src/components/common/dialog-shell.tsx --file src/components/places/place-detail-content.tsx --file src/components/routes/new-route-client.tsx --file src/app/routes/recommendation/page.tsx --file src/components/routes/route-stop-card.tsx --file src/components/saved/saved-list-place-card.tsx --file src/app/saved/[listId]/page.tsx --file src/app/mypage/page.tsx` 통과
+- 후속 조정으로 추천용 모바일 `새 카드 시안`의 메타데이터는 배지 줄과 영업 상태 줄을 더 분리해, 상태를 작은 pill 컨테이너 안에 두고 글자 크기와 wrap 여유를 올려 한눈에 읽히도록 보정
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stop-card.tsx` 통과
+- 후속 미세 조정으로 추천용 모바일 `새 카드 시안`의 영업 상태 pill 텍스트는 배지와 같은 `10px` 축으로 다시 맞춰, 메타데이터 영역 안에서 상태만 과하게 튀지 않도록 정리
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stop-card.tsx` 통과
+- 후속 정정으로 추천용 모바일 `새 카드 시안`의 영업 상태 pill 텍스트는 `text-3xs` 대신 `text-2xs`로 올려, 현재 타이포 스케일 정의와 실제 광학 크기에 맞게 보정
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stop-card.tsx` 통과
+- 후속 재배치로 추천용 모바일 `새 카드 시안`의 상단은 `배지 -> 장소명 -> 영업 상태`를 같은 헤더 블록으로 묶고, 상태 pill은 걷어 이미지와 함께 하나의 카드 헤더처럼 읽히도록 구조를 정리
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stop-card.tsx` 통과
+- 후속 미세 조정으로 추천용 모바일 `새 카드 시안`의 장소명은 모바일 `20px -> 18px`, `md+ 24px -> 20px`로 한 단계씩 낮춰, 긴 이름에서 줄바꿈 압박을 줄이고 헤더 밀도를 안정화
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stop-card.tsx` 통과
+- 최종 적용으로 stop 카드의 기존 shell(border/radius/shadow)은 유지한 채, 모바일 실제 카드 내부만 새 시안 헤더/요약/액션 구조로 교체하고 비교용 `새 카드 시안` preview 블록은 route list/detail/recommendation 연결에서 제거
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `frontend/src/components/routes/route-stop-list.tsx`, `frontend/src/components/routes/route-detail-view.tsx`, `frontend/src/app/routes/recommendation/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stop-card.tsx --file src/components/routes/route-stop-list.tsx --file src/components/routes/route-detail-view.tsx --file src/app/routes/recommendation/page.tsx` 통과
+- 후속 조정으로 추천 완료 페이지의 stop 카드 `지도 보기` 버튼은 `일정만` 모드뿐 아니라 `지도+일정` 모드에서도 항상 노출되도록 페이지 단의 조건부를 제거
+- 수정 파일: `frontend/src/app/routes/recommendation/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/app/routes/recommendation/page.tsx` 통과
+- 후속 정리로 `CategoryBadge`의 fallback 표기는 raw category key에 `_`가 있어도 공백으로 치환해 노출되도록 바꿔, 향후 `NIGHT_MARKET` 같은 카테고리가 배지에 들어와도 `NIGHT MARKET`처럼 읽히게 정리
+- 수정 파일: `frontend/src/components/common/category-badge.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/common/category-badge.tsx` 통과
+- 저장 리스트 상세 헤더의 하단 구분선과 추가 bottom padding을 제거해, 헤더와 장소 리스트 사이 간격이 덜 벌어지도록 정리
+- 수정 파일: `frontend/src/app/saved/[listId]/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file src/app/saved/[listId]/page.tsx` 통과
+- 저장 리스트 상세 헤더 액션은 모바일에서 아이콘-only square 버튼, `md+`에서는 `편집 / 삭제`, 편집 중 `취소 / 저장` 텍스트가 붙는 패턴으로 바꾸고 라벨도 짧게 정리
+- 수정 파일: `frontend/src/app/saved/[listId]/page.tsx`, `frontend/src/constants/ui-copy.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file src/app/saved/[listId]/page.tsx --file src/constants/ui-copy.ts` 통과
+- 일정 상세 stop 카드 루트 간격은 `space-y-3.5` 대신 `flex flex-col + gap-3.5`로 바꿔, `md:hidden` 모바일 블록이 데스크톱 레이아웃에서 숨겨질 때도 유령 margin처럼 남던 14px 여백이 생기지 않도록 정리
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stop-card.tsx` 통과
+- 공용 route view 토글에 `mobileIconOnly` variant를 추가하고, 일정 상세/추천 완료의 모바일 `compactMobile` 토글은 텍스트 대신 아이콘 세그먼트로 보이되 `md+`에서는 기존 텍스트 라벨을 유지하도록 정리
+- 수정 파일: `frontend/src/components/routes/route-view-mode-slider-toggle.tsx`, `frontend/src/components/routes/route-detail-view.tsx`, `frontend/src/app/routes/recommendation/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-view-mode-slider-toggle.tsx --file src/components/routes/route-detail-view.tsx --file src/app/routes/recommendation/page.tsx` 통과
+- 공용 `PageTitle`은 제목/서브타이틀 class override를 받을 수 있게 열고, 일정 상세 여행 제목은 공백 정리 기준 `18자 이상`일 때 `--page-empty-title-size` 축으로 한 단계 낮춰 긴 제목에서도 헤더 밀도가 덜 깨지도록 정리
+- 수정 파일: `frontend/src/components/common/page-title.tsx`, `frontend/src/components/routes/route-detail-view.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/common/page-title.tsx --file src/components/routes/route-detail-view.tsx` 통과
+- route view 토글의 `iconOnly` variant는 모바일 전용 숨김 텍스트 패턴을 걷고 전 breakpoint에서 아이콘-only로 보이도록 단순화했으며, `md+`에서는 세그먼트 폭과 아이콘 크기만 한 단계 키워 일정 상세/추천 완료 헤더 공간을 덜 차지하게 정리
+- 여행 리스트 제목 입력 제한은 프론트 form schema와 input `maxLength` 기준 `12자`로 다시 확인
+- 수정 파일: `frontend/src/components/routes/route-view-mode-slider-toggle.tsx`, `frontend/src/components/routes/route-detail-view.tsx`, `frontend/src/app/routes/recommendation/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-view-mode-slider-toggle.tsx --file src/components/routes/route-detail-view.tsx --file src/app/routes/recommendation/page.tsx --file src/lib/forms/input-schemas.ts` 통과
+- 일정 상세/추천 완료 stop 카드 하단 `메모 추가`와 `Google Maps` 유틸 버튼은 공용 `ghost` hover와 카드 전용 hover가 겹치던 상태를 걷고, 카드 전용 neutral hover(`연한 배경 + border-strong`)로 통일해 hover 시 노랗게/이상하게 튀어 보이던 톤을 정리
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-stop-card.tsx` 통과
+- 헤더 제목 레이아웃 점검용으로 일정 상세 `PageTitle` title은 임시 하드코딩 문자열 `방방방방방방방방방방방방`을 쓰도록 바꿔, 긴 한글 반복 문자열에서 헤더 wrap/버튼 충돌이 실제로 어떻게 보이는지 바로 확인할 수 있게 정리
+- 수정 파일: `frontend/src/components/routes/route-detail-view.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-detail-view.tsx` 통과
+- 후속 비교용으로 같은 일정 상세 임시 하드코딩 제목은 모바일 `<640px`에서 `20px`, `sm+`에서는 기존 `--page-title-size` 축을 쓰도록 바꿔, 긴 한글 문자열이 토글과 얼마나 덜 충돌하는지 바로 확인할 수 있게 정리
+- 수정 파일: `frontend/src/components/routes/route-detail-view.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-detail-view.tsx` 통과
+- 일정 상세 헤더의 모바일 삭제 버튼은 로컬 `small + compact override` 대신 공용 `xsmall` size를 직접 쓰도록 정리해, 토글 shell과 같은 `32px / md+ 40px` 축으로 맞춤
+- 수정 파일: `frontend/src/components/routes/route-detail-view.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-detail-view.tsx` 통과
+- 후속 정정으로 일정 상세 헤더 삭제 버튼은 `xsmall` 높이만 줄인 채 `px-0 + 숨김 라벨` 때문에 폭이 아이콘 크기로 붕괴하던 상태를 걷고, `w-8 / md:w-10 + shape=\"pill\"`의 고정 icon button으로 정리해 실제 외형도 `32x32 / 40x40` 축에 맞춤
+- 수정 파일: `frontend/src/components/routes/route-detail-view.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-detail-view.tsx` 통과
+- 저장 리스트 상세 comparison 카드의 지도 액션 라벨은 `구글맵`으로 바꾸고, 모바일 하단 `메모 추가 / 구글맵` 액션은 full-width grid 대신 우측 정렬 pill 버튼으로 정리
+- 수정 파일: `frontend/src/components/saved/saved-list-place-card.tsx`, `frontend/src/constants/ui-copy.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file src/components/saved/saved-list-place-card.tsx --file src/constants/ui-copy.ts` 통과
+- 바텀 내브 높이는 전 브레이크포인트에서 `60px`로 먼저 낮춰 보고, `--bottom-nav-offset` 연동 레이아웃이 함께 따라가도록 공용 토큰만 조정
+- 수정 파일: `frontend/src/app/globals.css`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 남은 이슈: production 루트가 로그인으로 리다이렉트돼 바텀 내브 실화면 밀도는 인증된 상태에서 한 번 더 QA가 필요하며, 답답하면 다음 단계로 `64px` fallback 검토
+- 정정으로 저장 리스트 상세 comparison 카드의 지도 액션은 텍스트 `구글맵` pill이 아니라 일정 상세와 같은 Google Maps 아이콘 버튼으로 교체하고, 아이콘 SVG는 공용 컴포넌트로 추출
+- 수정 파일: `frontend/src/components/common/google-maps-mark.tsx`, `frontend/src/components/routes/route-stop-card.tsx`, `frontend/src/components/saved/saved-list-place-card.tsx`, `frontend/src/constants/ui-copy.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file src/components/common/google-maps-mark.tsx --file src/components/routes/route-stop-card.tsx --file src/components/saved/saved-list-place-card.tsx --file src/constants/ui-copy.ts` 통과
+- 후속 정정으로 저장 리스트 상세 comparison 카드의 Google Maps 아이콘 버튼 shell도 일정 상세와 동일한 `w-8 / md:w-10 + hover border/bg` 클래스 축으로 맞춰, 같은 SVG가 같은 버튼 외형으로 보이도록 통일
+- 수정 파일: `frontend/src/components/saved/saved-list-place-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file src/components/saved/saved-list-place-card.tsx` 통과
+- 일정 상세 stop 카드의 메모 display/edit 패널을 공용 `note-panels` 컴포넌트로 추출하고, 저장 리스트 상세 카드도 같은 공용 패널을 쓰도록 바꿔 메모 UI 기준을 일정 상세 디자인으로 통일
+- 수정 파일: `frontend/src/components/common/note-panels.tsx`, `frontend/src/components/routes/route-stop-card.tsx`, `frontend/src/components/saved/saved-list-place-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file src/components/common/note-panels.tsx --file src/components/routes/route-stop-card.tsx --file src/components/saved/saved-list-place-card.tsx`, `pnpm run typecheck:stable` 통과
+- 모바일 route 바텀시트 안 `RouteStopList`는 기본 최소 높이와 마지막 하단 padding을 override해, 스탑 수가 적을 때 카드 아래 공백 때문에 시트가 떠 보이던 느낌을 줄임
+- 수정 파일: `frontend/src/components/routes/route-detail-view.tsx`, `frontend/src/app/routes/recommendation/page.tsx`, `PROCESS.md`
+- 후속 정정으로 일정 상세 헤더 삭제 버튼은 `md+`에서 다시 `삭제` 텍스트가 붙는 기존 반응형 패턴으로 복구하고, 모바일만 `w-8` icon button으로 유지되도록 폭 규칙을 `md:w-auto`로 조정
+- 수정 파일: `frontend/src/components/routes/route-detail-view.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-detail-view.tsx` 통과
+- 후속 정리로 일정 상세 헤더의 `편집 / 취소 / 편집 완료 / 삭제` 버튼은 저장 리스트 상세와 같은 `size="small" + w-9 / md:w-auto + hidden md:inline` 패턴으로 통일하고, `장소 추가`처럼 헤더 바깥 액션은 기존 compact 축을 유지
+- 수정 파일: `frontend/src/components/routes/route-detail-view.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-detail-view.tsx` 통과
+- 저장 리스트 상세 헤더의 `편집 / 삭제 / 취소 / 저장` 버튼은 `shape="pill"`을 적용해, 모바일에선 원형에 가깝고 `md+`에서는 짧은 pill처럼 보이도록 정리
+- 수정 파일: `frontend/src/app/saved/[listId]/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/app/saved/[listId]/page.tsx` 통과
+- 후속 조정으로 route view 토글의 `compactMobile` variant는 모바일 shell 높이를 `32px -> 36px`, 내부 활성 슬라이더/버튼 높이를 `28px -> 32px`로 올려, 헤더 액션 버튼 축과 더 자연스럽게 맞도록 정리
+- 수정 파일: `frontend/src/components/routes/route-view-mode-slider-toggle.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-view-mode-slider-toggle.tsx` 통과
+- 후속 비교용으로 일정 상세 임시 하드코딩 제목은 모바일에서 `break-all + line-clamp-2`를 적용해, `방방방방방방방방방방방방` 같은 최악 케이스도 토글 옆 남은 폭 안에서 2줄까지 내려가며 보이도록 정리
+- 수정 파일: `frontend/src/components/routes/route-detail-view.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-detail-view.tsx` 통과
+- 후속 결정으로 일정 상세 제목의 테스트용 하드코딩/2줄 대응은 걷고, 실제 `schedule.title`을 다시 쓰되 리스트 상세와 같은 한 줄 `truncate` 패턴으로 정리해 모바일 헤더 높이를 늘리지 않고 `...`으로 처리
+- 수정 파일: `frontend/src/components/routes/route-detail-view.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable`, `pnpm exec next lint --file src/components/routes/route-detail-view.tsx` 통과
+- route 모바일 split 바텀시트 끝점이 `bottom-nav-offset` 때문에 내브 시작점보다 `8px` 위에 멈추던 것을 확인하고, 시트 컨테이너에 `--bottom-nav-gap`만큼 negative bottom margin을 줘 내브 상단과 맞닿도록 정리
+- 수정 파일: `frontend/src/components/routes/route-mobile-split-layout.tsx`, `PROCESS.md`
+- 저장 리스트 상세 헤더 편집의 `리스트명`/`도시` 입력 우측 안쪽에 현재 글자 수 `n/12`를 보여주는 inline counter를 추가해, 브라우저 maxLength로 잘리기 전에 남은 한도를 바로 읽을 수 있게 정리
+- 수정 파일: `frontend/src/app/saved/[listId]/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file src/app/saved/[listId]/page.tsx`, `pnpm run typecheck:stable` 통과
+- 마이페이지 상단 헤더는 모바일에서도 `title`과 강아지가 같은 row에서 `justify-between`으로 배치되도록 정리
+- 수정 파일: `frontend/src/app/mypage/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 마이페이지 최상단 가까운 일정 카드는 공용 `NextTripCard`로 추출하고, 카드 라벨 표기를 `NextTrip`으로 정리
+- 수정 파일: `frontend/src/components/common/next-trip-card.tsx`, `frontend/src/app/mypage/page.tsx`, `frontend/src/constants/ui-copy.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file src/app/mypage/page.tsx --file src/components/common/next-trip-card.tsx --file src/constants/ui-copy.ts`, `pnpm run typecheck:stable` 통과
+- 마이페이지 최상단 카드 eyebrow 표기는 요청대로 `NEXT TRIP` 띄어쓰기 버전으로 정정
+- 수정 파일: `frontend/src/constants/ui-copy.ts`, `PROCESS.md`
+- 마이페이지 `NextTripCard`의 상태 뱃지는 `small + label` 축으로 한 단계 줄이고, `NEXT TRIP` eyebrow를 제목 블록 안으로 붙여 라벨과 여행 제목이 한 덩어리로 읽히도록 카드 구조를 정리
+- 수정 파일: `frontend/src/components/common/next-trip-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file src/components/common/next-trip-card.tsx`, `pnpm run typecheck:stable` 통과
+- 후속 조정으로 `NextTripCard` 상태 뱃지는 오른쪽 상단으로 다시 두되, `NEXT TRIP` eyebrow와 여행 제목은 같은 왼쪽 헤더 블록에 묶고 설명 줄만 아래로 분리해 정보 위계를 더 자연스럽게 정리
+- 수정 파일: `frontend/src/components/common/next-trip-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file src/components/common/next-trip-card.tsx`, `pnpm run typecheck:stable` 통과
+- 후속 미세조정으로 `NextTripCard`의 도시/날짜 메타는 제목과 같은 왼쪽 텍스트 블록 안으로 다시 붙여, 제목과 메타 사이가 과하게 벌어져 보이던 간격을 줄임
+- 수정 파일: `frontend/src/components/common/next-trip-card.tsx`, `PROCESS.md`
+- 추가 미세조정으로 `NextTripCard`의 `NEXT TRIP -> 제목` 간격은 조금 더 벌리고, 도시/날짜 메타는 `pl-0.5 / md:pl-1`로 아주 살짝만 오른쪽으로 들여 정렬감을 정리
+- 수정 파일: `frontend/src/components/common/next-trip-card.tsx`, `PROCESS.md`
+- 마이페이지 하단 여백은 `11rem` 하드코딩 대신 `bottom-nav-offset + page-bottom-padding` 기준으로 낮춰, 바텀 내브를 피하는 최소 여유만 남기고 과한 빈 공간을 줄임
+- 수정 파일: `frontend/src/app/mypage/page.tsx`, `PROCESS.md`
+- 상대 일정 뱃지 문구는 `1~3일 남음`도 별도 soon 카피 대신 `N일 뒤에 떠나요`를 그대로 쓰도록 정리해 기준을 단순화
+- 수정 파일: `frontend/src/lib/format.ts`, `PROCESS.md`
+- 홈 `내 일정` 화면은 `대표 1개 + 나머지 일정` 구조를 유지한 채, 최우선 여행만 공용 `NextTripCard`로 교체하고 헤더 상태 배지는 중복이라 제거
+- 수정 파일: `frontend/src/app/page.tsx`, `frontend/src/constants/ui-copy.ts`, `PROCESS.md`
+- 홈 헤더의 비행기 옆 말풍선 배지는 컴포넌트 수준에서 완전히 제거하고, 쓰이지 않는 `statusLabel` prop과 관련 badge import도 정리
+- 수정 파일: `frontend/src/components/home/home-schedule-header.tsx`, `PROCESS.md`
+- 모바일 강아지 비행기 float 애니메이션은 `mascot-float-mobile`의 최대 이동량을 `-6px -> -3px`, 회전은 `1deg -> 0.5deg`로 낮춰 흔들림을 절반 수준으로 완화
+- 수정 파일: `frontend/src/app/globals.css`, `PROCESS.md`
+- 홈 `D-Day` 뱃지는 범용 `Badge`에 의존하지 않는 전용 크기/형태로 다시 구성해 폭과 무게감을 줄였고, `NextTripCard`는 hover/focus 시 살짝 lift되며 border/shadow가 반응하도록 클릭 피드백을 추가
+- 수정 파일: `frontend/src/components/common/d-day-badge.tsx`, `frontend/src/components/common/next-trip-card.tsx`, `PROCESS.md`
+- 마이페이지 상단은 글로벌 로고와 역할이 겹치던 강아지 마스코트를 제거하고 페이지 타이틀만 남겨 첫 화면 헤더를 더 단정하게 정리
+- 수정 파일: `frontend/src/app/mypage/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 마이페이지 `Next trip` 아래 통계는 대표 카드 구조를 걷고, 숫자를 먼저 보여주는 4개의 compact stat card로 재구성해 아이콘/보더 톤을 항목별로 분리
+- 수정 파일: `frontend/src/app/mypage/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file src/app/mypage/page.tsx`, `pnpm run typecheck:stable` 통과
+- 마이페이지 통계 4카드 중 회색 계열이던 마지막 카드는 노란 톤으로 교체해, 전체 카드 팔레트가 더 밝고 아기자기하게 읽히도록 정리
+- 수정 파일: `frontend/src/app/mypage/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file src/app/mypage/page.tsx`, `pnpm run typecheck:stable` 통과
+- 후속 정리로 마이페이지 통계 카드는 컬러 배경을 제거하고 투명 카드 + 컬러 보더만 남겼으며, 각 카드 아이콘 색도 보더 색과 동일하게 맞춰 톤을 더 단순하게 정리
+- 수정 파일: `frontend/src/app/mypage/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file src/app/mypage/page.tsx`, `pnpm run typecheck:stable` 통과
+- 마이페이지 상단 헤더는 사용자 피드백대로 `title + 강아지` 조합을 복구하고, 우측 map 강아지가 다시 보이도록 정리
+- 수정 파일: `frontend/src/app/mypage/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file src/app/mypage/page.tsx`, `pnpm run typecheck:stable` 통과
+
+### 2026-03-19
+- 마이페이지 통계 카드의 아이콘 wrapper 동그라미를 제거하고, 아이콘 자체만 카드 보더와 동일한 색으로 남도록 정리
+- 수정 파일: `frontend/src/app/mypage/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file src/app/mypage/page.tsx`, `pnpm run typecheck:stable` 통과
+- 마이페이지 헤더 map 강아지는 임의 `h/w` 클래스 대신 공용 `MASCOT_SIZE_CLASS.pageHero` 토큰으로 다시 연결해, breakpoint별 반응형 크기가 기존 전역 규칙을 그대로 따르도록 복구
+- 수정 파일: `frontend/src/app/mypage/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file src/app/mypage/page.tsx`, `pnpm run typecheck:stable` 통과
+- 후속 정정으로 마이페이지 헤더 강아지는 `pageHero(104/112/128/144px)`가 아니라 헤더 보조 마스코트용 `compactAside(64/72/80/96px)` 토큰을 쓰도록 다시 교체
+- 수정 파일: `frontend/src/app/mypage/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file src/app/mypage/page.tsx`, `pnpm run typecheck:stable` 통과
+- 마이페이지 통계 카드 row는 `아이콘 왼쪽 + 숫자 오른쪽` 구조로 재정렬하고, 숫자 크기는 `page title`보다 한 단계 작은 `--page-empty-title-size` 토큰으로 통일
+- `전체 일정` 카드는 보더/아이콘/숫자가 더 또렷하게 읽히도록 진한 blue tone으로 강조
+- 수정 파일: `frontend/src/app/mypage/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file src/app/mypage/page.tsx`, `pnpm run typecheck:stable` 통과
+- 후속 미세조정으로 `전체 일정` blue tone은 `#3C9DFF`에서 `#7CC7FF`로 낮춰, 다른 통계 카드 보더 강도와 더 비슷한 밀도로 맞춤
+- 수정 파일: `frontend/src/app/mypage/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file src/app/mypage/page.tsx`, `pnpm run typecheck:stable` 통과
+- 추가 톤 정리로 마이페이지 통계 카드는 보더의 부드러운 색은 유지하고, 아이콘/라벨/숫자만 그보다 한 단계 진한 같은 계열 색으로 올려 대비를 강화
+- 수정 파일: `frontend/src/app/mypage/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file src/app/mypage/page.tsx`, `pnpm run typecheck:stable` 통과
+- 후속 재조정으로 통계 카드 컬러는 너무 눌리거나 칙칙하지 않게, 보더보다 선명하지만 과하지 않은 중간 채도의 계열색으로 다시 정리
+- 수정 파일: `frontend/src/app/mypage/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file src/app/mypage/page.tsx`, `pnpm run typecheck:stable` 통과
+- 노란 통계 카드는 brown 기운이 돌지 않게, 보더를 제외한 아이콘/라벨/숫자 색을 더 분명한 yellow 계열로 다시 조정
+- 수정 파일: `frontend/src/app/mypage/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file src/app/mypage/page.tsx`, `pnpm run typecheck:stable` 통과
+- 마이페이지 통계 UI는 미세 색조정보다 구조를 다시 잡아, 4개 지표를 하나의 snapshot board 안 셀처럼 보이게 재구성하고 각 셀은 `accent hairline + 아이콘 + 숫자 + muted label` 위계로 정리
+- 바깥은 부드러운 radial/linear gradient 보드, 안쪽은 white tile로 분리해 퍼스널 대시보드 느낌은 살리되 숫자/라벨 자체는 과하게 컬러링하지 않도록 정돈
+- 수정 파일: `frontend/src/app/mypage/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file src/app/mypage/page.tsx`, `pnpm run typecheck:stable` 통과
+- 마이페이지 통계 라벨은 설명식 표현 대신 더 짧고 퍼스널한 카피로 교체해 `만든 여행 / 곧 떠날 여행 / 모아둔 리스트 / 찜한 장소`로 정리
+- 수정 파일: `frontend/src/constants/ui-copy.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- 후속 조정으로 통계 라벨 `찜한 장소`는 `담아둔 장소`로 교체하고, stat label 텍스트는 `font-semibold`를 제거해 숫자보다 덜 튀게 정리
+- 수정 파일: `frontend/src/constants/ui-copy.ts`, `frontend/src/app/mypage/page.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm run typecheck:stable` 통과
+- route stop 카드에서만 쓰는 NIGHT 표시용 세분화 helper를 추가해 `BAR / PUB / ROOFTOP / CLUB / NIGHT MARKET / VIEWPOINT` badge를 raw Google `typesRaw`와 장소명 기준으로 계산하고, generic `NIGHT` category는 `NIGHT` 스탑에서 subtype이 없으면 숨기도록 정리
+- 수정 파일: `frontend/src/lib/route-night-display.ts`, `frontend/src/components/routes/route-stop-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file src/components/routes/route-stop-card.tsx --file src/lib/route-night-display.ts` 통과, `pnpm run typecheck:stable`는 기존 `src/app/(test)/route-edit/page.tsx`의 누락 모듈 `./_components/route-edit-screen` 때문에 실패
+- `(test)/route-edit`는 기존 단일 파일 임시 화면을 걷고, 실제 일정 상세 페이지 구조를 따라가는 thin entry + 테스트 전용 `_components` 조합으로 다시 구성
+- 테스트 전용 `route-edit-detail-view / route-edit-place-picker-dialog / route-edit-screen / route-edit-fixtures`를 추가해, shared route 컴포넌트는 건드리지 않고 편집 모드 헤더/상태 패널/장소 추가/Google 링크 추가/날짜 이동/삭제 흐름을 모두 테스트 폴더 안으로 분리
+- 수정 파일: `frontend/src/app/(test)/route-edit/page.tsx`, `frontend/src/app/(test)/route-edit/_components/*`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file "src/app/(test)/route-edit/page.tsx" --file "src/app/(test)/route-edit/_components/route-edit-screen.tsx" --file "src/app/(test)/route-edit/_components/route-edit-detail-view.tsx" --file "src/app/(test)/route-edit/_components/route-edit-place-picker-dialog.tsx" --file "src/app/(test)/route-edit/_components/route-edit-fixtures.ts"`, `pnpm run typecheck:stable` 통과
+- 추천 완료 hero 카드 우하단 보더 밖으로 비치던 색 번짐은 `CelebrationMascot`의 공용 drop shadow가 카드 overflow 바깥까지 새던 현상이라, 축하 강아지 variant만 shadow를 제거해 정리
+- 수정 파일: `frontend/src/components/layout/celebration-mascot.tsx`, `PROCESS.md`
+- 후속 재조사로 추천 완료 hero의 이상한 가장자리 색은 접기 애니메이션용 `grid rows + opacity/transform/scale` wrapper가 카드 전체를 별도 합성 레이어로 만들면서 생긴 렌더링 artifact 가능성이 높아, 모바일 hero 접기는 조건부 렌더링 기반의 단순 show/hide로 되돌림
+- 축하 강아지 shadow 제거 시도는 원인과 무관해 원복했고, 모바일 hero wrapper 중첩도 함께 정리
+- 수정 파일: `frontend/src/app/routes/recommendation/page.tsx`, `frontend/src/components/layout/celebration-mascot.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file src/app/routes/recommendation/page.tsx`, `pnpm exec next lint --file src/components/layout/celebration-mascot.tsx`, `pnpm run typecheck:stable` 통과
+- 사용자 피드백 반영으로 추천 완료 hero의 모바일 접기 애니메이션은 복구하되, 카드 전체 `transform/scale` wrapper는 다시 쓰지 않고 `grid rows + opacity`만 남긴 단순 구조로 조정
+- 수정 파일: `frontend/src/app/routes/recommendation/page.tsx`, `PROCESS.md`
+- 후속 가설 검증으로 모바일 hero 접기 wrapper에도 카드와 같은 `rounded-xl / md:rounded-2xl` clipping을 적용해, 애니메이션 중 우하단 artifact가 wrapper의 사각 clip 경계에서 새는지 확인할 수 있게 정리
+- 수정 파일: `frontend/src/app/routes/recommendation/page.tsx`, `PROCESS.md`
+- 사용자 피드백 반영으로 추천 완료 hero 접기 애니메이션의 `위로 슈루룩` 감을 복구하기 위해, wrapper는 `grid rows` clip만 담당하고 카드 본체는 `translateY + opacity`만 적용하도록 다시 분리
+- `scale`은 계속 제외해 artifact 후보는 줄이면서도 기존 접힘 방향감은 유지
+- 수정 파일: `frontend/src/app/routes/recommendation/page.tsx`, `PROCESS.md`
+- 사용자 피드백대로 추천 완료 hero 모바일 접기 이펙트는 중간 조정들을 걷고, 처음 좋다고 본 원래 `grid rows + opacity/translate/scale` 조합으로 그대로 복구
+- 수정 파일: `frontend/src/app/routes/recommendation/page.tsx`, `PROCESS.md`
+- 사용자 요청으로 추천 완료 hero 모바일 접기 wrapper에는 카드와 같은 `rounded-xl / md:rounded-2xl` clip을 다시 적용
+- 수정 파일: `frontend/src/app/routes/recommendation/page.tsx`, `PROCESS.md`
+- 테스트용 마이페이지 실험 라우트 `(test)/my`는 더 이상 쓰지 않아 entry와 `MyPageLab` 컴포넌트를 함께 제거
+- 수정 파일: `frontend/src/app/(test)/my/page.tsx`, `frontend/src/app/(test)/my/_components/my-page-lab.tsx`, `PROCESS.md`
+- 일정/장소 분류에서 이름 기반 힌트를 제거하고 `types/category` 중심으로만 판별하도록 백엔드 분류 로직을 정리
+- `teamLab Forest Fukuoka` 같은 전시/랜드마크가 이름의 `tea` 때문에 카페·디저트로 오분류되던 문제를 막고, 기존 `DESSERT` 저장 스탑도 조회 시 `VISIT`으로 보정되도록 확인
+- 수정 파일: `backend/src/lib/scheduleEngine.js`, `backend/src/lib/googlePlaces.js`, `PROCESS.md`
+- 확인: `backend`에서 `npm run check` 통과, 로컬 검증 스크립트에서 `teamLab Forest Fukuoka`의 trait가 `isCafe/isSnack=false`이고 stop label이 `VISIT`으로 보정되는 것 확인
+- 장소 의미 분류를 공용 helper(`place-semantics`)로 분리하고, `googlePlaces` 저장 분류와 `scheduleEngine` 일정 trait 계산이 같은 구조적 신호를 공유하도록 정리
+- 새 `categories` 배열을 도입해 최대 2개만 유지하고, 첫 번째 값을 대표 의미로 쓰는 기준을 적용함. 기존 `category`는 호환용 단일 값으로 유지
+- `캐널시티 하카타 -> [SHOP, LANDMARK]`, `teamLab Forest Fukuoka -> [LANDMARK, ACTIVITY]`, `쿠시야키 마츠스케 -> [NIGHT, MEAL]`로 검증
+- 수정 파일: `backend/src/lib/place-semantics.js`, `backend/src/lib/googlePlaces.js`, `backend/src/lib/scheduleEngine.js`, `backend/src/resolvers.js`, `backend/src/schema.js`, `frontend/src/lib/graphql/documents.ts`, `frontend/src/types/domain.ts`, `frontend/src/app/(test)/route-edit/_components/route-edit-fixtures.ts`, `PROCESS.md`
+- 확인: `backend`에서 `npm run check` 통과, `frontend`에서 `pnpm run typecheck:stable` 통과
+- `categories` 배열은 명확한 장소는 단일 값만 남기고, 실제 혼합 의미가 큰 경우만 2개를 유지하도록 축소
+- 검증: `teamLab Forest Fukuoka -> [LANDMARK]`, `캐널시티 하카타 -> [SHOP]`, `쿠시야키 마츠스케 -> [NIGHT, MEAL]`
+- 저장 리스트에 포함된 장소 123개를 현행 분류 로직으로 재계산해 `places.category`를 일괄 반영했고, 실제 변경은 4건(`홍씨앙꽁`, `담넌싸두억 수상시장`, `스시사카바 사시스 텐진점`, `캐널시티 하카타`)
+- 수정 파일: `backend/src/lib/place-semantics.js`, `PROCESS.md`
+- 확인: `backend`에서 `npm run check` 통과, DB 샘플 조회에서 `캐널시티 하카타`의 저장 category가 `SHOP`으로 반영된 것 확인
+- `market + tourist_attraction` 조합은 `shopping_mall`류와 분리해 관광형 시장으로 보고 `LANDMARK`를 우선하도록 규칙 보정
+- 저장 리스트 장소 재반영 결과 `담넌싸두억 수상시장`은 `SHOP -> LANDMARK`로 되돌렸고, `캐널시티 하카타`는 `SHOP` 유지
+- 수정 파일: `backend/src/lib/place-semantics.js`, `PROCESS.md`
+- 확인: `backend`에서 `npm run check` 통과, DB 재조회에서 `담넌싸두억 수상시장`의 저장 category가 `LANDMARK`로 반영된 것 확인
+- `(test)/route-edit` 장소 추가 모달은 설명을 `선택하면 마지막 순서로 들어가요`로 줄이고, 상단 요약 카드 2개·검색 input 하단 안내문·장소 카드의 `DAY` 배지를 제거해 화면 밀도를 낮춤
+- Google 장소 추가 다이얼로그는 설명을 `장소를 추가하면 일정과 리스트에 모두 추가돼요`로 교체하고, input 하단 기본 안내문은 제거해 에러가 있을 때만 힌트가 보이도록 정리
+- 장소 선택 카드는 funnel의 숙소 선택 카드 구조를 참고해 사진/배지/이름/주소/메모 위계로 다시 배치하고, 선택 체크 대신 `추가` pill과 hover 반응을 넣었으며 `MUST VISIT`·카테고리 배지는 장소명 위로 이동
+- taxonomy 전환 이후 남아 있던 `(test)/route-edit` fixture의 구형 `place.category` 주입도 걷어 `categories` 기준 타입과 다시 맞춤
+- 수정 파일: `frontend/src/app/(test)/route-edit/_components/route-edit-place-picker-dialog.tsx`, `frontend/src/app/(test)/route-edit/_components/route-edit-screen.tsx`, `frontend/src/app/(test)/route-edit/_components/route-edit-fixtures.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file "src/app/(test)/route-edit/_components/route-edit-place-picker-dialog.tsx" --file "src/app/(test)/route-edit/_components/route-edit-screen.tsx" --file "src/app/(test)/route-edit/_components/route-edit-fixtures.ts"`, `pnpm run typecheck:stable` 통과
+- 공용 `RouteStopCard`의 `md+` 첫 줄은 `스탑 라벨 -> MUST VISIT -> 장소 카테고리` 배지 전용 줄로 재구성하고, 시간 UI는 데스크탑에서도 완전히 제거
+- `영업 중` 상태는 기존 카테고리/메타 줄 위치로 옮기고 모바일·데스크탑 모두 살짝 안쪽으로 들어가 보이도록 left margin을 추가했으며, 데스크탑 하단의 `MUST VISIT` 중복 배지는 함께 제거
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file "src/components/routes/route-stop-card.tsx"`, `pnpm run typecheck:stable` 통과
+- 후속 정리로 모바일 `RouteStopCard`에서는 `영업 중` 상태를 장소명 바로 아래 단독 줄에서 빼고, 주소 메타 줄로 합쳐 desktop과 같은 정보 위계를 따르도록 정리
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file "src/components/routes/route-stop-card.tsx"`, `pnpm run typecheck:stable` 통과
+- 기존 `MUST VISIT` 텍스트 배지는 유지한 채, 같은 핑크 톤 배경과 흰 별 아이콘을 쓰는 원형 `MustVisitIconBadge` 공용 컴포넌트를 별도로 추가해 이후 카드 실험에서 바로 교체해 볼 수 있게 준비
+- 수정 파일: `frontend/src/components/common/must-visit-icon-badge.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file "src/components/common/must-visit-icon-badge.tsx"`, `pnpm run typecheck:stable` 통과
+- 후속 적용으로 route stop 카드, 장소 선택 카드, 저장 리스트 카드의 `MUST VISIT` 텍스트 배지는 모두 `MustVisitIconBadge`로 교체했고, 각 위치는 기존에 쓰던 badge variant를 그대로 유지하도록 `size="card"` 또는 `size={savedCardBadgeSize}`를 넘기도록 정리
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `frontend/src/components/routes/new-route-client.tsx`, `frontend/src/components/routes/route-place-picker-dialog.tsx`, `frontend/src/app/(test)/route-edit/_components/route-edit-place-picker-dialog.tsx`, `frontend/src/components/saved/saved-list-place-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file "src/components/common/must-visit-icon-badge.tsx" --file "src/components/routes/route-stop-card.tsx" --file "src/components/routes/new-route-client.tsx" --file "src/components/routes/route-place-picker-dialog.tsx" --file "src/app/(test)/route-edit/_components/route-edit-place-picker-dialog.tsx" --file "src/components/saved/saved-list-place-card.tsx"`, `pnpm run typecheck:stable` 통과
+- 후속 미세조정으로 `Must Visit` 아이콘이 카테고리와 같은 줄에 있을 때는 전부 `카테고리 -> Must Visit` 순서가 되도록 route stop 카드, 실제/테스트 장소 추가 카드, 저장 리스트 카드 메타 줄을 정리
+- 저장 리스트 모바일 기본 카드처럼 `Must Visit`가 이미지 오버레이에 따로 있는 경우는 그대로 두고, 가운데에 끼어 어색하던 줄 배치만 조정
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `frontend/src/components/routes/route-place-picker-dialog.tsx`, `frontend/src/app/(test)/route-edit/_components/route-edit-place-picker-dialog.tsx`, `frontend/src/components/saved/saved-list-place-card.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file "src/components/routes/route-stop-card.tsx" --file "src/components/routes/route-place-picker-dialog.tsx" --file "src/app/(test)/route-edit/_components/route-edit-place-picker-dialog.tsx" --file "src/components/saved/saved-list-place-card.tsx"`, `pnpm run typecheck:stable` 통과
+- hybrid 식사/야간 장소는 영업시간 신호까지 포함해 대표 카테고리 순서를 정하도록 `categories` 계산 경로를 보정
+- 저장 리스트 재반영에서도 같은 기준을 쓰도록 맞춰 `스시사카바 사시스 텐진점`은 `NIGHT` 저장 category와 `[NIGHT, MEAL]` 조합으로 정리
+- 수정 파일: `backend/src/resolvers.js`, `PROCESS.md`
+- 확인: `backend`에서 `npm run check` 통과, DB 재조회에서 `스시사카바 사시스 텐진점`의 저장 category가 `NIGHT`로 반영된 것 확인
+- 파일이 남아 있지 않던 빈 테스트 라우트 디렉터리 `(test)/my`, `(test)/toast`만 안전 범위로 정리
+- 수정 파일: `PROCESS.md`
+- `(test)/route-edit` 헤더 액션은 모바일에서 아이콘만 보이도록 정리하고 `편집 완료` 라벨을 `저장`으로 교체해 실제 상세 화면과 버튼 톤을 맞춤
+- 테스트 편집 화면 상단의 안내 카드/편집 배지를 제거하고, 장소 추가 버튼만 남겨 실제 출시 화면에 가까운 밀도로 정리
+- 장소 추가/Google 링크 추가/날짜 이동 모달에서는 강아지 마스코트를 제거하고, 날짜 이동 카피를 더 간결한 문구로 다듬음
+- 수정 파일: `frontend/src/app/(test)/route-edit/_components/route-edit-detail-view.tsx`, `frontend/src/app/(test)/route-edit/_components/route-edit-screen.tsx`, `frontend/src/app/(test)/route-edit/_components/route-edit-place-picker-dialog.tsx`, `frontend/src/components/routes/route-detail-view.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file "src/app/(test)/route-edit/page.tsx" --file "src/app/(test)/route-edit/_components/route-edit-screen.tsx" --file "src/app/(test)/route-edit/_components/route-edit-detail-view.tsx" --file "src/app/(test)/route-edit/_components/route-edit-place-picker-dialog.tsx" --file "src/components/routes/route-detail-view.tsx"`, `pnpm run typecheck:stable` 통과
+- `(test)/route-edit` 날짜 이동 모달 설명은 `선택한 날짜 마지막에 추가돼요`로 바꾸고, 상단 `날짜 이동` 안내 카드 블록을 제거해 날짜 선택 목록만 남김
+- 수정 파일: `frontend/src/app/(test)/route-edit/_components/route-edit-screen.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file "src/app/(test)/route-edit/_components/route-edit-screen.tsx"` 통과
+- `(test)/route-edit`에서 편집 중 장소 삭제는 즉시 성공 토스트 대신 `복원` 가능한 하단 토스트로 바꾸고, `저장` 또는 `취소` 시 해당 복구 토스트가 함께 사라지도록 정리
+- Google 장소 추가 성공 토스트는 `Google 장소를 일정과 리스트에 담았어요`로 축약
+- 수정 파일: `frontend/src/app/(test)/route-edit/_components/route-edit-screen.tsx`, `frontend/src/app/(test)/route-edit/_components/route-edit-fixtures.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file "src/app/(test)/route-edit/_components/route-edit-screen.tsx" --file "src/app/(test)/route-edit/_components/route-edit-fixtures.ts"`, `pnpm run typecheck:stable` 통과
+- `(test)/route-edit` 편집 모드에서는 카드 내부의 `메모 추가/수정/삭제`, `Google Maps`, `장소 정보` 액션을 숨기고 편집 전용 이동/삭제 조작만 남기도록 정리
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `frontend/src/app/(test)/route-edit/_components/route-edit-detail-view.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file "src/components/routes/route-stop-card.tsx" --file "src/app/(test)/route-edit/_components/route-edit-detail-view.tsx"`, `pnpm run typecheck:stable` 통과
+- `(test)/route-edit` 상단 `장소 추가` 버튼은 모바일에서도 full width를 쓰지 않고, 오른쪽 정렬 상태에서 라벨 길이만큼만 차지하도록 폭 제약을 제거
+- 수정 파일: `frontend/src/app/(test)/route-edit/_components/route-edit-detail-view.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file "src/app/(test)/route-edit/_components/route-edit-detail-view.tsx"` 통과
+- 편집 모드에서는 스탑 사이의 대중교통/도보/지하철 이동 안내와 거리 배지를 숨기도록 `RouteStopList`에 toggle을 추가하고, 테스트 편집 뷰와 공용 상세 뷰의 edit mode에서 이를 비활성화
+- 수정 파일: `frontend/src/components/routes/route-stop-list.tsx`, `frontend/src/app/(test)/route-edit/_components/route-edit-detail-view.tsx`, `frontend/src/components/routes/route-detail-view.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file "src/components/routes/route-stop-list.tsx" --file "src/app/(test)/route-edit/_components/route-edit-detail-view.tsx" --file "src/components/routes/route-detail-view.tsx"`, `pnpm run typecheck:stable` 통과
+- 편집으로 구조가 바뀐 day는 저장 시 스탑 `label/time/visitTip/transportToNext`를 비워, 추천 메타는 제거하고 이동 정보는 현재 순서 기준 fallback 계산으로 다시 보이도록 정리
+- 공용 상세 화면의 수동 편집 안내 문구도 `이동 정보는 숨김`이 아니라 `현재 순서 기준으로 다시 계산`된다는 설명으로 교체
+- 수정 파일: `frontend/src/app/(test)/route-edit/_components/route-edit-fixtures.ts`, `frontend/src/components/routes/route-detail-view.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file "src/app/(test)/route-edit/_components/route-edit-fixtures.ts" --file "src/components/routes/route-detail-view.tsx"`, `pnpm run typecheck:stable` 통과
+- `(test)/route-edit` 스탑 삭제는 확인 모달을 거치지 않고 즉시 draft에서 숨긴 뒤, 하단 `복원` 토스트를 바로 띄우는 흐름으로 정리
+- 수정 파일: `frontend/src/app/(test)/route-edit/_components/route-edit-screen.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file "src/app/(test)/route-edit/_components/route-edit-screen.tsx"`, `pnpm run typecheck:stable` 통과
+- 공용 `DialogShell`에 viewport 기준 `max-height`와 내부 scroll 구조를 추가해, 장소 추가처럼 내용이 긴 모달도 노트북 100% 배율과 모바일에서 화면 밖으로 넘치지 않도록 정리
+- Playwright로 `/route-edit`의 장소 추가 모달을 모바일 뷰포트에서 재확인했고, 모달 높이가 `844px` viewport 내 `812px`로 제한되는 것 확인
+- 수정 파일: `frontend/src/components/common/dialog-shell.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file "src/components/common/dialog-shell.tsx"`, `pnpm run typecheck:stable` 통과
+- Google Places `Table A` 기반 장소 taxonomy 문서 초안을 루트 `place-type-taxonomy.json`으로 추가하고, `311개` 타입의 primary 분류와 broad primary type 정책을 JSON에 고정
+- 전망대/야경 spot은 별도 `VIEW` 저장 카테고리를 두지 않고 `LANDMARK`로 묶는 방향으로 결정했고, `NIGHT`는 장소 카테고리가 아니라 stop label only로 유지하기로 정리
+- 수정 파일: `place-type-taxonomy.json`, `PROCESS.md`
+- 후속 작업: 백엔드/프런트 리팩터링에서 `category` 제거, `categories` 전환, runtime facet 분리를 이 taxonomy 문서를 기준으로 진행 예정
+- 장소 저장 분류를 `categories` 단일 체계로 전환하고, `Place`/`PlaceUpsertInput`/도메인 타입/프런트 badge 소비부에서 `category` 필드를 제거
+- Google Places 저장 payload는 `types_raw + primary_type + primary_type_display_name + categories`만 쓰도록 정리했고, 분류 계산은 루트 `place-type-taxonomy.json` 기반 `place-semantics` helper로 전면 교체
+- 일정 엔진과 AI planner는 저장 카테고리가 아니라 runtime signal을 다시 계산하도록 맞추고, `NIGHT_VIEW` 같은 NIGHT 세부 stop alias/helper는 제거해 `NIGHT`를 canonical stop label 하나만 쓰도록 정리
+- fresh DB 기준에 맞춰 legacy backfill SQL(`006`~`010`)은 제거하고, init SQL만 `places.categories text[]` 구조를 기준으로 유지
+- 수정 파일: `backend/src/lib/place-semantics.js`, `backend/src/lib/googlePlaces.js`, `backend/src/lib/scheduleEngine.js`, `backend/src/lib/geminiOptimizer.js`, `backend/src/lib/scheduleStopSanitizer.js`, `backend/src/resolvers.js`, `backend/src/schema.js`, `backend/supabase/sql/001_init_requirements.sql`, `frontend/src/app/routes/import/page.tsx`, `frontend/src/components/places/place-detail-content.tsx`, `frontend/src/components/routes/new-route-client.tsx`, `frontend/src/components/routes/route-place-picker-dialog.tsx`, `frontend/src/components/routes/route-stop-card.tsx`, `frontend/src/components/saved/saved-list-place-card.tsx`, `frontend/src/constants/route-taxonomy.ts`, `frontend/src/lib/badge-theme.ts`, `frontend/src/lib/graphql/documents.ts`, `frontend/src/types/domain.ts`, `shared/route-taxonomy.json`, `place-type-taxonomy.json`, `PROCESS.md`
+- 확인: `backend`에서 `npm run check`, `frontend`에서 `pnpm run typecheck:stable` 통과
+- Supabase `MyRoute` 프로젝트의 `public` 앱 테이블만 fresh schema로 초기화해 기존 가입 계정(`auth.users`)은 유지하고, places/place_lists/schedules 관련 데이터는 0건 상태로 리셋
+- 일정 생성 구조를 인수인계 가능한 수준으로 설명하는 루트 문서 `ai-route-final.md`를 추가하고, AI 입력 JSON, signal 3층 구조, 라벨별 가중치, 현재 한계와 권장 개선 방향, 역할별 가상 리뷰까지 정리
+- 후속 요청 반영으로 `ai-route-final.md`에 `reason`/`visitTip` 생성 시점을 deterministic 경로, AI 경로, sanitizer correction, persistence 전 보정 단계까지 나눠 추가하고 현재 한계와 개선안도 함께 정리
+- 후속 논의 반영으로 `ai-route-final.md`에 `visitTip` fact-context 기반 생성안, `reason_facts` 구조, backend/AI/user 결정권 분리 표, `v1/v2` 정의, 동선 최적화 개선 방법과 우선순위까지 추가
+- 후속 보강으로 `ai-route-final.md`에 boolean 위주 signal 모델의 한계와 `boolean + enum + score` 혼합 권장안, 그리고 `ACTIVITY 1/day`의 현재 의미와 v2 heavy/light 또는 duration 기반 개선안까지 추가
+- 수정 파일: `ai-route-final.md`, `PROCESS.md`
+- `ai-route-final.md`를 전반적으로 다시 점검해 중복되던 장점/한계/결론 섹션 구조를 정리하고, orchestration 평가 제목과 pace/quota 관련 소제목을 더 일관된 계층으로 정돈
+- 가상 리더십 리뷰는 문서 보강 후 기준으로 다시 평가해 역할별 달성도와 종합 성숙도를 재산정했고, 리더십 관점의 추가 질문 표와 `P0/P1/P2`형 최종 권고 로드맵도 반영
+- 수정 파일: `ai-route-final.md`, `PROCESS.md`
+- 후속 논의 반영으로 `ai-route-final.md`의 차기 설계안 섹션에 `AI-only / 현재 v1 hybrid / 권장 v2 hybrid / backend-only` 비교표와 예상 토큰 사용량, 운영 원칙, CTO 관점 결론을 추가
+- 수정 파일: `ai-route-final.md`, `PROCESS.md`
+- 일정 생성 메인 경로를 `AI-first`에서 `deterministic planner + sanitizer`로 전환하고, resolver는 이제 `buildSchedulePlan()`을 직접 호출하도록 정리
+- `scheduleEngine`에 pace별 `day budget`, day seed 기반 cluster penalty, slot별 opening-hours hard gate, `affinity/load/duration` 신호를 추가해 `VISIT quota` 중심 배치에서 budget 중심 배치로 이동
+- 문서 `ai-route-final.md`는 현재 active runtime 기준으로 다시 맞춰, 생성 흐름/`reason`·`visitTip` 생성 시점/리더십 리뷰/구현 체크리스트를 deterministic-first 구조로 갱신
+- 확인: `backend`에서 `npm run check` 통과, synthetic planner smoke test로 점심/방문/저녁 배치와 opening-hours gate 동작 확인
+- 수정 파일: `backend/src/lib/scheduleEngine.js`, `backend/src/resolvers.js`, `ai-route-final.md`, `PROCESS.md`
+- `scheduleEngine`에 day bucket cluster-first 단계와 seed-to-day assignment를 추가해, 먼저 날짜별 후보를 묶은 뒤 그 안에서 `LUNCH/VISIT/DINNER/NIGHT`를 채우도록 구조를 한 단계 더 전진
+- bucket assignment 단계에서도 날짜별 opening-hours feasibility와 meal deficit을 같이 보도록 넣어, 서로 다른 날짜 영업시간 장소가 같은 day에 섞이는 문제를 줄임
+- 내부 검증용으로 `scheduleEngine.__internals`에 cluster/day budget helper를 노출했고, 2일 synthetic smoke test에서 day별 장소 묶임과 식사 분배가 자연스럽게 되는 것 확인
+- 문서 `ai-route-final.md`의 생성 흐름에도 `day bucket cluster` 단계를 반영
+- 확인: `backend`에서 `npm run check` 재통과
+- 수정 파일: `backend/src/lib/scheduleEngine.js`, `ai-route-final.md`, `PROCESS.md`
+- 후속 논의 반영으로 `ai-route-final.md`의 Funnel/개인화 섹션과 `P2` 항목에 리스트 구성 비율 기반 `implicit preference`를 고도화용 soft preference 레이어로 추가
+- 수정 파일: `ai-route-final.md`, `PROCESS.md`
+- `place-semantics`의 coarse `NIGHT` block을 걷어내고 `scheduleEngine`의 future night demand 패널티/뷰스팟 가점을 이용해, 전망대·야경 spot이 밤 슬롯이 있을 때 낮 `VISIT`보다 `NIGHT`로 보존되도록 보정
+- `backend/scripts/verify-schedule-fixtures.js`에 `teamLab != DESSERT`, `izakaya -> DINNER|NIGHT`, `observation deck -> NIGHT`, `day cluster 분리` 회귀 fixture를 추가하고 `backend`의 `npm run check`에 포함
+- 확인: `backend`에서 `npm run check` 통과 (`schedule fixtures: ok`)
+- 수정 파일: `backend/src/lib/place-semantics.js`, `backend/src/lib/scheduleEngine.js`, `backend/scripts/verify-schedule-fixtures.js`, `backend/package.json`, `PROCESS.md`
+- `ai-route-final.md`의 `우선순위 로드맵` 표에 2026-03-19 기준 실제 구현 상태(`완료/진행중/미완료`)와 현재 구현 메모를 추가해, 문서상 계획과 코드 상태가 바로 대응되도록 정리
+- 수정 파일: `ai-route-final.md`, `PROCESS.md`
+- `backend/scripts/verify-schedule-fixtures.js`에 synthetic smoke/regression 범위를 확장해 `sparse data`, `foodie but no dessert candidate`, `must-visit coverage` 케이스를 추가
+- 확인: `backend`에서 `npm run check` 재통과 (`schedule fixtures: ok`)
+- 수정 파일: `backend/scripts/verify-schedule-fixtures.js`, `PROCESS.md`
+- 실제 Google Maps 공유 리스트 URL로 `스크래핑 -> Places 해상도 -> city filter -> 숙소 감지 -> 일정 생성 요약`을 재현할 수 있는 `backend/scripts/analyze-place-list-url.js`를 추가
+- 분석 스크립트의 city filter는 resolver와 맞춰 `CITY_ALIAS_GROUPS`, Bangkok alias/bounds, city fallback 규칙을 반영했고, 도쿄/가오슝/달랏/방콕/후쿠오카 실제 리스트로 smoke run 완료
+- 확인: `backend`에서 `node --check scripts/analyze-place-list-url.js` 통과
+- 수정 파일: `backend/scripts/analyze-place-list-url.js`, `PROCESS.md`
+- planner 전처리에 `addressComponents` 기반 `dominant country` outlier pruning을 추가해, 같은 나라 내부 이동은 유지하고 cross-country 이상치만 일정 후보에서 제외하도록 정리
+- Google Places detail 저장 payload와 `public.places` 스키마에 `address_components`를 추가하고, Supabase `MyRoute` 프로젝트에도 동일 컬럼을 실제 적용
+- 분석 스크립트는 기존 city filter 대신 같은 outlier preprocessor를 사용하도록 바꾸고, synthetic fixture에 `방콕 + 한국 outlier 제거`, `오사카 + 교토 유지` 케이스를 추가
+- 문서 `ai-route-final.md`에는 current v1 outlier pruning 흐름과 same-country secondary cluster/day trip, user override를 포함한 고도화 계획을 반영
+- 확인: `backend`에서 `npm run check` 통과, `node scripts/analyze-place-list-url.js --url https://maps.app.goo.gl/bgmapW5KjJmfBES27 --city 방콕 --days 4 --pace MODERATE` 실행 시 outlier 0건으로 정상 통과
+- 수정 파일: `backend/src/lib/placeListPreprocessor.js`, `backend/src/lib/googlePlaces.js`, `backend/src/resolvers.js`, `backend/scripts/analyze-place-list-url.js`, `backend/scripts/verify-schedule-fixtures.js`, `backend/package.json`, `backend/supabase/sql/001_init_requirements.sql`, `backend/supabase/sql/006_add_place_address_components.sql`, `ai-route-final.md`, `PROCESS.md`
+- 도쿄 리스트 import 실패 원인을 확인한 결과, 서로 다른 스크랩 항목 2개가 같은 Google Place ID로 해상도되어 `place_list_items` bulk upsert가 충돌하던 문제였고, import 경로에서 동일 `place_id`를 미리 dedupe 하도록 수정
+- dedupe 시 첫 등장 순서는 유지하고, 뒤에서 들어온 note만 비어 있을 때 보강하도록 정리
+- 확인: `backend`에서 `npm run check` 재통과, 도쿄 리스트 공유 URL 분석에서 `이마카츠 긴자점`/`이마카츠 돈까스`가 같은 Place ID로 해상도되는 중복 케이스 확인
+- 수정 파일: `backend/src/resolvers.js`, `PROCESS.md`
+- Google Places detail에 `businessStatus`를 추가로 받아 `public.places.business_status`에 저장하고, `CLOSED_PERMANENTLY`/`FUTURE_OPENING`은 import 단계에서 기본 제외하도록 정리
+- schedulable candidate 필터는 `CLOSED_TEMPORARILY`/`CLOSED_PERMANENTLY`/`FUTURE_OPENING` 장소를 제외하도록 공용화했고, 분석 스크립트도 같은 경로를 따르도록 맞춤
+- Supabase `MyRoute` 프로젝트에 `business_status` 컬럼을 실제 추가했고, fixture에 폐업/임시휴업 장소가 일정 후보에서 빠지는 검증을 추가
+- 문서 `ai-route-final.md`에는 current v1 outlier pruning 설명에 `businessStatus` 기반 차단 규칙을 반영
+- 확인: `backend`에서 `npm run check` 통과, `public.places`에 `address_components jsonb`, `business_status text` 컬럼 존재 확인
+- 수정 파일: `backend/src/lib/googlePlaces.js`, `backend/src/lib/scheduleEngine.js`, `backend/src/resolvers.js`, `backend/scripts/analyze-place-list-url.js`, `backend/scripts/verify-schedule-fixtures.js`, `backend/supabase/sql/001_init_requirements.sql`, `backend/supabase/sql/007_add_place_business_status.sql`, `ai-route-final.md`, `PROCESS.md`
+- DB reset 전제에 맞춰 `backend/supabase/sql`은 `001_init_requirements.sql` 하나만 현재 스키마 진실 소스로 남기고, `002`~`007` 증분 마이그레이션 파일은 전부 제거
+- `001_init_requirements.sql`의 `schedules.generation_version` 기본값도 현재 runtime인 `mvp_v3_deterministic_budget`로 맞춰 legacy 기본값을 제거
+- 확인: `backend`에서 `npm run check` 재통과
+- 수정 파일: `backend/supabase/sql/001_init_requirements.sql`, `backend/supabase/sql/002_add_schedule_tip_language.sql`, `backend/supabase/sql/003_add_place_list_item_sort_order.sql`, `backend/supabase/sql/004_add_stay_item_label_and_schedule_recommendation.sql`, `backend/supabase/sql/005_rename_must_visit_and_replace_stop_badges.sql`, `backend/supabase/sql/006_add_place_address_components.sql`, `backend/supabase/sql/007_add_place_business_status.sql`, `PROCESS.md`
+- route stop 카드에서 stop label과 대표 장소 category가 같은 경우(`DESSERT`/`DESSERT` 등) category badge를 숨겨 중복 뱃지가 한 번만 보이도록 정리
+- 확인: `frontend`에서 `pnpm exec next lint --file "src/components/routes/route-stop-card.tsx"`, `pnpm run typecheck:stable` 통과
+- 수정 파일: `frontend/src/components/routes/route-stop-card.tsx`, `PROCESS.md`
+- 도쿄 실제 리스트의 빈 day를 추적한 결과, same-country 원거리 singleton(`하카타`, `산노미야`, `아사히야마`) 오분해상도 장소가 Tokyo dominant cluster를 오염시켜 meal bucket이 비는 것이 원인이었고, 전처리에 `same_country_far_singleton` pruning을 추가
+- `placeListPreprocessor`는 `addressComponents + lat/lng`로 dominant country centroid를 계산해 cross-country outlier뿐 아니라 원거리 singleton same-country outlier도 제외하고, fixture에 `도쿄 + 하카타/산노미야 제거` 케이스를 추가
+- 도쿄 route `23d62e19-f54d-4bb7-b658-21b81edef912`는 새 planner로 직접 `regenerateSchedule` 실행해 재생성했고, 빈 2일차 없이 4일 모두 stop이 저장되도록 복구
+- 문서 `ai-route-final.md`의 outlier pruning 설명과 우선순위 로드맵도 current runtime에 맞게 same-country far singleton pruning 기준으로 갱신
+- 확인: `backend`에서 `npm run check` 통과, `node scripts/analyze-place-list-url.js --url https://maps.app.goo.gl/VU6UY4VWrpfCPopa6 --city 도쿄 --days 4 --pace MODERATE --themes FOODIE,SHOPPING` 재실행 시 `excludedOutlierCount=3`, 4일 모두 일정 생성 확인
+- 수정 파일: `backend/src/lib/placeListPreprocessor.js`, `backend/scripts/verify-schedule-fixtures.js`, `ai-route-final.md`, `PROCESS.md`
+- 실제 `/routes/[id]`에 로컬 draft 기반 일정 편집을 연결해 같은 URL에서 `편집 -> 장소 추가/이동/삭제 -> 저장/취소` 흐름이 동작하도록 정리했고, 삭제는 복원 토스트 stack으로만 되돌리도록 구현
+- 실제 일정 상세 쿼리는 이제 `placeList.items`까지 함께 내려주고, Google 링크로 추가한 장소는 즉시 저장 리스트에 넣은 뒤 draft 일정에도 붙도록 연결
+- 백엔드에는 `saveScheduleEdits` batch mutation을 추가해 전체 snapshot으로 `schedule_stops`를 재구성하고, 저장 시 `time/label/reason/visit_tip`은 `null`, `transport_to_next`는 현재 순서 기준으로 재계산하도록 맞춤
+- note 저장은 더 이상 `schedules.is_manual_modified`를 켜지 않게 바꿔, 메모 수정만으로 생성 메타가 숨겨지지 않도록 정리
+- 수정 파일: `backend/src/resolvers.js`, `backend/src/schema.js`, `frontend/src/app/routes/[id]/page.tsx`, `frontend/src/lib/graphql/api.ts`, `frontend/src/lib/graphql/documents.ts`, `frontend/src/lib/route-edit-session.ts`, `PROCESS.md`
+- 확인: `backend`에서 `npm run check`, `frontend`에서 `pnpm exec next lint --file "src/app/routes/[id]/page.tsx" --file src/lib/route-edit-session.ts --file src/lib/graphql/api.ts --file src/lib/graphql/documents.ts`, `pnpm run typecheck:stable` 통과
+- 일정 상세 헤더의 삭제 버튼과 저장 리스트 상세 헤더의 편집/삭제/취소/저장 버튼에서 pill radius를 제거해, 일정 상세 편집 버튼과 같은 사각형 계열 버튼 톤으로 통일
+- 일정 상세의 `수동 편집 후 ...` 안내문은 편집 모드에서만 보이도록 바꿔, 저장 후 일반 보기에서는 다시 노출되지 않게 정리
+- 실제 일정의 `n일차 장소 추가` 모달은 검색창은 고정하고 장소 카드 목록만 내부 스크롤되도록 `RoutePlacePickerDialog` 구조를 바꿔, 헤더/푸터가 길게 밀리거나 흔들려 보이던 문제를 줄임
+- 수정 파일: `frontend/src/components/routes/route-detail-view.tsx`, `frontend/src/app/saved/[listId]/page.tsx`, `frontend/src/components/routes/route-place-picker-dialog.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file src/components/routes/route-detail-view.tsx --file "src/app/saved/[listId]/page.tsx" --file src/components/routes/route-place-picker-dialog.tsx`, `pnpm run typecheck:stable` 통과
+- 실제 일정 상세의 편집 모드 카드에서는 `Google Maps`, `장소 정보`, 메모 액션 버튼도 숨기도록 공용 `RouteStopCard` prop을 다시 연결
+- 수정 파일: `frontend/src/components/routes/route-detail-view.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file src/components/routes/route-detail-view.tsx` 통과
+- 실제 일정의 장소 추가 모달에서 리스트 장소 카드는 `추가` 버튼을 우측 고정 3열에서 빼고, 배지 줄과 같은 상단 row로 재배치해 이름/주소/메모가 더 넓게 보이도록 정리
+- 원인 판단도 이에 맞춰 업데이트: 모바일에서 헤더가 이상해 보인 핵심은 모달 헤더 자체보다는 카드가 `사진 / 텍스트 / 버튼` 3열 구조로 너무 빨리 세로로 커지던 레이아웃 밀도 문제에 가까움
+- 수정 파일: `frontend/src/components/routes/route-place-picker-dialog.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file src/components/routes/route-place-picker-dialog.tsx` 통과
+- 장소 추가 모달 카드의 `추가` 버튼 높이는 `card` badge 토큰과 맞춰 `min-h-7 / md:min-h-8`로 다시 정리해, 배지 줄과 버튼이 같은 높이로 보이도록 조정
+- 공용 `DialogShell`은 모바일에서 중앙 정렬 대신 상단 정렬 + safe-area padding + overlay scroll 가능 구조로 바꿔, 뷰포트가 낮을 때도 모달 헤더가 먼저 잘리지 않도록 보정
+- 수정 파일: `frontend/src/components/routes/route-place-picker-dialog.tsx`, `frontend/src/components/common/dialog-shell.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file src/components/common/dialog-shell.tsx --file src/components/routes/route-place-picker-dialog.tsx`, `pnpm run typecheck:stable` 통과
+- 실제 일정의 장소 추가 모달은 카드 리스트 영역에 `max-h-[50dvh]` cap을 추가해, 검색창 아래 결과 목록만 적당한 높이 안에서 스크롤되도록 다시 조정
+- 수정 파일: `frontend/src/components/routes/route-place-picker-dialog.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file src/components/routes/route-place-picker-dialog.tsx` 통과
+- 사용자 피드백에 맞춰 공용 `DialogShell`의 모바일 정렬은 다시 중앙 정렬로 원복해, 모달이 화면 위쪽에 붙지 않고 기존처럼 가운데 뜨도록 복구
+- 수정 파일: `frontend/src/components/common/dialog-shell.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file src/components/common/dialog-shell.tsx` 통과
+- Funnel 숙소 선택 카드의 장소명은 `md+`에서 한 단계 크게 읽히도록 `md:text-sm`를 추가해, 모바일과 데스크탑 사이 스케일 차이가 실제로 드러나게 보정
+- 실제 일정의 장소 추가 카드도 숙소 카드 구조를 기준으로 다시 맞춰 사진을 `64x64 / md+ 80x80`로 축소하고, 장소명/주소/메모 폰트와 line-height를 동일 계열 반응형으로 정리했으며 `추가` 버튼은 배지 줄 안으로 넣어 카드 본문 폭을 더 확보
+- 메모 라인은 `NotebookPen` 아이콘을 유지하고, 모바일 배지/추가 버튼 크기는 유지한 채 `md+`에서만 한 스케일 커지도록 유지
+- 수정 파일: `frontend/src/components/routes/new-route-client.tsx`, `frontend/src/components/routes/route-place-picker-dialog.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file src/components/routes/new-route-client.tsx --file src/components/routes/route-place-picker-dialog.tsx`, `pnpm run typecheck:stable` 통과
+- 실제 일정의 장소 추가 카드 위계를 다시 정리해, 상단 row는 `뱃지 왼쪽 / 추가 버튼 오른쪽`으로 두고 장소명은 그 아래로 내렸으며 주소 줄 앞에는 `MapPin` 아이콘을 복구
+- 메모 라인은 기존처럼 `NotebookPen` 아이콘을 유지해 주소/메모 메타가 같은 패턴으로 읽히도록 맞춤
+- 수정 파일: `frontend/src/components/routes/route-place-picker-dialog.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file src/components/routes/route-place-picker-dialog.tsx`, `pnpm run typecheck:stable` 통과
+- 실제 일정의 장소 추가 카드에서는 이 모달에 한해서만 카테고리/Must Visit 배지를 `compact` 스케일로 한 단계 줄였고, 상단 row 균형을 맞추기 위해 `추가` 버튼도 같은 단계 높이로 함께 축소
+- 수정 파일: `frontend/src/components/routes/route-place-picker-dialog.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file src/components/routes/route-place-picker-dialog.tsx`, `pnpm run typecheck:stable` 통과
+- 실제 일정의 장소 추가 카드 본문 spacing을 미세 조정해, 장소명과 주소/메모 줄이 조금 더 떨어져 읽히도록 `space-y` 간격을 늘림
+- 수정 파일: `frontend/src/components/routes/route-place-picker-dialog.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file src/components/routes/route-place-picker-dialog.tsx` 통과
+- 실제 일정의 장소 추가 카드에서 주소/메모 줄은 `items-center` 기준으로 다시 맞추고 아이콘 `mt` 보정을 제거해, 아이콘과 텍스트가 세로축에서 어긋나지 않도록 정리
+- 수정 파일: `frontend/src/components/routes/route-place-picker-dialog.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file src/components/routes/route-place-picker-dialog.tsx` 통과
+- 실제 일정 편집의 헤더 저장 버튼은 pending 동안 체크 아이콘 대신 회전 스피너를 보여주도록 바꿔, 전체 로딩 페이지 없이도 저장 진행 상태를 바로 확인할 수 있게 정리
+- 수정 파일: `frontend/src/components/routes/route-detail-view.tsx`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file src/components/routes/route-detail-view.tsx` 통과
+- 실제 일정 편집 세션에는 기준 저장 snapshot key를 함께 보관하고, draft와 비교해 바뀐 내용이 없으면 저장 버튼을 비활성화하며 no-op 저장 클릭 시 API 호출 없이 편집 모드만 종료하도록 가드 추가
+- 수정 파일: `frontend/src/app/routes/[id]/page.tsx`, `frontend/src/components/routes/route-detail-view.tsx`, `frontend/src/lib/route-edit-session.ts`, `PROCESS.md`
+- 확인: `frontend`에서 `pnpm exec next lint --file "src/app/routes/[id]/page.tsx" --file src/components/routes/route-detail-view.tsx --file src/lib/route-edit-session.ts`, `pnpm run typecheck:stable` 통과
+- 저장 리스트 상세 헤더의 편집/삭제/취소/저장 버튼에서 pill radius를 제거해 일정 상세 편집 버튼 톤과 통일했고, 새 일정 숙소 선택 카드의 장소명은 `md+`에서 한 단계 크게 읽히도록 조정
+- 문서 폴더 `z/`는 `.gitignore`에 추가해 로컬 기획/운영 문서가 기본 추적 대상에 포함되지 않도록 정리
+- 수정 파일: `frontend/src/app/saved/[listId]/page.tsx`, `frontend/src/components/routes/new-route-client.tsx`, `.gitignore`, `PROCESS.md`
+- 일정 생성 메인 경로를 AI 우선으로 전환해 `prefilter -> planning_mode 추론 -> RECOMMEND trim(70 cap) -> AI planning -> validator/fallback` 흐름으로 바꿨고, `generation_version`과 SQL 기본값을 `mvp_v4_ai_route_v1_5`로 올림
+- `scheduleEngine`에는 AI 입력용 `slotFit/opening_summary/cluster_hint/duration_estimate_min` 계산과 `RECOMMEND` overflow trim(family + cluster round-robin) 로직을 추가했고, `geminiOptimizer`는 새 prompt block/JSON schema 기준으로 재작성
+- 일정 저장 시 backend가 보정한 stop은 `reason/visitTip`를 `null`로 지우도록 맞췄고, AI 실패 시에는 deterministic planner로 전체 fallback 하도록 연결
+- 새 일정 funnel에는 Must Visit 초과 검증을 넣어 `Date` 단계 `dayCount * 7`, 최종 생성 단계 `RELAXED*5 / MODERATE*6 / INTENSE*7` 기준으로 step 이동/생성을 막고 2줄 toast를 띄우도록 정리했으며, toast store는 `ReactNode`를 받을 수 있게 확장
+- 저장 리스트 최대치 `100`을 backend `importPlaceListFromCrawler`/`addPlaceListItem`에서 강제했고, Google 링크로 장소 여러 개를 붙이는 프런트 경로는 순차 추가로 바꿔 list cap 경쟁 조건을 줄임
+- `backend/src/lib/place-semantics.js`는 taxonomy 파일을 root 우선, 없으면 `z/place-type-taxonomy.json` fallback으로 읽도록 바꿔 로컬 검증이 끊기지 않게 정리
+- 확인: `backend`에서 `npm run check` 통과, `frontend`에서 `pnpm exec next lint --file src/components/routes/new-route-client.tsx --file src/stores/ui-store.ts --file "src/app/saved/[listId]/page.tsx"` 및 `pnpm run typecheck:stable` 통과
+- 수정 파일: `backend/src/lib/geminiOptimizer.js`, `backend/src/lib/scheduleEngine.js`, `backend/src/lib/place-semantics.js`, `backend/src/resolvers.js`, `backend/supabase/sql/001_init_requirements.sql`, `frontend/src/components/routes/new-route-client.tsx`, `frontend/src/constants/ui-copy.ts`, `frontend/src/stores/ui-store.ts`, `frontend/src/app/saved/[listId]/page.tsx`, `PROCESS.md`
+
+### 2026-03-20
+- 저장 리스트 최대치를 `50`으로 낮추고, Google Maps 리스트 import는 스크래핑 직후 감지된 장소 수가 50개를 넘으면 Places 호출 전에 바로 차단되도록 정리
+- 리스트 import와 Google 링크 import에는 요청 단위 `search/detail/DB place` 캐시를 추가했고, DB의 기존 장소가 최근 14일 내 갱신된 경우 Places detail 재호출을 건너뛰도록 보강
+- 프런트는 import/리스트 상세/일정 상세/새 일정 숙소 추가에서 `BAD_USER_INPUT` 상한 에러를 generic 문구로 덮지 않고 그대로 toast/form 에러로 노출하도록 맞춤
+- 확인: `backend`에서 `npm run check`, `frontend`에서 `pnpm exec next lint --file src/components/import/import-list-modal.tsx --file src/app/routes/import/page.tsx --file "src/app/saved/[listId]/page.tsx" --file "src/app/routes/[id]/page.tsx" --file src/components/routes/new-route-client.tsx`, `pnpm run typecheck:stable` 통과
+- 수정 파일: `backend/src/resolvers.js`, `frontend/src/components/import/import-list-modal.tsx`, `frontend/src/app/routes/import/page.tsx`, `frontend/src/app/saved/[listId]/page.tsx`, `frontend/src/app/routes/[id]/page.tsx`, `frontend/src/components/routes/new-route-client.tsx`, `PROCESS.md`
+- Places Details field mask에서 `reviews`, `primaryTypeDisplayName`, `nationalPhoneNumber`를 제외해 신규 Google Places detail 호출 비용을 줄임
+- 확인: `backend`에서 `npm run check` 통과
+- 수정 파일: `backend/src/lib/googlePlaces.js`, `PROCESS.md`
+- 장소 상세 화면에서 리뷰 섹션과 전화번호 info row를 제거하고, 프런트 Place GraphQL 필드/타입/route-edit fixture에서 `reviews`, `phone` 의존성을 같이 정리
+- 확인: `frontend`에서 `pnpm exec next lint --file src/components/places/place-detail-content.tsx --file src/lib/graphql/documents.ts --file src/types/domain.ts`, `pnpm run typecheck:stable` 통과
+- 수정 파일: `frontend/src/components/places/place-detail-content.tsx`, `frontend/src/lib/graphql/documents.ts`, `frontend/src/types/domain.ts`, `frontend/src/app/(test)/route-edit/_components/route-edit-fixtures.ts`, `PROCESS.md`
+- Google Maps 리스트 크롤러 반환값에서 미사용 `originalQuery` 필드를 제거
+- 확인: `backend`에서 `npm run check` 통과
+- 수정 파일: `backend/src/lib/aiCrawler.js`, `PROCESS.md`
+- Places Text Search field mask를 `places.id,places.formattedAddress`로 최소화해 search 호출 과금을 줄임
+- 확인: `backend`에서 `npm run check` 통과
+- 수정 파일: `backend/src/lib/googlePlaces.js`, `PROCESS.md`
+- Google import 월간 cap을 서버에서 강제하도록 `import_usage_events` 테이블과 usage tracker를 추가하고, 실제 `SearchText`/`GetPlace` miss가 발생할 때만 `월 import 100회 / 월 place 1000개`를 카운트하도록 연결
+- 기존 DB용 SQL로 `backend/supabase/sql/002_import_usage_events.sql`을 추가하고, bootstrap 문서에도 새 사용량 테이블을 반영
+- 확인: `backend`에서 `npm run check` 통과
+- 수정 파일: `backend/src/resolvers.js`, `backend/src/lib/googlePlaces.js`, `backend/supabase/sql/001_init_requirements.sql`, `backend/supabase/sql/002_import_usage_events.sql`, `backend/README.md`, `PROCESS.md`
+- 월간 Google import cap 에러 문구를 `다음 달에 다시 시도해 주세요`까지 포함하도록 다듬고, `/routes/import`의 Google 링크 import도 `BAD_USER_INPUT/NOT_FOUND` backend 메시지를 그대로 error toast/form 에러로 노출하도록 정리
+- 확인: `backend`에서 `npm run check`, `frontend`에서 `pnpm exec next lint --file src/app/routes/import/page.tsx`, `pnpm run typecheck:stable` 통과
+- 수정 파일: `backend/src/resolvers.js`, `frontend/src/app/routes/import/page.tsx`, `PROCESS.md`
+- 월간 import 한도 문구를 `이번 달 가져오기 할당량이 모두 소진됐어요\n다음 달에 다시 이용해 주세요`로 통일하고, toast/form 에러에서 줄바꿈이 그대로 보이도록 `whitespace-pre-line`을 적용
+- Google Maps 리스트 import는 월 place 잔여량을 `스크래핑된 장소 수` 기준으로 먼저 검사해, 중간에 detail 단계에서 끊기지 않고 시작 전에 바로 차단되도록 변경
+- 확인: `backend`에서 `npm run check`, `frontend`에서 `pnpm exec next lint --file src/components/layout/toast-card.tsx --file src/components/import/import-list-modal.tsx --file src/app/routes/import/page.tsx`, `pnpm run typecheck:stable` 통과
+- 수정 파일: `backend/src/resolvers.js`, `frontend/src/components/layout/toast-card.tsx`, `frontend/src/components/import/import-list-modal.tsx`, `frontend/src/app/routes/import/page.tsx`, `PROCESS.md`
+- 월간 import quota 초과는 backend가 `IMPORT_LIST_QUOTA_EXCEEDED` / `IMPORT_PLACE_QUOTA_EXCEEDED` 코드와 details만 내려주고, 실제 사용자 문구는 frontend `UI_COPY`와 `resolveImportErrorMessage` helper에서 관리하도록 정리
+- import 관련 화면들(`/routes/import`, 저장 리스트 상세, 일정 상세, 새 일정 숙소 추가, import modal`)은 새 quota 코드를 같은 helper로 해석해 리스트 quota/장소 quota 문구를 각각 맞는 error toast/form 에러로 노출하도록 통일
+- 확인: `backend`에서 `npm run check`, `frontend`에서 `pnpm exec next lint --file src/components/import/import-list-modal.tsx --file src/app/routes/import/page.tsx --file "src/app/saved/[listId]/page.tsx" --file "src/app/routes/[id]/page.tsx" --file src/components/routes/new-route-client.tsx --file src/lib/graphql/client.ts --file src/lib/graphql/import-errors.ts --file src/constants/ui-copy.ts`, `pnpm run typecheck:stable` 통과
+- 수정 파일: `backend/src/resolvers.js`, `frontend/src/lib/graphql/client.ts`, `frontend/src/lib/graphql/import-errors.ts`, `frontend/src/constants/ui-copy.ts`, `frontend/src/components/import/import-list-modal.tsx`, `frontend/src/app/routes/import/page.tsx`, `frontend/src/app/saved/[listId]/page.tsx`, `frontend/src/app/routes/[id]/page.tsx`, `frontend/src/components/routes/new-route-client.tsx`, `PROCESS.md`
+- 루트 API 문서를 JSON 초안 대신 Markdown 명세로 재작성하고, GraphQL/REST 엔드포인트, 프런트-백엔드 전달 흐름, 대표 request/response JSON, quota 규칙, 현재 구조상 어색한 지점들을 한 파일에서 점검할 수 있게 정리
+- 수정 파일: `api.md`, `PROCESS.md`
+- AI 일정 생성 사용량을 backend에서 강제하도록 `ai_usage_events` 테이블과 tracker를 추가하고, `createSchedule`/`regenerateSchedule`는 사용자 일 5회와 시스템 월 500회 quota를 실제 AI 일정 생성 직전에 차감하도록 연결
+- 프런트는 `AI_DAILY_QUOTA_EXCEEDED` / `AI_SYSTEM_MONTHLY_QUOTA_EXCEEDED` 코드를 전용 helper로 해석해 생성/재생성 화면에서 남은 횟수 없이 quota 초과 토스트만 띄우고, 새 일정 style 단계에는 `AI 일정 생성은 하루 최대 5번` 안내 문구를 추가
+- API 문서와 backend bootstrap 문서에 AI quota 및 `003_ai_usage_events.sql`을 반영
+- AI 사용량 컬럼명은 집계 의미가 더 분명하도록 `day_key/month_key` 대신 `usage_date/usage_month`로 정리했고, `003_ai_usage_events.sql`은 기존 컬럼이 이미 있을 때도 rename 되도록 보강
+- usage 이벤트 스키마를 다시 읽기 쉽게 정리해 import 쪽도 `period_key/request_units/place_units` 대신 `usage_month/import_run_count/import_place_count`로 맞췄고, 기존 DB용 SQL은 `002_usage_events.sql` 하나로 통합
+- import 사용량 컬럼명은 `import_run_count`보다 의미가 바로 읽히도록 `import_request_count`로 다시 정리했고, `002_usage_events.sql`은 예전 `request_units`와 중간 단계 `import_run_count` 둘 다 자동 rename 하도록 보강
+- 더 이상 쓰지 않는 `Place` 필드 `primaryTypeDisplayName`, `reviews`, `phone`을 backend GraphQL schema/resolver, Places normalize payload, frontend GraphQL 문서/타입/UI copy, 테스트 fixture, 분석 스크립트에서 제거
+- 기존 DB에서 같은 `places` 컬럼 3개를 안전하게 제거할 수 있도록 `backend/supabase/sql/003_drop_unused_place_fields.sql`을 추가하고, bootstrap SQL/README/API 문서도 최신 계약으로 정리
+- 확인: `backend`에서 `npm run check`, `frontend`에서 `pnpm exec next lint --file src/lib/graphql/documents.ts --file src/types/domain.ts --file src/constants/ui-copy.ts --file "src/app/(test)/route-edit/_components/route-edit-fixtures.ts"`, `pnpm run typecheck:stable` 통과
+- 수정 파일: `backend/src/schema.js`, `backend/src/resolvers.js`, `backend/src/lib/googlePlaces.js`, `backend/scripts/analyze-place-list-url.js`, `backend/supabase/sql/001_init_requirements.sql`, `backend/supabase/sql/003_drop_unused_place_fields.sql`, `backend/README.md`, `frontend/src/lib/graphql/documents.ts`, `frontend/src/types/domain.ts`, `frontend/src/constants/ui-copy.ts`, `frontend/src/app/(test)/route-edit/_components/route-edit-fixtures.ts`, `api.md`, `PROCESS.md`
+- `PlacePhoto`의 실제 Google photo media 요청 폭을 `1280`에서 `960`으로 낮춰, 사진 UI는 유지하면서 backend 트래픽과 응답 크기를 조금 더 보수적으로 줄임
+- 확인: `frontend`에서 `pnpm exec next lint --file src/components/common/place-photo.tsx`, `pnpm run typecheck:stable` 통과
+- 수정 파일: `frontend/src/components/common/place-photo.tsx`, `PROCESS.md`
+- 저장 리스트 가져오기용 공용 `LinkInput`에 `md:pl-10`을 추가해, PC 폭에서 기본 `Input`의 `md:px-4` 때문에 링크 아이콘과 URL 입력 텍스트가 겹치던 레이아웃을 정리
+- 확인: `frontend`에서 `pnpm exec next lint --file src/components/common/link-input.tsx --file "src/app/saved/[listId]/page.tsx"` 통과
+- 수정 파일: `frontend/src/components/common/link-input.tsx`, `PROCESS.md`
+- 입력 겹침 패턴을 전수 점검해 절대배치 아이콘을 쓰는 입력은 공용 `LinkInput`과 `route-place-picker-dialog` 검색창 두 곳뿐인 것을 확인했고, 장소 추가 다이얼로그 검색 입력에도 `md:pl-10`을 적용해 PC 레이아웃 겹침을 같이 방지
+- 확인: `frontend`에서 `pnpm exec next lint --file src/components/common/link-input.tsx --file src/components/routes/route-place-picker-dialog.tsx --file "src/app/saved/[listId]/page.tsx"` 통과
+- 수정 파일: `frontend/src/components/common/link-input.tsx`, `frontend/src/components/routes/route-place-picker-dialog.tsx`, `PROCESS.md`
+- place 사진 데이터 shape를 `coverPhoto + photos`로 분리하고, 새 photo object는 `{ name, displayName, uri }`를 사용하도록 backend GraphQL schema/resolver와 frontend 타입/문서/유틸을 정리
+- 목록/카드/일정 쿼리는 대표 이미지 `coverPhoto`만 받고, 장소 상세만 `photos` 전체를 받도록 GraphQL selection을 분리했으며, backend는 기존 legacy photo URL 배열도 계속 읽을 수 있게 호환 유지
+- 확인: `backend`에서 `npm run check`, `frontend`에서 `pnpm exec next lint --file src/lib/graphql/documents.ts --file src/lib/graphql/api.ts --file src/lib/photos.ts --file src/components/common/place-photo.tsx --file src/components/common/list-item-card.tsx --file src/components/saved/saved-list-place-card.tsx --file src/components/routes/new-route-client.tsx --file src/components/routes/route-place-picker-dialog.tsx --file src/components/routes/route-stop-card.tsx --file src/components/places/place-detail-content.tsx --file src/app/routes/import/page.tsx --file "src/app/(test)/route-edit/_components/route-edit-fixtures.ts"`, `pnpm run typecheck:stable` 통과
+- 수정 파일: `backend/src/schema.js`, `backend/src/resolvers.js`, `backend/src/lib/googlePlaces.js`, `frontend/src/types/domain.ts`, `frontend/src/lib/photos.ts`, `frontend/src/components/common/place-photo.tsx`, `frontend/src/lib/graphql/documents.ts`, `frontend/src/lib/graphql/api.ts`, `frontend/src/components/common/list-item-card.tsx`, `frontend/src/components/saved/saved-list-place-card.tsx`, `frontend/src/components/routes/new-route-client.tsx`, `frontend/src/components/routes/route-place-picker-dialog.tsx`, `frontend/src/components/routes/route-stop-card.tsx`, `frontend/src/components/places/place-detail-content.tsx`, `frontend/src/app/routes/import/page.tsx`, `frontend/src/app/(test)/route-edit/_components/route-edit-fixtures.ts`, `api.md`, `PROCESS.md`
+- 장소 상세 슬라이더에서만 현재 사진의 `displayName` attribution을 우하단 캡션으로 작게 표시하고, 카드/썸네일 등 대표 이미지 영역은 기존처럼 attribution 없이 유지
+- 확인: `frontend`에서 `pnpm exec next lint --file src/components/places/place-detail-content.tsx`, `pnpm run typecheck:stable` 통과
+- 수정 파일: `frontend/src/components/places/place-detail-content.tsx`, `PROCESS.md`
+- 장소 상세 슬라이더 상단/하단 배지(`평점`, `리뷰 수`, `1 / n`)는 모바일 `10px`, `md+` `12px`로 키우고, 우하단 `displayName` 캡션은 모바일 `8px`, `md+` `10px`로 낮춰 텍스트 위계를 다시 맞춤
+- 확인: `frontend`에서 `pnpm exec next lint --file src/components/places/place-detail-content.tsx` 통과
+- 수정 파일: `frontend/src/components/places/place-detail-content.tsx`, `PROCESS.md`
+- 장소 상세 슬라이더 폰트 조정 중 `openingHours` 요일 배지가 쓰는 `BADGE_TEXT_CLASS.label` import가 빠져 발생한 런타임 에러를 복구
+- 확인: `frontend`에서 `pnpm exec next lint --file src/components/places/place-detail-content.tsx` 통과
+- 수정 파일: `frontend/src/components/places/place-detail-content.tsx`, `PROCESS.md`
+- 장소 상세 슬라이더 폰트 크기는 로컬 상수 대신 공용 `BADGE_TEXT_CLASS.label`/`BADGE_TEXT_CLASS.xxs`를 직접 재사용하도록 정리해 중복 정의를 제거
+- 확인: `frontend`에서 `pnpm exec next lint --file src/components/places/place-detail-content.tsx` 통과
+- 수정 파일: `frontend/src/components/places/place-detail-content.tsx`, `PROCESS.md`
+- 장소 상세 `가격대` 라벨을 `저렴한 편/보통/조금 비싼 편/프리미엄`으로 다듬고, `₩` 표기와 설명 텍스트가 같은 수직선에 보이도록 price row 정렬 클래스를 정리
+- 확인: `frontend`에서 `pnpm exec next lint --file src/components/places/place-detail-content.tsx --file src/constants/ui-copy.ts` 통과
+- 수정 파일: `frontend/src/constants/ui-copy.ts`, `frontend/src/components/places/place-detail-content.tsx`, `PROCESS.md`
+- 가격 row 정렬이 덜 맞던 원인은 `InfoRow` 내부 value wrapper 위에 price 전용 `div`가 한 겹 더 있던 구조라서, `InfoRow`에 `valueClassName`을 열고 price row는 추가 wrapper 없이 직접 `flex/items-center`를 적용하도록 단순화
+- 확인: `frontend`에서 `pnpm exec next lint --file src/components/places/place-detail-content.tsx --file src/constants/ui-copy.ts` 통과
+- 수정 파일: `frontend/src/components/places/place-detail-content.tsx`, `PROCESS.md`
+- 장소 상세 `가격대` row에서 `₩` 표기와 관련 헬퍼/분기를 제거하고, 가격 텍스트만 공용 `InfoRow` 구조로 렌더링하도록 다시 단순화
+- 확인: `frontend`에서 `pnpm exec next lint --file src/components/places/place-detail-content.tsx --file src/constants/ui-copy.ts` 통과
+- 수정 파일: `frontend/src/components/places/place-detail-content.tsx`, `PROCESS.md`
+
+### 2026-03-21
+- Google 리스트 크롤러 입력 URL을 Google Maps 계열 호스트로 제한하고, `localhost`/사설 IP/내부 도메인을 차단하도록 `backend/src/lib/aiCrawler.js`를 보강
+- Puppeteer request interception에서도 Google/Google CDN 계열 외 요청을 abort해 중간 리다이렉트나 외부 리소스 fetch로 빠지지 않게 정리
+- 확인: `backend`에서 `npm run check` 통과
+- 수정 파일: `backend/src/lib/aiCrawler.js`, `backend/package.json`, `PROCESS.md`
+- 메모리 기반 rate limit 유틸을 추가하고 `/place-photo`, `/route-map`, `importPlaceListFromCrawler`, `createSchedule`, `regenerateSchedule`에 IP/사용자 기준 burst 제한을 연결
+- GraphQL context에 client IP를 주입하고, HTTP 프록시 엔드포인트는 `429`와 `Retry-After`/`X-RateLimit-*` 헤더를 반환하도록 정리
+- 확인: `backend`에서 `npm run check` 통과
+- 수정 파일: `backend/src/lib/rateLimit.js`, `backend/src/index.js`, `backend/src/resolvers.js`, `backend/package.json`, `PROCESS.md`
+- Supabase 요청 클라이언트가 비인증/일반 요청에서 `service role`로 자동 승격되지 않도록 `backend/src/lib/supabase.js`를 고치고, DB 헬스체크만 `createSupabaseAdminClient()`를 명시적으로 쓰도록 분리
+- 확인: `backend`에서 `npm run check` 통과
+- 수정 파일: `backend/src/lib/supabase.js`, `backend/src/resolvers.js`, `PROCESS.md`
+- `frontend/public/logo.svg`를 PNG 내장형 SVG에서 벡터-only 로고로 교체하고, 기존 `Routy` 워드마크 위에 강아지 얼굴 + 위치 핀 + 경로를 합친 심볼로 재구성
+- 배경은 앱 primary 계열 블루 그라데이션과 소프트 glow로 정리해, 용량을 크게 줄이면서 작은 크기에서도 형태가 유지되도록 다듬음
+- 확인: Edge headless screenshot으로 렌더링 확인
+- 수정 파일: `frontend/public/logo.svg`, `PROCESS.md`
+- `C:\Users\gorsj\Downloads\logo.svg` 원본을 기준으로 로고를 다시 path화하면서, 자글거리던 `imagetracer` 결과 대신 더 부드러운 곡선 추적으로 하단 실루엣을 재생성해 원본 인상을 최대한 유지하도록 조정
+- 확인: `frontend/public/logo.svg` 벡터 내용 교체 및 파일 크기 감소(약 `9.3KB` -> `6.6KB`)
+- 수정 파일: `frontend/public/logo.svg`, `PROCESS.md`
+- 프런트 Next.js 15 App Router에 Sentry 기본 통합을 추가해 `withSentryConfig`, `src/instrumentation*.ts`, `src/sentry.*.config.ts`, `src/app/global-error.tsx`를 통해 브라우저/서버/edge 및 요청 단위 에러를 수집하도록 연결했고, 기존 `app/error.tsx`는 공용 에러 화면으로 정리
+- 인증 세션 provider에서 로그인 사용자 `id/email`을 Sentry user로 동기화하고, `frontend/.env.example` 및 `src/lib/env.ts`에 `NEXT_PUBLIC_SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_ENVIRONMENT`, optional source map 업로드용 `SENTRY_AUTH_TOKEN/ORG/PROJECT` 표면을 추가
+- 확인: `frontend`에서 `pnpm run verify` 통과
+- 수정 파일: `frontend/package.json`, `frontend/pnpm-lock.yaml`, `frontend/next.config.ts`, `frontend/.env.example`, `frontend/src/lib/env.ts`, `frontend/src/components/auth/auth-session-provider.tsx`, `frontend/src/app/error.tsx`, `frontend/src/app/global-error.tsx`, `frontend/src/components/layout/app-error-screen.tsx`, `frontend/src/instrumentation.ts`, `frontend/src/instrumentation-client.ts`, `frontend/src/sentry.server.config.ts`, `frontend/src/sentry.edge.config.ts`, `frontend/src/sentry.shared.ts`, `PROCESS.md`
+- 다음 단계: 배포 환경에 `NEXT_PUBLIC_SENTRY_DSN`을 주입하고, source map 업로드까지 쓸 경우 `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT`도 함께 설정
+- 루트 metadata `icons`를 `/logo.svg`로 연결해 파비콘/shortcut/apple icon이 현재 로고를 사용하도록 설정
+- 로그인/회원가입 카드 상단에 공용 `AuthPageBrand`를 추가해 현재 로고를 홈 링크와 함께 노출
+- 확인: `frontend`에서 `pnpm exec next lint --file src/app/layout.tsx --file src/app/login/page.tsx --file src/app/signup/page.tsx --file src/components/auth/auth-page-brand.tsx` 통과
+- 수정 파일: `frontend/src/app/layout.tsx`, `frontend/src/app/login/page.tsx`, `frontend/src/app/signup/page.tsx`, `frontend/src/components/auth/auth-page-brand.tsx`, `PROCESS.md`
+- pnpm build-approval 모드에서도 Sentry source map 업로드용 CLI postinstall이 막히지 않도록 `frontend/pnpm-workspace.yaml`에 `onlyBuiltDependencies`로 `@sentry/cli`를 추가
+- 확인: `frontend`에서 `pnpm install`, `pnpm run verify` 통과
+- 수정 파일: `frontend/pnpm-workspace.yaml`, `PROCESS.md`
+- 프런트 노출 브랜드명을 `MyRoute/마이루트`에서 `Routy`로 정리해 metadata title, 인증 페이지 브랜드 라벨/alt, 마이페이지 계정 삭제 이메일 placeholder를 갱신
+- 확인: `frontend`에서 `pnpm exec next lint --file src/app/layout.tsx --file src/components/auth/auth-page-brand.tsx --file src/app/mypage/page.tsx` 통과
+- 수정 파일: `frontend/src/app/layout.tsx`, `frontend/src/components/auth/auth-page-brand.tsx`, `frontend/src/app/mypage/page.tsx`, `PROCESS.md`
+- 인증 페이지 상단 브랜드 블록은 로고만 남기고 파란 `Routy` 텍스트를 제거했으며, 브라우저 세션 저장 키를 `routy.auth.*`로 교체
+- 패키지명/백엔드 설명/README/User-Agent까지 `Routy` 기준으로 정리하고, 코드/문서 기준 `myroute`, `myRoute`, `마이루트` 잔여 표기가 없도록 정리
+- 확인: `frontend`에서 `pnpm exec next lint --file src/components/auth/auth-page-brand.tsx --file src/lib/supabase/browser.ts --file src/app/layout.tsx --file src/app/login/page.tsx --file src/app/signup/page.tsx --file src/app/mypage/page.tsx`, `backend`에서 `npm run check` 통과
+- 수정 파일: `frontend/src/components/auth/auth-page-brand.tsx`, `frontend/src/lib/supabase/browser.ts`, `frontend/package.json`, `backend/package.json`, `backend/package-lock.json`, `backend/README.md`, `backend/src/lib/googlePlaces.js`, `PROCESS.md`
+- React Query `QueryCache`/`MutationCache` 전역 `onError`에서 Sentry를 호출하도록 `frontend/src/app/providers.tsx`를 확장해, 화면별 `isError`/toast UX는 그대로 두면서 query key, query hash, pathname, meta 문맥을 운영 로그에 남기도록 정리
+- `frontend/src/lib/sentry-react-query.ts`에서 `UNAUTHENTICATED`, `BAD_USER_INPUT`, import/AI quota 초과, `NOT_FOUND`, `AbortError`는 Sentry로 보내지 않도록 필터링해 expected business error로 이슈가 오염되지 않게 했고, 예상 밖 GraphQL 에러만 code/status/details를 함께 첨부
+- 확인: `frontend`에서 `pnpm run verify` 통과
+- 수정 파일: `frontend/src/app/providers.tsx`, `frontend/src/lib/sentry-react-query.ts`, `PROCESS.md`
+- `frontend/public/logo.svg` 배경색을 기존 `#4DA0F0`에서 앱 primary와 동일한 `#3C9DFF`로 맞춰, 버튼/브랜드 컬러와 로고 자산 톤을 통일
+- 확인: `frontend/public/logo.svg` 내 배경 `rect` fill 값이 `#3C9DFF`로 교체된 것 확인
+- 수정 파일: `frontend/public/logo.svg`, `PROCESS.md`
+- 로그인/회원가입 카드의 큰 블록 간격은 모바일에서 `16px`(`space-y-4`)로 낮추고, 카드 패딩도 모바일 `16px`로 맞춰 상단 로고가 덜 떠 보이도록 조정
+- 인증 로고는 모바일 `72px` / `18px radius`, `md+` `84px` / `22px radius`로 반응형 조정해 작은 화면에서 과하게 커 보이지 않도록 정리
+- 확인: `frontend`에서 `pnpm exec next lint --file src/components/auth/auth-page-brand.tsx --file src/app/login/page.tsx --file src/app/signup/page.tsx` 통과
+- 수정 파일: `frontend/src/components/auth/auth-page-brand.tsx`, `frontend/src/app/login/page.tsx`, `frontend/src/app/signup/page.tsx`, `PROCESS.md`
+- 로그인/회원가입 카드 패딩과 카드 전체 `space-y`는 원래 값(`p-5`, `space-y-5`)으로 되돌리고, 상단 헤더만 별도 그룹으로 분리해 로고 아래 간격만 모바일 `12px`(`space-y-3`), `md+` `16px`(`space-y-4`)로 조정
+- 인증 로고 크기 조정은 유지해 모바일 `72px` / `18px radius`, `md+` `84px` / `22px radius`만 반영되도록 범위를 축소
+- 확인: `frontend`에서 `pnpm exec next lint --file src/components/auth/auth-page-brand.tsx --file src/app/login/page.tsx --file src/app/signup/page.tsx` 통과
+- 수정 파일: `frontend/src/components/auth/auth-page-brand.tsx`, `frontend/src/app/login/page.tsx`, `frontend/src/app/signup/page.tsx`, `PROCESS.md`
+- 워드마크 없는 강아지 심볼-only `frontend/public/favicon.svg`를 새로 만들고, 앱 metadata 아이콘 경로를 `logo.svg`에서 `favicon.svg`로 변경해 탭/shortcut/apple icon이 심볼-only 자산을 사용하도록 정리
+- 확인: `frontend`에서 `pnpm exec next lint --file src/app/layout.tsx` 통과, `favicon.svg`를 PNG로 렌더링해 심볼-only 탭 아이콘 구성을 확인
+- 수정 파일: `frontend/public/favicon.svg`, `frontend/src/app/layout.tsx`, `PROCESS.md`
+- Sentry 수동 설정 검증용으로 로컬 전용 `/sentry-example-page`를 추가해, 버튼 클릭 시 렌더 단계 예외를 의도적으로 발생시켜 현재 global error + Sentry 수집 흐름을 바로 확인할 수 있게 정리
+- production에서는 같은 경로가 `notFound()`로 막히도록 두어 운영 노출을 피했고, 검증 화면은 공용 `PageContainer`/`Card`/`Button` 패턴으로 최소 구현
+- 확인: `frontend`에서 `pnpm exec next lint --file src/app/sentry-example-page/page.tsx --file src/components/sentry/sentry-example-screen.tsx`, `pnpm run verify` 통과
+- 수정 파일: `frontend/src/app/sentry-example-page/page.tsx`, `frontend/src/components/sentry/sentry-example-screen.tsx`, `PROCESS.md`
+- Sentry 수동 설정 검증이 끝나 `/sentry-example-page`와 검증용 화면 컴포넌트를 제거하고, 실제 운영용 Sentry 설정만 남기도록 정리
+- 삭제 직후 `.next-dev`에 남아 있던 이전 route type 생성물 때문에 검증이 한 번 실패해 해당 generated 경로를 정리한 뒤 다시 확인
+- 확인: `frontend`에서 `pnpm run verify` 통과
+- 수정 파일: `frontend/src/app/sentry-example-page/page.tsx`, `frontend/src/components/sentry/sentry-example-screen.tsx`, `PROCESS.md`
+- 새 일정 생성 성공 시 마지막 퍼널에서 성공 토스트를 띄우지 않고, 로딩 상태를 유지한 채 바로 추천 결과 페이지로 이동하도록 생성 성공 분기를 정리
+- 확인: `frontend`에서 `pnpm exec next lint --file src/components/routes/new-route-client.tsx` 통과
+- 수정 파일: `frontend/src/components/routes/new-route-client.tsx`, `PROCESS.md`
+- `AGENTS.md`에 저장소 커밋 메시지 규칙을 추가해 앞으로 `type(scope): 요약` 또는 `type: 요약` 형식과 한국어 요약을 기본으로 따르도록 명시
+- 수정 파일: `AGENTS.md`, `PROCESS.md`
+- 백엔드에 `@sentry/node`를 추가하고 `src/lib/sentry.js`를 만들어 Node 서버 시작 시 Sentry를 초기화하고, 요청 단위 격리 scope에 HTTP 경로와 GraphQL operation/query hash를 태깅하도록 연결
+- GraphQL Yoga masked error, `/place-photo`·`/route-map` 프록시, AI 일정 fallback, 최상위 HTTP 핸들러 예외를 Sentry로 보내도록 정리하고, `UNAUTHENTICATED`·`BAD_USER_INPUT`·quota 초과·`NOT_FOUND` 같은 예상 가능한 GraphQL 에러는 수집 대상에서 제외
+- 인증된 사용자는 backend resolver에서 Sentry user로 동기화되도록 연결했고, `backend/.env.example`에 `SENTRY_DSN`, `SENTRY_ENVIRONMENT`를 추가
+- 확인: `backend`에서 `npm run check` 통과
+- 수정 파일: `backend/package.json`, `backend/package-lock.json`, `backend/.env.example`, `backend/src/index.js`, `backend/src/resolvers.js`, `backend/src/lib/sentry.js`, `PROCESS.md`
+- `AGENTS.md`에 현재 사용자를 위한 훈련 모드 협업 규칙을 추가해, 이후에는 구현과 함께 아키텍처/운영 이유와 유지보수 포인트를 함께 설명하도록 기준을 남김
+- 수정 파일: `AGENTS.md`, `PROCESS.md`
+- `z/checklist.md`의 예시 체크박스는 코드 블록으로 바꿔 실제 완료 항목처럼 오해되지 않게 정리하고, 현재 코드/로그 기준으로 완료된 항목만 체크하도록 재점검
+- 체크 반영: `backend npm run check`, 프론트/백엔드 Sentry 수집, PostHog 도구 확정 및 기본 `page/auth` 이벤트 연결은 완료로 표시했고, Sentry release/PII scrub·SEO metadata/robots/sitemap·rate limit·보안 항목은 미완료로 유지
+- 확인: `backend`에서 `npm run check` 통과, `frontend`에서 `pnpm run verify`는 `src/components/routes/new-route-client.tsx`의 `ImportListModal` 호출 2곳에 필수 `source` prop이 빠져 실패
+- 수정 파일: `z/checklist.md`, `PROCESS.md`
+- 다음 단계: `new-route-client.tsx`의 import modal prop 누락을 먼저 고쳐 `frontend` 검증을 다시 통과시키고, 이어서 체크리스트의 P0인 release/env tag, metadata/robots/sitemap, rate limit/SSRF 방어를 순서대로 닫기
+- 프런트에 `posthog-js`를 추가하고 `src/lib/analytics.ts`, `src/components/analytics/app-analytics-runtime.tsx`, `src/instrumentation-client.ts`, `src/lib/env.ts`, `frontend/.env.example`를 통해 `NEXT_PUBLIC_POSTHOG_TOKEN/HOST` 기반의 PostHog 초기화, 수동 페이지뷰, 경로 기반 replay on/off, identify/reset, typed event 래퍼를 연결
+- 로그인/회원가입/Google OAuth callback/로그아웃, 리스트 import modal·`/routes/import`·저장 리스트 상세의 장소 import, `routes/new` 퍼널 단계/차단/생성, 추천 결과 수용·재추천, 일정 편집 시작/취소/저장 요약, 장소 상세 진입 이벤트를 각각 실제 화면 흐름에 맞춰 연결했고, 메모 패널에는 `data-ph-mask`를 붙여 replay에서 텍스트가 가려지도록 정리
+- 확인: `frontend`에서 `pnpm run verify` 통과
+- 수정 파일: `frontend/package.json`, `frontend/pnpm-lock.yaml`, `frontend/.env.example`, `frontend/src/lib/env.ts`, `frontend/src/lib/analytics.ts`, `frontend/src/components/analytics/app-analytics-runtime.tsx`, `frontend/src/instrumentation-client.ts`, `frontend/src/app/providers.tsx`, `frontend/src/components/auth/auth-session-provider.tsx`, `frontend/src/app/login/page.tsx`, `frontend/src/app/signup/page.tsx`, `frontend/src/app/auth/callback/page.tsx`, `frontend/src/app/mypage/page.tsx`, `frontend/src/components/import/import-list-modal.tsx`, `frontend/src/components/routes/new-route-client.tsx`, `frontend/src/app/routes/import/page.tsx`, `frontend/src/app/routes/recommendation/page.tsx`, `frontend/src/app/routes/[id]/page.tsx`, `frontend/src/app/saved/page.tsx`, `frontend/src/app/saved/[listId]/page.tsx`, `frontend/src/app/places/[placeId]/page.tsx`, `frontend/src/app/saved/[listId]/[placeId]/page.tsx`, `frontend/src/components/common/note-panels.tsx`, `PROCESS.md`
+- 다음 단계: PostHog Cloud `Project token`/`API host`를 실제 배포 env에 주입하고, PostHog 대시보드에서 `Route Creation Funnel`, `Import Adoption by Source`, `AI Acceptance vs Edit`, `Core Navigation & Page Usage` 인사이트를 생성
+- PostHog 공개 env 이름을 `NEXT_PUBLIC_POSTHOG_KEY/HOST`로 통일하고, 프런트 env 로더에서 예전 `TOKEN` fallback은 제거해 실제 로컬/배포 설정과 코드 계약이 한 이름만 보도록 정리
+- 확인: `frontend`에서 `pnpm run typecheck:stable:tsc`, `pnpm run verify` 통과
+- 수정 파일: `frontend/.env.example`, `frontend/src/lib/env.ts`, `PROCESS.md`
+- `z/checklist.md` 상단 참고 메모를 현재 상태에 맞게 고쳐 Sentry/PostHog 연결 완료와 `frontend/backend` 검증 통과 상태가 바로 보이도록 정리
+- 체크 반영: `frontend pnpm run verify`를 완료 처리했고, `backend npm run check` 완료 표시는 유지
+- 확인: `frontend`에서 `pnpm run verify` 통과, `backend`에서 `npm run check` 통과
+- 수정 파일: `z/checklist.md`, `PROCESS.md`
+- `frontend/next.config.ts`에서 Sentry source map 업로드를 CI 또는 `SENTRY_UPLOAD_SOURCE_MAPS=1`일 때만 켜도록 바꿔, 로컬 `.env.local`에 업로드 자격증명이 있어도 기본 `next build`가 업로드 경로를 타지 않게 정리
+- `frontend/src/app/providers.tsx`의 React Query Devtools는 dev 전용 dynamic import로 옮겨 production 산출물에 devtools 코드가 섞이지 않게 했고, `frontend/.env.example`에 optional `SENTRY_UPLOAD_SOURCE_MAPS`를 문서화
+- 확인: `frontend`에서 `pnpm run build` 통과, `.next` 산출물에서 React Query Devtools 관련 문자열이 잡히지 않는 것 확인
+- 수정 파일: `frontend/next.config.ts`, `frontend/.env.example`, `frontend/src/app/providers.tsx`, `PROCESS.md`
+- 다음 단계: 반복 `next build`가 로컬에서 여전히 수 분대로 느려 `(test)` 실험 라우트의 production 제외 여부와 Next build trace 기반 병목 분석을 추가로 볼 필요가 있음
+- 프런트 공개 env 레이어에 `NEXT_PUBLIC_APP_ENV=local|staging|production` 해석을 추가하고, Vercel/CI 환경에서는 이를 추론해 배포성 빌드에서 `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_AUTH_CALLBACK_URL`, `NEXT_PUBLIC_GRAPHQL_ENDPOINT` 누락 시 즉시 실패하도록 정리
+- 로컬에서는 Sentry/PostHog를 기본 비활성으로 두고 `NEXT_PUBLIC_ENABLE_LOCAL_OBSERVABILITY=1`일 때만 다시 켤 수 있게 바꿨으며, `src/sentry.shared.ts`, `src/instrumentation-client.ts`, `src/lib/analytics.ts`가 새 env 게이트를 공통 사용하도록 연결
+- `frontend/next.config.ts`가 `src/lib/env.ts`를 미리 로드해 env 검증을 빌드 시작 시점에 태우고, `frontend/.env.example`에 새 앱 환경값과 로컬 관측 override 플래그를 문서화
+- 확인: `frontend`에서 `pnpm run build`, `pnpm run verify` 통과
+- 수정 파일: `frontend/src/lib/env.ts`, `frontend/src/lib/analytics.ts`, `frontend/src/instrumentation-client.ts`, `frontend/src/sentry.shared.ts`, `frontend/next.config.ts`, `frontend/.env.example`, `PROCESS.md`
+- 다음 단계: 실제 배포 env에 `NEXT_PUBLIC_APP_ENV`, `NEXT_PUBLIC_AUTH_CALLBACK_URL`, `NEXT_PUBLIC_GRAPHQL_ENDPOINT`를 명시해 staging/production 계약이 로컬 추론에 의존하지 않게 닫을 필요가 있음
+- `frontend/src/app/(test)` 아래 실험용 라우트(`badge`, `buttons`, `modal`, `quota`, `recommendation`, `route-edit`, `stay-step`, `stopcard`, `style-step`)와 관련 lab 컴포넌트를 전부 제거해 공개 라우트/빌드 대상에서 제외
+- route 삭제 직후 `pnpm run verify`가 `.next-dev/types`의 stale validator 때문에 깨져, `frontend/scripts/clean-build-artifacts.mjs`가 `.next-dev/types`도 함께 비우도록 조정해 삭제된 페이지 참조가 남지 않게 정리
+- 확인: `frontend`에서 `pnpm run verify` 통과, verify build 기준 app route 수가 `21`개에서 `12`개로 감소
+- 수정 파일: `frontend/src/app/(test)/*`, `frontend/scripts/clean-build-artifacts.mjs`, `PROCESS.md`
+- `frontend/public/og-image.png`를 공유 링크용 대표 이미지로 추가하고, 루트 metadata에 `openGraph`, `twitter` 카드를 연결해 URL 공유 시 큰 미리보기 이미지가 노출되도록 정리
+- `NEXT_PUBLIC_AUTH_CALLBACK_URL`을 우선 사용하고, 없으면 `VERCEL_PROJECT_PRODUCTION_URL`/`VERCEL_URL`, 마지막에는 localhost origin을 써서 OG 절대 URL을 계산하도록 구성해 별도 전용 env 없이도 로컬/배포 메타 태그가 일관되게 생성되도록 정리
+- 확인: `frontend`에서 `pnpm exec next lint --file src/app/layout.tsx` 통과
+- 수정 파일: `frontend/public/og-image.png`, `frontend/src/app/layout.tsx`, `PROCESS.md`
+- `frontend/public/og-image.png`를 공유 카드 권장 비율에 맞게 `1200x630`으로 다시 리사이즈했고, 중앙 기준으로 아주 얇게 크롭한 뒤 축소한 다음 lossless PNG 최적화를 적용해 기존 구성을 유지하면서 파일 크기를 약 `1.31MB`에서 `699KB`로 줄임
+- 루트 metadata의 OG 이미지 크기 값도 실제 자산과 같은 `1200x630`으로 맞춰 공유 봇이 구조화 메타를 정확히 읽도록 정리
+- 수정 파일: `frontend/public/og-image.png`, `frontend/src/app/layout.tsx`, `PROCESS.md`
+- 프런트는 `NEXT_PUBLIC_APP_ENV=local|production` 기준으로 env 검증/관측 분리를 정리했고, 백엔드는 공용 `src/lib/env.js`를 추가해 Supabase/Google/AI/Sentry env를 한 곳에서 읽도록 정리
+- 백엔드 AI env는 `AI_PROVIDER`, `GEMINI_API_KEY`, `GEMINI_MODEL`, `OPENAI_API_KEY`, `OPENAI_MODEL`만 남기고 나머지 fallback/organization/project 읽기 로직을 제거했으며, 저장소의 `frontend/.env.example`, `backend/.env.example`는 삭제
+- 확인: `frontend`에서 `pnpm run verify`, `backend`에서 `npm run check` 통과
+- 수정 파일: `frontend/src/lib/env.ts`, `frontend/src/lib/analytics.ts`, `frontend/src/instrumentation-client.ts`, `frontend/src/sentry.shared.ts`, `frontend/next.config.ts`, `frontend/scripts/clean-build-artifacts.mjs`, `frontend/src/app/providers.tsx`, `backend/src/lib/env.js`, `backend/src/lib/supabase.js`, `backend/src/index.js`, `backend/src/lib/googlePlaces.js`, `backend/src/lib/geminiOptimizer.js`, `backend/src/lib/sentry.js`, `backend/src/resolvers.js`, `backend/README.md`, `backend/package.json`, `frontend/.env.example`, `backend/.env.example`, `PROCESS.md`
+- 프런트 공개 앱 환경값은 `NEXT_PUBLIC_APP_ENV=local|production` 2단계만 남기고, 배포 미리보기/운영을 모두 production 계열로 취급하도록 env 레이어를 단순화
+- `frontend/.env.example`과 `z/checklist.md`의 Sentry/PostHog 문구도 `staging` 대신 `local`/`production` 기준으로 맞춰 이후 설정 설명과 체크리스트가 코드 계약과 어긋나지 않게 정리
+- 확인: `frontend`에서 `pnpm run verify` 통과
+- 수정 파일: `frontend/src/lib/env.ts`, `frontend/.env.example`, `z/checklist.md`, `PROCESS.md`
+- 다음 단계: preview 배포를 운영과 별도 태그로 보고 싶어지면 `NEXT_PUBLIC_SENTRY_ENVIRONMENT`를 명시해 관측 환경만 추가로 세분화하면 됨
+- 백엔드 env 파싱을 `backend/src/lib/env.js`로 모아 `PORT`, Supabase 키, Google Places 키, AI provider/model, OAuth redirect, Sentry 설정을 한 군데에서 읽고 URL/포트 형식을 공통 검증하도록 정리
+- `backend/src/lib/supabase.js`, `backend/src/index.js`, `backend/src/lib/googlePlaces.js`, `backend/src/lib/geminiOptimizer.js`, `backend/src/lib/sentry.js`, `backend/src/resolvers.js`는 공용 env helper를 쓰도록 바꿔 `process.env` 직접 참조를 줄였고, `.env.example`과 `README.md`를 현재 코드 계약에 맞게 다시 정리
+- 확인: `backend`에서 `npm run check` 통과
+- 수정 파일: `backend/src/lib/env.js`, `backend/src/lib/supabase.js`, `backend/src/index.js`, `backend/src/lib/googlePlaces.js`, `backend/src/lib/geminiOptimizer.js`, `backend/src/lib/sentry.js`, `backend/src/resolvers.js`, `backend/.env.example`, `backend/README.md`, `backend/package.json`, `PROCESS.md`
+- 다음 단계: 실제 `backend/.env`도 canonical 이름 기준으로 `GOOGLE_PLACES_API_KEY`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`를 우선 사용하도록 천천히 맞추면 legacy fallback 의존도를 줄일 수 있음
+- 백엔드 AI env 계약은 `AI_PROVIDER`, `GEMINI_API_KEY`, `GEMINI_MODEL`, `OPENAI_API_KEY`, `OPENAI_MODEL`만 쓰도록 단순화하고, `GEMINI_FALLBACK_MODELS`, `OPENAI_FALLBACK_MODELS`, `OPENAI_ORGANIZATION`, `OPENAI_PROJECT` 읽기 로직을 제거
+- `backend/.env.example`, `backend/README.md`도 같은 최소 계약 기준으로 정리해 모델을 고정하고 싶을 때는 `*_MODEL`만 넣으면 되도록 설명을 맞춤
+- 확인: 제거 대상 env 이름이 코드/문서에서 더 이상 잡히지 않는 것 확인, `backend`에서 `npm run check` 통과
+- 수정 파일: `backend/src/lib/env.js`, `backend/src/lib/geminiOptimizer.js`, `backend/.env.example`, `backend/README.md`, `PROCESS.md`
+- 프론트/백엔드 `env.example` 파일은 저장소에서 제거하고, 백엔드 README 실행 안내는 `.env.example` 대신 문서 내부 Environment Variables 섹션을 보도록 수정
+- 확인: `frontend`에서 `pnpm run verify`, `backend`에서 `npm run check` 통과
+- 수정 파일: `frontend/.env.example`, `backend/.env.example`, `backend/README.md`, `PROCESS.md`
+- 프런트 직접 의존성 중 실제 import가 없던 `@use-funnel/next`를 제거해 현재 수동 퍼널 구현과 패키지 목록을 일치시킴
+- 확인: `frontend`에서 `pnpm run verify` 통과
+- 수정 파일: `frontend/package.json`, `frontend/pnpm-lock.yaml`, `PROCESS.md`
+- 프런트 검증 흐름을 `.next` 단일 dist 기준으로 단순화해 `run-next-verify.mjs`를 제거했고, `next-env.d.ts`는 generated 파일로 내려 `frontend/.gitignore`에 추가한 뒤 git 추적에서 제외
+- `clean-build-artifacts.mjs`, `tsconfig.json`, `package.json`도 새 흐름에 맞게 정리해 `next-env.d.ts`가 더 이상 `.next-verify` 경로로 흔들리지 않게 맞춤
+- 확인: `frontend`에서 `pnpm run verify` 통과
+- 수정 파일: `frontend/.gitignore`, `frontend/package.json`, `frontend/scripts/clean-build-artifacts.mjs`, `frontend/scripts/run-next-verify.mjs`, `frontend/tsconfig.json`, `frontend/next-env.d.ts`, `PROCESS.md`
+- 출시용 최소 레포 기준으로 프런트 lint/verify 전용 설정(`.eslintrc.json`, `tsconfig.stable.json`)과 정리 스크립트, 백엔드 수동 분석/fixture 검증 스크립트를 제거하고 양쪽 `package.json`도 `build/start` 중심으로 단순화
+- 프런트는 `eslint`, `eslint-config-next` devDependency를 lockfile에서 정리했고, generated `next-env.d.ts`는 계속 ignore 상태로 두어 추적 파일 목록을 런타임/빌드 필수 자산 위주로 맞춤
+- 확인: `frontend`에서 `pnpm run build` 통과, `backend`에서 `node --check src/index.js`, `src/schema.js`, `src/resolvers.js`, `src/lib/*` 핵심 파일 문법 확인 통과
+- 수정 파일: `frontend/package.json`, `frontend/pnpm-lock.yaml`, `frontend/.eslintrc.json`, `frontend/scripts/clean-build-artifacts.mjs`, `frontend/tsconfig.stable.json`, `backend/package.json`, `backend/scripts/analyze-place-list-url.js`, `backend/scripts/verify-schedule-fixtures.js`, `PROCESS.md`
+- 백엔드 HTTP rate limit 식별자는 `cf-connecting-ip`/`x-forwarded-for` 같은 요청 헤더를 더 이상 신뢰하지 않고, Node socket `remoteAddress`를 내부 헤더로 다시 주입한 값만 쓰도록 바꿔 클라이언트 헤더 스푸핑으로 제한을 우회하지 못하게 정리
+- 확인: `backend`에서 `node --check src/index.js` 통과, 임시 포트 기동 후 `{ health { status timestamp } }` GraphQL 응답 확인
+- 수정 파일: `backend/src/index.js`, `PROCESS.md`
+- 로그인과 Google OAuth callback의 `next` 파라미터는 내부 상대 경로만 허용하는 `sanitizeNextPath` helper를 추가해 절대 URL, protocol-relative URL, backslash 경로가 그대로 `router.replace`에 들어가지 않게 정리
+- 파싱용 더미 origin 이름은 실제 배포 URL처럼 보이지 않으면서 서비스 식별이 되도록 `https://myrouty.invalid`로 조정
+- 확인: `frontend`에서 `pnpm run build` 통과
+- 수정 파일: `frontend/src/app/login/page.tsx`, `frontend/src/app/auth/callback/page.tsx`, `frontend/src/lib/safe-next-path.ts`, `PROCESS.md`
+- 릴리즈 절차는 `develop -> main -> tag -> GitHub Release` 순서로 `AGENTS.md`에 명문화했고, 저장소에는 `docs/release-process.md`, `docs/release-template.md`를 추가해 다음 배포 때 그대로 참고할 수 있게 정리
+- 수정 파일: `AGENTS.md`, `docs/release-process.md`, `docs/release-template.md`, `PROCESS.md`
+- 저장소에 올렸던 `docs/release-process.md`, `docs/release-template.md`는 사용자 요청에 따라 제거하고, 배포 절차/릴리즈 템플릿은 로컬 `AGENTS.md` 기준으로만 유지
+- 수정 파일: `docs/release-process.md`, `docs/release-template.md`, `PROCESS.md`
+- Vercel 배포가 CVE 차단으로 실패하던 `frontend`의 Next.js를 `15.5.6`에서 같은 릴리스 라인 최신 패치 `15.5.14`로 올려 보안 차단 버전을 해소
+- `frontend/pnpm-lock.yaml`도 새 Next/SWC 해상도에 맞게 갱신해 배포 환경과 로컬 의존성 상태가 일치하도록 정리
+- 확인: `frontend`에서 `pnpm run build` 통과, 빌드 출력 기준 `Next.js 15.5.14`
+- 수정 파일: `frontend/package.json`, `frontend/pnpm-lock.yaml`, `PROCESS.md`
+- 다음 단계: Vercel에서 재배포해 보안 버전 차단이 해소됐는지 확인
+- GitHub Release 본문 템플릿을 `z/release-template.md`로 새로 저장하고, 사용자가 준 섹션 구조(`이번 업데이트/주요 기능/개선 사항/버그 수정/기타`)를 그대로 반영
+- `AGENTS.md`의 릴리즈 절차도 새 템플릿 위치인 `z/release-template.md`를 가리키도록 수정해 다음 배포 때 경로 혼선이 없게 정리
+- 수정 파일: `z/release-template.md`, `AGENTS.md`, `PROCESS.md`
+- `backend/src/lib/place-type-taxonomy.json`를 백엔드 라이브러리 옆으로 추가하고, `place-semantics.js`가 저장소 루트 fallback 탐색 대신 로컬 taxonomy JSON을 직접 읽도록 정리
+- 확인: 미실행 (`현재 요청은 커밋만 진행`)
+- 수정 파일: `backend/src/lib/place-semantics.js`, `backend/src/lib/place-type-taxonomy.json`, `PROCESS.md`
+- 백엔드가 선택적 `HOST` env를 읽어 listen host를 명시할 수 있게 하고, 시작 로그에 `localhost`와 네트워크 IP 기준 GraphQL URL 후보를 함께 출력하도록 정리
+- `backend/README.md`에 원격 서버 IP 접근과 SSH 포트 포워딩 예시를 추가
+- 확인: `backend`에서 `node --check src/index.js`, `node --check src/lib/env.js` 통과
+- 수정 파일: `backend/src/index.js`, `backend/src/lib/env.js`, `backend/README.md`, `PROCESS.md`
+- 운영 `www.myrouty.com/login`을 점검해 실제 Vercel 응답 헤더(`Server: Vercel`)와 클라이언트 번들 런타임 env를 확인했고, 배포된 프런트가 `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_AUTH_CALLBACK_URL`, `NEXT_PUBLIC_GRAPHQL_ENDPOINT`를 비운 채 `appEnvironment=local`로 실행되고 있음을 재현해 로그인/Google OAuth 무반응 원인을 확인
+- 프런트 빌드 시 `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `OAUTH_REDIRECT_TO`, `GRAPHQL_ENDPOINT` 같은 서버형 env를 `NEXT_PUBLIC_*`로 자동 매핑하는 fallback을 추가했고, 배포 환경에서 공개 GraphQL endpoint가 없을 때는 `/api/graphql` 프록시를 통해 same-origin으로 백엔드에 붙을 수 있게 보강
+- 로그인/회원가입 화면은 Supabase 공개 env가 없으면 비밀번호/Google 양쪽 모두 즉시 설정 오류 배너를 보여주고 제출 버튼을 비활성화하도록 정리
+- 확인: `frontend`에서 기본 `pnpm run build` 통과, `NEXT_PUBLIC_*`를 비우고 서버형 env만 주입한 self-hosted 시뮬레이션 빌드(`NEXT_DIST_DIR=.next-fallback-test`)도 통과
+- 수정 파일: `frontend/next.config.ts`, `frontend/src/lib/public-env-build-fallbacks.ts`, `frontend/src/lib/env.ts`, `frontend/src/app/api/graphql/route.ts`, `frontend/src/app/login/page.tsx`, `frontend/src/app/signup/page.tsx`, `PROCESS.md`
+- 다음 단계: Vercel Production env scope와 실제 배포 재빌드 시점을 다시 확인해, `www.myrouty.com`에 연결된 배포가 정말 `NEXT_PUBLIC_SUPABASE_*`, `NEXT_PUBLIC_APP_ENV`, `NEXT_PUBLIC_GRAPHQL_ENDPOINT`를 포함한 최신 아티팩트인지 검증할 필요가 있음
+- 프런트 공개 env 로더의 근본 원인은 `process.env[name]` 형태의 동적 접근이었고, Next.js 클라이언트 번들에서는 이런 접근이 `NEXT_PUBLIC_*` 값을 인라인하지 않아 운영 브라우저가 `supabaseUrl=""`, `supabasePublishableKey=""`, `appEnvironment=local`로 읽던 문제를 확인
+- 초기 self-hosted fallback/proxy 우회 실험(`public-env-build-fallbacks.ts`, `/api/graphql`)은 최종 원인이 아님이 확인되어 되돌리고, 실제 수정은 클라이언트 env 정적 접근과 auth 오류 표시 보강만 유지
+- `frontend/src/lib/env.ts`는 `NEXT_PUBLIC_*` 값을 정적 `process.env.NEXT_PUBLIC_...` 접근으로 바꿔 Next가 클라이언트 번들에 실제 값을 박아 넣도록 수정했고, 로그인/회원가입 화면은 같은 설정 누락이 다시 생기면 즉시 원인 메시지를 보여주도록 보강
+- 확인: `frontend`에서 `pnpm run build` 통과, `.next/static/chunks`에서 Supabase URL/Publishable key가 실제 클라이언트 번들에 포함된 것 확인
+- 수정 파일: `frontend/src/lib/env.ts`, `frontend/src/app/login/page.tsx`, `frontend/src/app/signup/page.tsx`, `PROCESS.md`
+- 로그인/회원가입 진입 문제를 별도 `auth-entry` 관측으로 묶어, Supabase 공개 env 누락은 페이지 세션당 1회만 Sentry에 기록하고 비밀번호/Google OAuth 흐름에서는 예상 가능한 사용자 오류를 제외한 응답/예외만 올리도록 정리
+- Sentry/PostHog 초기화가 앱 기능용 `publicEnv` 검증에 막히지 않도록 `frontend/src/lib/observability-env.ts`를 추가해 관측용 env 읽기를 분리
+- 확인: `frontend`에서 `pnpm run build` 통과
+- 수정 파일: `frontend/src/lib/observability-env.ts`, `frontend/src/lib/sentry-auth.ts`, `frontend/src/sentry.shared.ts`, `frontend/src/instrumentation-client.ts`, `frontend/src/app/login/page.tsx`, `frontend/src/app/signup/page.tsx`, `PROCESS.md`
+- 다음 단계: 운영에서 `/login`, `/signup` 진입 시 Sentry에서 `error_source=auth-entry` 태그와 그룹핑이 의도대로 보이는지 확인
+
+### 2026-03-25
+- 저장 리스트 삭제 전에 해당 리스트를 참조하는 일정 수를 먼저 확인하고, 일정이 남아 있으면 `PLACE_LIST_HAS_SCHEDULES` GraphQL 코드와 count details를 반환하도록 `backend/src/resolvers.js`를 보강
+- 프런트 저장 리스트 상세 삭제 토스트는 위 전용 에러 코드를 한국어 안내문으로 매핑하고, 프런트/백엔드 Sentry expected error 목록에도 같은 코드를 추가해 예상 가능한 409 제약 오류가 운영 이슈로 쌓이지 않게 정리
+- 확인: `backend`에서 `node --check src/resolvers.js`, `node --check src/lib/sentry.js` 통과, `frontend`에서 `pnpm run build` 통과
+- 수정 파일: `backend/src/resolvers.js`, `backend/src/lib/sentry.js`, `frontend/src/lib/graphql/client.ts`, `frontend/src/lib/sentry-react-query.ts`, `frontend/src/constants/ui-copy.ts`, `frontend/src/app/saved/[listId]/page.tsx`, `PROCESS.md`
+- Google Maps 링크 입력은 프런트에서 도메인/URL 형식만 먼저 검사하고, 실제 링크 타입 판정은 백엔드가 맡도록 정리해 저장 리스트 입력에 장소 상세 링크가 들어오면 `GOOGLE_MAPS_LIST_LINK_REQUIRED`, 장소 입력에 저장 리스트/검색 결과 링크가 들어오면 `GOOGLE_MAPS_PLACE_LINK_REQUIRED`를 반환하도록 보강
+- import 관련 화면들은 위 전용 코드를 expected user error로 처리하면서 서버 메시지를 그대로 root error/토스트에 노출하도록 연결해, generic `BAD_USER_INPUT` 대신 상황별 안내문이 일관되게 보이도록 정리
+- 확인: `backend`에서 `node --check src/lib/googlePlaces.js`, `node --check src/resolvers.js`, `node --check src/lib/sentry.js` 통과, `frontend`에서 `pnpm run build` 통과
+- 수정 파일: `backend/src/lib/googlePlaces.js`, `backend/src/resolvers.js`, `backend/src/lib/sentry.js`, `frontend/src/lib/graphql/client.ts`, `frontend/src/lib/graphql/import-errors.ts`, `frontend/src/lib/sentry-react-query.ts`, `frontend/src/app/routes/[id]/page.tsx`, `PROCESS.md`
+- Google Maps 저장 리스트 50개 초과는 `GOOGLE_MAPS_LIST_ITEM_LIMIT_EXCEEDED`, 앱 저장 리스트 50개 초과는 `PLACE_LIST_ITEM_LIMIT_EXCEEDED`로 분리하고, 백엔드는 limit/count details만 내려 주며 프런트는 `UI_COPY.common.error` 기준 메시지를 코드별로 선택하도록 정리
+- `importPlaceListFromCrawler` 안에 남아 있던 두 번째 50개 체크는 현재 흐름에서 `dedupedImportedItems <= normalizedScrapedPlaces <= 50`라 도달 불가능한 중복 안전망이어서 제거했고, 실제 앱 리스트 용량 제한은 `addPlaceListItem` 경로의 전용 코드로 유지
+- 확인: `backend`에서 `node --check src/resolvers.js`, `node --check src/lib/sentry.js` 통과, `frontend`에서 `pnpm run build` 통과
+- 수정 파일: `backend/src/resolvers.js`, `backend/src/lib/sentry.js`, `frontend/src/constants/ui-copy.ts`, `frontend/src/lib/graphql/client.ts`, `frontend/src/lib/graphql/import-errors.ts`, `frontend/src/lib/sentry-react-query.ts`, `frontend/src/app/routes/[id]/page.tsx`, `PROCESS.md`
+- 프런트 GraphQL 에러 정책을 `frontend/src/lib/graphql/error-policy.ts`로 분리해 expected code 목록, 코드별 사용자 메시지, Sentry 제외 기준을 한 곳에서 관리하도록 정리했고 `resolveImportErrorMessage`, 저장 리스트 삭제 토스트, React Query Sentry 필터가 같은 정책을 공유하도록 맞춤
+- GraphQL `TOO_MANY_REQUESTS`를 프런트 에러 코드와 공용 메시지로 추가하고, 백엔드 Sentry expected 목록에도 포함해 rate limit은 사용자 안내/analytics만 남기고 예외 이슈로 쌓지 않도록 정리
+- 확인: `backend`에서 `node --check src/lib/sentry.js` 통과, `frontend`에서 `pnpm run build` 통과
+- 수정 파일: `frontend/src/lib/graphql/error-policy.ts`, `frontend/src/constants/ui-copy.ts`, `frontend/src/lib/graphql/client.ts`, `frontend/src/lib/graphql/import-errors.ts`, `frontend/src/lib/sentry-react-query.ts`, `frontend/src/app/routes/[id]/page.tsx`, `frontend/src/app/saved/[listId]/page.tsx`, `backend/src/lib/sentry.js`, `PROCESS.md`
+- 저장 리스트 가져오기 모달과 `/routes/import` 리스트 가져오기 폼 상단에 `최대 50개 장소` 제한 warning 배너를 추가해, 가져오기 전에 리스트 크기 제한을 미리 인지할 수 있게 정리
+- 확인: 미실행
+- 수정 파일: `frontend/src/constants/ui-copy.ts`, `frontend/src/components/import/import-list-modal.tsx`, `frontend/src/app/routes/import/page.tsx`, `PROCESS.md`
+- 같은 warning 배너는 `TriangleAlert` 아이콘이 있는 공용 안내 컴포넌트로 묶고, 아이콘과 텍스트를 `items-center` 기준으로 정렬해 모달/페이지 폼에서 상하 중심선이 어긋나지 않게 정리
+- 확인: 미실행
+- 수정 파일: `frontend/src/components/import/import-list-warning-notice.tsx`, `frontend/src/components/import/import-list-modal.tsx`, `frontend/src/app/routes/import/page.tsx`, `PROCESS.md`
+- 브라우저나 OS 다크모드에서 자동으로 어두운 테마가 덧씌워지지 않도록 `frontend/src/app/globals.css`의 루트 color-scheme을 `only light`로 고정하고, `frontend/src/app/layout.tsx`에 light viewport/theme color 메타를 추가
+- 확인: `frontend`에서 `pnpm run build` 통과
+- 수정 파일: `frontend/src/app/globals.css`, `frontend/src/app/layout.tsx`, `PROCESS.md`
+- 다크모드 제거 범위는 앱 스타일에만 남기도록 다시 정리해 `frontend/src/app/layout.tsx`에 추가했던 viewport/theme color 메타는 제거하고, 실제 제어는 `frontend/src/app/globals.css`의 `color-scheme: only light`만 유지
+- 확인: stale `.next-dev` generated cache를 비운 뒤 `frontend`에서 `pnpm run build` 통과
+- 수정 파일: `frontend/src/app/layout.tsx`, `PROCESS.md`
+- 프런트 GraphQL 토스트는 백엔드 raw 메시지를 직접 노출하지 않도록 `error-policy` 기준 공용 사용자 문구만 보여주고, 작은 보조 문구로 `에러 코드: XXX` support code를 함께 노출하도록 `ToastCard`/`ui-store`와 import·저장리스트·일정 생성/재추천 화면의 에러 처리 분기를 정리
+- 일정 생성/재추천 관련 `BAD_USER_INPUT` 일부는 `MUST_VISIT_LIMIT_EXCEEDED`, `AI_CANDIDATE_LIMIT_EXCEEDED`, `PLACE_LIST_EMPTY_FOR_SCHEDULE`, `SCHEDULE_NO_SCHEDULABLE_PLACES`, `SCHEDULE_CANDIDATES_EMPTY_AFTER_PREPROCESS`, `STAY_PLACE_NOT_IN_LIST`, `STAY_PLACE_DATA_MISSING` 전용 코드로 분리하고, 프런트 메시지/지원 코드와 백엔드 Sentry expected 목록까지 같은 기준으로 맞춤
+- 확인: `backend`에서 `node --check src/resolvers.js`, `node --check src/lib/sentry.js` 통과, stale `.next`를 비운 뒤 `frontend`에서 `pnpm build` 통과
+- 수정 파일: `backend/src/resolvers.js`, `backend/src/lib/sentry.js`, `frontend/src/lib/graphql/error-policy.ts`, `frontend/src/lib/graphql/client.ts`, `frontend/src/constants/ui-copy.ts`, `frontend/src/components/layout/toast-card.tsx`, `frontend/src/components/layout/toast-viewport.tsx`, `frontend/src/stores/ui-store.ts`, `frontend/src/components/import/import-list-modal.tsx`, `frontend/src/app/routes/import/page.tsx`, `frontend/src/app/saved/[listId]/page.tsx`, `frontend/src/app/routes/[id]/page.tsx`, `frontend/src/components/routes/new-route-client.tsx`, `frontend/src/app/routes/recommendation/page.tsx`, `PROCESS.md`
+- 백엔드와 프런트 React Query Sentry 이벤트 모두 `graphql.error_code` 태그를 남기고, details에 `kind`가 있으면 `graphql.error_kind`까지 함께 붙이도록 보강해 Sentry UI에서 에러 코드 기준 필터링/집계를 더 쉽게 정리
+- 확인: `backend`에서 `node --check src/lib/sentry.js` 통과, `frontend`에서 `pnpm build` 통과
+- 수정 파일: `backend/src/lib/sentry.js`, `frontend/src/lib/sentry-react-query.ts`, `PROCESS.md`
+- 사용자가 해결할 수 없는 데이터 무결성 문제인 `PLACE_GOOGLE_ID_MISSING`, `SCHEDULE_PLACE_LIST_ID_MISSING`, `SCHEDULE_EDIT_PLACE_DATA_MISSING`는 더 이상 `BAD_USER_INPUT`으로 숨기지 않고 `INTERNAL_SERVER_ERROR + details.kind`로 올리도록 `backend/src/resolvers.js`를 정리
+- 확인: `backend`에서 `node --check src/resolvers.js`, `node --check src/lib/sentry.js` 통과
+- 수정 파일: `backend/src/resolvers.js`, `PROCESS.md`
+- 날짜 입력, 리스트 선택, 재생성 입력, 일정 이동, 일정 편집 검증은 `DATE_INPUT_INVALID`, `PLACE_LIST_SELECTION_INVALID`, `REGENERATION_INPUT_INVALID`, `SCHEDULE_STOP_MOVE_INVALID`, `SCHEDULE_EDIT_INVALID`로 묶어 `BAD_USER_INPUT`에서 분리했고, 프런트 `error-policy`도 같은 그룹 단위 support code/메시지로 정리
+- 사용자에게 실제로 보여준 GraphQL 에러는 `graphql_error_presented` PostHog 이벤트로 함께 남기고, `source`, `error_code`, `support_code`, `error_kind`, `expected`를 기록하도록 `buildTrackedErrorToastContent` helper를 추가
+- 확인: `backend`에서 `node --check src/resolvers.js`, `node --check src/lib/sentry.js` 통과, `frontend`에서 `pnpm build` 통과
+- 수정 파일: `backend/src/resolvers.js`, `backend/src/lib/sentry.js`, `frontend/src/lib/graphql/client.ts`, `frontend/src/lib/graphql/error-policy.ts`, `frontend/src/lib/analytics.ts`, `frontend/src/constants/ui-copy.ts`, `frontend/src/components/import/import-list-modal.tsx`, `frontend/src/app/routes/import/page.tsx`, `frontend/src/app/saved/[listId]/page.tsx`, `frontend/src/app/routes/[id]/page.tsx`, `frontend/src/components/routes/new-route-client.tsx`, `frontend/src/app/routes/recommendation/page.tsx`, `PROCESS.md`
+- AI 일정 생성/재추천은 quota 이벤트를 먼저 예약하되, 이후 일정 계산 또는 DB 저장이 실패하면 `ai_usage_events`를 롤백하도록 `backend/src/resolvers.js`의 usage tracker를 보강
+- `createSchedule`는 중간 저장 실패 시 방금 생성한 부분 일정 레코드도 정리하도록 cleanup을 추가했고, `regenerateSchedule`도 실패 시 quota 차감은 남지 않게 catch 경로를 정리
+- 확인: `backend`에서 `node --check src/resolvers.js` 통과
+- 수정 파일: `backend/src/resolvers.js`, `PROCESS.md`
+- 추천 일정은 `Draft(is_confirmed=false)`로 먼저 저장하고 `recommendationSchedule` query에서만 조회되게 분리했으며, `confirmSchedule` mutation으로 `내 일정으로 담기`를 눌렀을 때만 Confirmed로 전환되도록 백엔드 스키마/리졸버와 Supabase SQL(`001_init_requirements.sql`, `003_schedule_confirm_state.sql`)을 보강
+- `mySchedules`와 `schedule(id)`는 Confirmed 일정만 노출하도록 바꾸고, Draft를 참조하는 저장 리스트는 삭제 전에 자동 정리되게 했으며, Confirmed 전용 상세/편집 접근에는 `SCHEDULE_CONFIRMATION_REQUIRED` expected error 정책을 추가
+- 프런트 recommendation 화면은 별도 `recommendationScheduleDetail` query key와 `fetchRecommendationScheduleDetail`/`confirmSchedule` GraphQL 문서를 사용하도록 분리했고, route detail 화면은 위 전용 에러 메시지를 비어 있는 일정 안내 대신 보여주도록 정리
+- 확인: `backend`에서 `node --check src/schema.js`, `node --check src/resolvers.js` 통과, `frontend`에서 `pnpm build` 통과
+- 수정 파일: `backend/src/schema.js`, `backend/src/resolvers.js`, `backend/src/lib/sentry.js`, `backend/supabase/sql/001_init_requirements.sql`, `backend/supabase/sql/003_schedule_confirm_state.sql`, `frontend/src/lib/graphql/client.ts`, `frontend/src/lib/graphql/error-policy.ts`, `frontend/src/constants/ui-copy.ts`, `frontend/src/lib/query-keys.ts`, `frontend/src/lib/graphql/documents.ts`, `frontend/src/lib/graphql/api.ts`, `frontend/src/app/routes/recommendation/page.tsx`, `frontend/src/app/routes/[id]/page.tsx`, `PROCESS.md`

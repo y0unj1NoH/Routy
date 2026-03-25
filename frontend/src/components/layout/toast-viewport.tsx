@@ -41,6 +41,7 @@ export function ToastViewport() {
               kind={toast.kind}
               role={toast.kind === "error" ? "alert" : "status"}
               message={toast.message}
+              detail={toast.detail}
               action={
                 <button
                   type="button"

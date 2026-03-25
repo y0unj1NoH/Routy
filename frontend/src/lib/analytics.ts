@@ -46,6 +46,13 @@ type RouteEditAnalyticsPayload = {
 };
 
 type AnalyticsEventMap = {
+  graphql_error_presented: {
+    source: string;
+    error_code: string;
+    support_code?: string;
+    error_kind?: string;
+    expected: boolean;
+  };
   app_page_viewed: {
     page_key: AppPageKey;
     source?: string;

@@ -2,6 +2,7 @@
 
 import {
   ADD_PLACE_LIST_ITEM_MUTATION,
+  CONFIRM_SCHEDULE_MUTATION,
   CREATE_SCHEDULE_MUTATION,
   DELETE_PLACE_LIST_MUTATION,
   DELETE_MY_ACCOUNT_MUTATION,
@@ -15,6 +16,7 @@ import {
   PLACE_LIST_DETAIL_QUERY,
   SAVE_SCHEDULE_EDITS_MUTATION,
   REGENERATE_SCHEDULE_MUTATION,
+  RECOMMENDATION_SCHEDULE_DETAIL_QUERY,
   REMOVE_PLACE_LIST_ITEM_MUTATION,
   SCHEDULE_DETAIL_QUERY,
   UPDATE_SCHEDULE_STOP_MUTATION,
@@ -63,6 +65,15 @@ export async function fetchMySchedules(accessToken: string) {
 export async function fetchScheduleDetail(id: string, accessToken: string) {
   const data = await gqlRequest<{ schedule: Schedule | null }, { id: string }>(SCHEDULE_DETAIL_QUERY, { id }, accessToken);
   return data.schedule;
+}
+
+export async function fetchRecommendationScheduleDetail(id: string, accessToken: string) {
+  const data = await gqlRequest<{ recommendationSchedule: Schedule | null }, { id: string }>(
+    RECOMMENDATION_SCHEDULE_DETAIL_QUERY,
+    { id },
+    accessToken
+  );
+  return data.recommendationSchedule;
 }
 
 export async function updatePlaceList(
@@ -174,6 +185,15 @@ export async function createSchedule(
     accessToken
   );
   return data.createSchedule;
+}
+
+export async function confirmSchedule(accessToken: string, id: string) {
+  const data = await gqlRequest<{ confirmSchedule: { id: string } }, { id: string }>(
+    CONFIRM_SCHEDULE_MUTATION,
+    { id },
+    accessToken
+  );
+  return data.confirmSchedule;
 }
 
 export async function moveScheduleStop(

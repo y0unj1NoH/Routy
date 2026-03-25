@@ -7,6 +7,7 @@ import { z } from "zod";
 
 import { DialogFieldHint, DialogFieldLabel } from "@/components/common/dialog-field";
 import { DialogShell } from "@/components/common/dialog-shell";
+import { ImportListWarningNotice } from "@/components/import/import-list-warning-notice";
 import { LinkInput } from "@/components/common/link-input";
 import { LoadingPanel } from "@/components/common/loading-panel";
 import { UI_COPY } from "@/constants/ui-copy";
@@ -20,6 +21,7 @@ import {
   PLACE_LIST_NAME_MAX_LENGTH
 } from "@/lib/forms/input-schemas";
 import { importPlaceListFromCrawler } from "@/lib/graphql/api";
+import { buildTrackedErrorToastContent } from "@/lib/graphql/error-policy";
 import { resolveImportErrorMessage } from "@/lib/graphql/import-errors";
 import { queryKeys } from "@/lib/query-keys";
 import { useUiStore } from "@/stores/ui-store";
@@ -92,7 +94,10 @@ export function ImportListModal({ isOpen, accessToken, source, onClose, onImport
       });
       const message = resolveImportErrorMessage(error, UI_COPY.importListModal.error);
       form.setError("root", { type: "server", message });
-      pushToast({ kind: "error", message });
+      pushToast({
+        kind: "error",
+        ...buildTrackedErrorToastContent("import_list_modal", error, UI_COPY.importListModal.error, message)
+      });
     }
   });
 
@@ -160,6 +165,8 @@ export function ImportListModal({ isOpen, accessToken, source, onClose, onImport
             {form.formState.errors.root.message}
           </p>
         ) : null}
+
+        <ImportListWarningNotice />
 
         <div className="grid gap-3">
           <div className="space-y-1">
