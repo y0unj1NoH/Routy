@@ -22,6 +22,7 @@ export const UI_COPY = {
       scheduleEditPlaceRequired: "일정에 담을 장소 정보를 다시 확인해 주세요",
       scheduleEditPlaceNotInList: "저장 리스트에 없는 장소는 일정에 넣을 수 없어요",
       scheduleEditDuplicatePlace: "같은 장소는 일정에 한 번만 넣을 수 있어요",
+      scheduleConfirmationRequired: "추천 일정은 먼저 '내 일정으로 담기' 후 자세히 볼 수 있어요",
       tooManyRequests: "요청이 너무 많아요. 잠시 후 다시 시도해 주세요",
       importRequestQuotaExceeded: "이번 달 가져오기 할당량이 모두 소진됐어요\n다음 달에 다시 이용해 주세요",
       importPlaceQuotaExceeded: "이번 달 가져올 수 있는 장소 할당량이 모두 소진됐어요\n다음 달에 다시 이용해 주세요",

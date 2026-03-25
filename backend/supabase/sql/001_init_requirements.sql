@@ -98,6 +98,7 @@ create table public.schedules (
   output_language text not null default 'ko' check (output_language in ('ko', 'en')),
   generation_input jsonb not null default '{}'::jsonb,
   generation_version text not null default 'mvp_v4_ai_route_v1_5',
+  is_confirmed boolean not null default true,
   is_manual_modified boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),

@@ -426,6 +426,27 @@ function failScheduleEditInvalid(kind, details = {}) {
   });
 }
 
+function failScheduleConfirmationRequired(kind = "CONFIRMED_ONLY", details = {}) {
+  fail("Schedule confirmation is required", "SCHEDULE_CONFIRMATION_REQUIRED", {
+    kind,
+    ...details
+  });
+}
+
+function requireConfirmedScheduleRow(scheduleRow, kind = "CONFIRMED_ONLY") {
+  if (!scheduleRow) {
+    return null;
+  }
+
+  if (!Boolean(scheduleRow.is_confirmed)) {
+    failScheduleConfirmationRequired(kind, {
+      scheduleId: scheduleRow.id
+    });
+  }
+
+  return scheduleRow;
+}
+
 function parseDateStrict(value, fieldName) {
   if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
     failDateInputInvalid("FORMAT_INVALID", { fieldName });
@@ -1062,14 +1083,25 @@ async function fetchOwnedSchedule(supabase, userId, scheduleId) {
   return data || null;
 }
 
-async function fetchOwnedScheduleCountByPlaceListId(supabase, userId, placeListId) {
+async function fetchOwnedConfirmedScheduleCountByPlaceListId(supabase, userId, placeListId) {
   const { count, error } = await supabase
     .from(TABLES.schedules)
     .select("id", { count: "exact", head: true })
     .eq("user_id", userId)
-    .eq("place_list_id", placeListId);
+    .eq("place_list_id", placeListId)
+    .eq("is_confirmed", true);
   assertSupabase(error, "Failed to count schedules for place list");
   return Number(count || 0);
+}
+
+async function deleteOwnedDraftSchedulesByPlaceListId(supabase, userId, placeListId) {
+  const { error } = await supabase
+    .from(TABLES.schedules)
+    .delete()
+    .eq("user_id", userId)
+    .eq("place_list_id", placeListId)
+    .eq("is_confirmed", false);
+  assertSupabase(error, "Failed to delete draft schedules for place list");
 }
 
 async function fetchOwnedScheduleStop(supabase, scheduleId, stopId) {
@@ -1582,6 +1614,7 @@ const resolvers = {
         .from(TABLES.schedules)
         .select("*")
         .eq("user_id", user.id)
+        .eq("is_confirmed", true)
         .order("created_at", { ascending: false })
         .range(safeOffset, safeOffset + safeLimit - 1);
       assertSupabase(error, "Failed to fetch schedules");
@@ -1599,10 +1632,17 @@ const resolvers = {
       }));
     },
 
-    async schedule(_, { id }, context) {
+    async recommendationSchedule(_, { id }, context) {
       const user = await requireUser(context);
       const scheduleRow = await fetchOwnedSchedule(context.supabase, user.id, id);
       return scheduleRow ? preloadScheduleDetail(context.supabase, user.id, scheduleRow) : null;
+    },
+
+    async schedule(_, { id }, context) {
+      const user = await requireUser(context);
+      const scheduleRow = await fetchOwnedSchedule(context.supabase, user.id, id);
+      const confirmedScheduleRow = requireConfirmedScheduleRow(scheduleRow, "DETAIL_REQUIRES_CONFIRMATION");
+      return confirmedScheduleRow ? preloadScheduleDetail(context.supabase, user.id, confirmedScheduleRow) : null;
     }
   },
 
@@ -1995,10 +2035,12 @@ const resolvers = {
 
     async deletePlaceList(_, { id }, context) {
       const user = await requireUser(context);
-      const scheduleCount = await fetchOwnedScheduleCountByPlaceListId(context.supabase, user.id, id);
+      const scheduleCount = await fetchOwnedConfirmedScheduleCountByPlaceListId(context.supabase, user.id, id);
       if (scheduleCount > 0) {
         fail("Place list is used by existing schedules", "PLACE_LIST_HAS_SCHEDULES", { scheduleCount });
       }
+
+      await deleteOwnedDraftSchedulesByPlaceListId(context.supabase, user.id, id);
 
       const { data, error } = await context.supabase
         .from(TABLES.placeLists)
@@ -2200,6 +2242,7 @@ const resolvers = {
             output_language: outputLanguage,
             generation_input: generationInput,
             generation_version: GENERATION_VERSION,
+            is_confirmed: false,
             is_manual_modified: false
           })
           .select("*")
@@ -2221,6 +2264,27 @@ const resolvers = {
         await cleanupScheduleAfterCreateFailure(context.supabase, createdScheduleId);
         throw error;
       }
+    },
+
+    async confirmSchedule(_, { id }, context) {
+      const user = await requireUser(context);
+      const existing = await fetchOwnedSchedule(context.supabase, user.id, id);
+      if (!existing) fail("Schedule not found", "NOT_FOUND");
+
+      if (existing.is_confirmed) {
+        return mapSchedule(existing);
+      }
+
+      const { data, error } = await context.supabase
+        .from(TABLES.schedules)
+        .update({ is_confirmed: true })
+        .eq("id", id)
+        .eq("user_id", user.id)
+        .select("*")
+        .single();
+      assertSupabase(error, "Failed to confirm schedule");
+
+      return mapSchedule(data);
     },
 
     async regenerateSchedule(_, { scheduleId, input }, context) {
@@ -2363,6 +2427,7 @@ const resolvers = {
             output_language: outputLanguage,
             generation_input: generationInput,
             generation_version: GENERATION_VERSION,
+            is_confirmed: Boolean(existing.is_confirmed),
             is_manual_modified: false
           })
           .eq("id", scheduleId)
@@ -2394,7 +2459,10 @@ const resolvers = {
 
     async moveScheduleStop(_, { scheduleId, input }, context) {
       const user = await requireUser(context);
-      const schedule = await fetchOwnedSchedule(context.supabase, user.id, scheduleId);
+      const schedule = requireConfirmedScheduleRow(
+        await fetchOwnedSchedule(context.supabase, user.id, scheduleId),
+        "MOVE_REQUIRES_CONFIRMATION"
+      );
       if (!schedule) fail("Schedule not found", "NOT_FOUND");
 
       const { data: dayRows, error: dayError } = await context.supabase
@@ -2475,7 +2543,10 @@ const resolvers = {
 
     async saveScheduleEdits(_, { scheduleId, input }, context) {
       const user = await requireUser(context);
-      const schedule = await fetchOwnedSchedule(context.supabase, user.id, scheduleId);
+      const schedule = requireConfirmedScheduleRow(
+        await fetchOwnedSchedule(context.supabase, user.id, scheduleId),
+        "EDIT_REQUIRES_CONFIRMATION"
+      );
       if (!schedule) fail("Schedule not found", "NOT_FOUND");
 
       const { data: dayRows, error: dayError } = await context.supabase
@@ -2595,7 +2666,10 @@ const resolvers = {
 
     async updateScheduleStop(_, { scheduleId, input }, context) {
       const user = await requireUser(context);
-      const schedule = await fetchOwnedSchedule(context.supabase, user.id, scheduleId);
+      const schedule = requireConfirmedScheduleRow(
+        await fetchOwnedSchedule(context.supabase, user.id, scheduleId),
+        "NOTE_UPDATE_REQUIRES_CONFIRMATION"
+      );
       if (!schedule) fail("Schedule not found", "NOT_FOUND");
       if (!Object.prototype.hasOwnProperty.call(input, "note")) fail("No fields provided for update", "BAD_USER_INPUT");
 

@@ -168,6 +168,54 @@ export const SCHEDULE_DETAIL_QUERY = /* GraphQL */ `
   }
 `;
 
+export const RECOMMENDATION_SCHEDULE_DETAIL_QUERY = /* GraphQL */ `
+  query RecommendationScheduleDetail($id: ID!) {
+    recommendationSchedule(id: $id) {
+      id
+      userId
+      title
+      startDate
+      endDate
+      dayCount
+      companions
+      pace
+      themes
+      outputLanguage
+      generationInput
+      generationVersion
+      isManualModified
+      createdAt
+      updatedAt
+      placeList {
+        ${PLACE_LIST_DETAIL_FIELDS}
+      }
+      stayPlace {
+        ${PLACE_CARD_FIELDS}
+      }
+      stayRecommendation
+      days {
+        id
+        dayNumber
+        date
+        stops {
+          id
+          stopOrder
+          time
+          label
+          isMustVisit
+          note
+          visitTip
+          transportToNext
+          isUserModified
+          place {
+            ${PLACE_CARD_FIELDS}
+          }
+        }
+      }
+    }
+  }
+`;
+
 export const UPDATE_PLACE_LIST_MUTATION = /* GraphQL */ `
   mutation UpdatePlaceList($id: ID!, $input: UpdatePlaceListInput!) {
     updatePlaceList(id: $id, input: $input) {
@@ -238,6 +286,15 @@ export const CREATE_SCHEDULE_MUTATION = /* GraphQL */ `
       endDate
       dayCount
       createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const CONFIRM_SCHEDULE_MUTATION = /* GraphQL */ `
+  mutation ConfirmSchedule($id: ID!) {
+    confirmSchedule(id: $id) {
+      id
       updatedAt
     }
   }

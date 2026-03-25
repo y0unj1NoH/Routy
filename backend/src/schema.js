@@ -221,6 +221,7 @@ const typeDefs = /* GraphQL */ `
     myPlaceLists(limit: Int = 50, offset: Int = 0): [PlaceList!]!
     placeList(id: ID!): PlaceList
     mySchedules(limit: Int = 20, offset: Int = 0): [Schedule!]!
+    recommendationSchedule(id: ID!): Schedule
     schedule(id: ID!): Schedule
   }
 
@@ -243,6 +244,7 @@ const typeDefs = /* GraphQL */ `
     removePlaceListItem(id: ID!): Boolean!
 
     createSchedule(input: CreateScheduleInput!): Schedule!
+    confirmSchedule(id: ID!): Schedule!
     regenerateSchedule(scheduleId: ID!, input: RegenerateScheduleInput!): Schedule!
     moveScheduleStop(scheduleId: ID!, input: MoveScheduleStopInput!): Schedule!
     updateScheduleStop(scheduleId: ID!, input: UpdateScheduleStopInput!): ScheduleStop!

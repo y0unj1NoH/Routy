@@ -30,7 +30,7 @@ import {
   saveScheduleEdits,
   updateScheduleStopNote
 } from "@/lib/graphql/api";
-import { buildTrackedErrorToastContent } from "@/lib/graphql/error-policy";
+import { buildTrackedErrorToastContent, resolveKnownGraphQLErrorMessage } from "@/lib/graphql/error-policy";
 import { resolveImportErrorMessage } from "@/lib/graphql/import-errors";
 import {
   addRouteEditGooglePlace,
@@ -427,12 +427,17 @@ export default function RouteDetailPage() {
     );
   }
 
+  const detailErrorDescription = resolveKnownGraphQLErrorMessage(
+    scheduleQuery.error,
+    UI_COPY.routes.detail.notFoundDescription
+  );
+
   if (scheduleQuery.isError || !schedule || !currentSchedule) {
     return (
       <PageContainer>
         <EmptyState
           title={UI_COPY.routes.detail.notFoundTitle}
-          description={UI_COPY.routes.detail.notFoundDescription}
+          description={detailErrorDescription ?? UI_COPY.routes.detail.notFoundDescription}
           mascotVariant="surprise"
         />
       </PageContainer>

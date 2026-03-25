@@ -85,6 +85,11 @@ const GRAPHQL_ERROR_POLICY: Partial<Record<AppGraphQLErrorCode, GraphQLErrorPoli
       return UI_COPY.common.error.invalidScheduleEdit;
     }
   },
+  SCHEDULE_CONFIRMATION_REQUIRED: {
+    sentry: "ignore",
+    supportCode: "ROUTE-012",
+    message: UI_COPY.common.error.scheduleConfirmationRequired
+  },
   PLACE_LIST_HAS_SCHEDULES: {
     sentry: "ignore",
     supportCode: "LIST-001",
