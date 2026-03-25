@@ -7,6 +7,7 @@ import { z } from "zod";
 
 import { DialogFieldHint, DialogFieldLabel } from "@/components/common/dialog-field";
 import { DialogShell } from "@/components/common/dialog-shell";
+import { ImportListWarningNotice } from "@/components/import/import-list-warning-notice";
 import { LinkInput } from "@/components/common/link-input";
 import { LoadingPanel } from "@/components/common/loading-panel";
 import { UI_COPY } from "@/constants/ui-copy";
@@ -160,6 +161,8 @@ export function ImportListModal({ isOpen, accessToken, source, onClose, onImport
             {form.formState.errors.root.message}
           </p>
         ) : null}
+
+        <ImportListWarningNotice />
 
         <div className="grid gap-3">
           <div className="space-y-1">

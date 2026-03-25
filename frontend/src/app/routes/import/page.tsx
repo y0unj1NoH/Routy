@@ -9,6 +9,7 @@ import { z } from "zod";
 
 import { CategoryBadge } from "@/components/common/category-badge";
 import { DialogFieldHint, DialogFieldLabel } from "@/components/common/dialog-field";
+import { ImportListWarningNotice } from "@/components/import/import-list-warning-notice";
 import { LinkInput } from "@/components/common/link-input";
 import { LoadingPanel } from "@/components/common/loading-panel";
 import { PageTitle } from "@/components/common/page-title";
@@ -175,6 +176,8 @@ export default function ImportRoutePage() {
               {crawlerForm.formState.errors.root.message}
             </p>
           ) : null}
+
+          <ImportListWarningNotice />
 
           <div className="space-y-1">
             <DialogFieldLabel htmlFor={crawlerUrlFieldId} required>

@@ -135,6 +135,7 @@ export const UI_COPY = {
   importListModal: {
     title: "저장 리스트 가져오기",
     description: "Google Maps 저장 리스트 링크를 붙여넣고 리스트 이름과 도시를 확인해 주세요",
+    warning: "Google Maps 저장 리스트는 최대 50개 장소까지만 가져올 수 있어요",
     success: "리스트를 가져왔어요",
     error: "리스트를 가져오지 못했어요",
     submit: "리스트 가져오기",
