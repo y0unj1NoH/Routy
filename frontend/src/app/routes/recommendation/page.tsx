@@ -29,6 +29,7 @@ import { useRouteStopInteractions } from "@/hooks/use-route-stop-interactions";
 import { cn } from "@/lib/cn";
 import { fetchScheduleDetail, regenerateSchedule } from "@/lib/graphql/api";
 import { resolveAiScheduleQuotaMessage } from "@/lib/graphql/ai-schedule-errors";
+import { buildTrackedErrorToastContent } from "@/lib/graphql/error-policy";
 import { buildGoogleDirectionsEmbedUrl } from "@/lib/maps";
 import { queryKeys } from "@/lib/query-keys";
 import { getRouteStayMarker, getRouteStayOverlayMode, getRouteStayRecommendation } from "@/lib/route-stay";
@@ -117,10 +118,21 @@ export default function RecommendationPage() {
       console.error(error);
       const aiQuotaMessage = resolveAiScheduleQuotaMessage(error);
       if (aiQuotaMessage) {
-        pushToast({ kind: "error", message: aiQuotaMessage });
+        pushToast({
+          kind: "error",
+          ...buildTrackedErrorToastContent(
+            "route_recommendation_regenerate",
+            error,
+            UI_COPY.routes.recommendation.toast.regenerateError,
+            aiQuotaMessage
+          )
+        });
         return;
       }
-      pushToast({ kind: "error", message: UI_COPY.routes.recommendation.toast.regenerateError });
+      pushToast({
+        kind: "error",
+        ...buildTrackedErrorToastContent("route_recommendation_regenerate", error, UI_COPY.routes.recommendation.toast.regenerateError)
+      });
     }
   });
 

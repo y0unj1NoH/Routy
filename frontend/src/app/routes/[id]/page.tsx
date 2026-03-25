@@ -30,7 +30,7 @@ import {
   saveScheduleEdits,
   updateScheduleStopNote
 } from "@/lib/graphql/api";
-import { AppGraphQLError } from "@/lib/graphql/client";
+import { buildTrackedErrorToastContent } from "@/lib/graphql/error-policy";
 import { resolveImportErrorMessage } from "@/lib/graphql/import-errors";
 import {
   addRouteEditGooglePlace,
@@ -232,7 +232,10 @@ export default function RouteDetailPage() {
     },
     onError: (error: Error) => {
       console.error(error);
-      pushToast({ kind: "error", message: UI_COPY.routes.detail.toast.deleteError });
+      pushToast({
+        kind: "error",
+        ...buildTrackedErrorToastContent("route_detail_delete", error, UI_COPY.routes.detail.toast.deleteError)
+      });
     }
   });
 
@@ -302,7 +305,10 @@ export default function RouteDetailPage() {
     },
     onError: (error: Error) => {
       console.error(error);
-      pushToast({ kind: "error", message: "변경 내용을 저장하지 못했어요" });
+      pushToast({
+        kind: "error",
+        ...buildTrackedErrorToastContent("route_detail_save", error, "변경 내용을 저장하지 못했어요")
+      });
     }
   });
 
@@ -372,18 +378,11 @@ export default function RouteDetailPage() {
         pushToast({ kind: "info", message: error.message });
         return;
       }
-      if (
-        error instanceof AppGraphQLError &&
-        (error.code === "BAD_USER_INPUT" ||
-          error.code === "NOT_FOUND" ||
-          error.code === "IMPORT_LIST_QUOTA_EXCEEDED" ||
-          error.code === "IMPORT_PLACE_QUOTA_EXCEEDED")
-      ) {
-        pushToast({ kind: "error", message: resolveImportErrorMessage(error, "Google 장소를 추가하지 못했어요") });
-        return;
-      }
-
-      pushToast({ kind: "error", message: "Google 장소를 추가하지 못했어요" });
+      const message = resolveImportErrorMessage(error, "Google 장소를 추가하지 못했어요");
+      pushToast({
+        kind: "error",
+        ...buildTrackedErrorToastContent("route_detail_add_google_place", error, "Google 장소를 추가하지 못했어요", message)
+      });
     }
   });
 

@@ -1,6 +1,7 @@
 import * as Sentry from "@sentry/nextjs";
 
-import { AppGraphQLError, type AppGraphQLErrorCode } from "@/lib/graphql/client";
+import { AppGraphQLError } from "@/lib/graphql/client";
+import { isExpectedGraphQLError } from "@/lib/graphql/error-policy";
 
 type ReactQueryOperation = "query" | "mutation";
 
@@ -10,20 +11,10 @@ type ReactQueryErrorContext = {
   meta?: unknown;
 };
 
-const EXPECTED_GRAPHQL_ERROR_CODES = new Set<AppGraphQLErrorCode>([
-  "UNAUTHENTICATED",
-  "BAD_USER_INPUT",
-  "IMPORT_LIST_QUOTA_EXCEEDED",
-  "IMPORT_PLACE_QUOTA_EXCEEDED",
-  "AI_DAILY_QUOTA_EXCEEDED",
-  "AI_SYSTEM_MONTHLY_QUOTA_EXCEEDED",
-  "NOT_FOUND"
-]);
-
 const SENTRY_EXTRA_LIMIT = 2_000;
 
 function isExpectedAppError(error: Error) {
-  return error instanceof AppGraphQLError && EXPECTED_GRAPHQL_ERROR_CODES.has(error.code);
+  return isExpectedGraphQLError(error);
 }
 
 function isAbortError(error: Error) {
@@ -42,6 +33,15 @@ function stringifyForSentry(value: unknown) {
     const fallback = String(value);
     return fallback.length > SENTRY_EXTRA_LIMIT ? `${fallback.slice(0, SENTRY_EXTRA_LIMIT)}...` : fallback;
   }
+}
+
+function getDetailsKind(details: unknown) {
+  if (!details || typeof details !== "object") {
+    return undefined;
+  }
+
+  const kind = (details as { kind?: unknown }).kind;
+  return typeof kind === "string" && kind.trim() ? kind : undefined;
 }
 
 function getQueryResourceName(key: unknown) {
@@ -95,9 +95,17 @@ export function captureReactQueryError(operation: ReactQueryOperation, error: un
     }
 
     if (error instanceof AppGraphQLError) {
+      const detailsKind = getDetailsKind(error.details);
+
+      scope.setTag("graphql.error_code", error.code);
+      if (detailsKind) {
+        scope.setTag("graphql.error_kind", detailsKind);
+      }
+
       scope.setContext("graphql", {
         code: error.code,
-        status: error.status ?? 0
+        status: error.status ?? 0,
+        kind: detailsKind ?? null
       });
 
       const details = stringifyForSentry(error.details);

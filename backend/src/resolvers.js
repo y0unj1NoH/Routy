@@ -18,6 +18,7 @@ const { scrapeList } = require("./lib/aiCrawler");
 const { buildAiSchedulePlan } = require("./lib/geminiOptimizer");
 const {
   hasGooglePlacesApiKey,
+  inspectGoogleMapsLink,
   resolveGoogleMapsLink,
   searchPlacesByText,
   fetchPlaceDetailsById,
@@ -390,14 +391,49 @@ function filterSchedulableCandidates(candidates) {
   });
 }
 
+function failDateInputInvalid(kind, details = {}) {
+  fail("Invalid date input", "DATE_INPUT_INVALID", {
+    kind,
+    ...details
+  });
+}
+
+function failPlaceListSelectionInvalid(kind, details = {}) {
+  fail("Invalid place list selection", "PLACE_LIST_SELECTION_INVALID", {
+    kind,
+    ...details
+  });
+}
+
+function failRegenerationInputInvalid(kind, details = {}) {
+  fail("Invalid schedule regeneration input", "REGENERATION_INPUT_INVALID", {
+    kind,
+    ...details
+  });
+}
+
+function failScheduleStopMoveInvalid(kind, details = {}) {
+  fail("Invalid schedule stop move input", "SCHEDULE_STOP_MOVE_INVALID", {
+    kind,
+    ...details
+  });
+}
+
+function failScheduleEditInvalid(kind, details = {}) {
+  fail("Invalid schedule edit input", "SCHEDULE_EDIT_INVALID", {
+    kind,
+    ...details
+  });
+}
+
 function parseDateStrict(value, fieldName) {
   if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    fail(`${fieldName} must be YYYY-MM-DD`, "BAD_USER_INPUT");
+    failDateInputInvalid("FORMAT_INVALID", { fieldName });
   }
 
   const date = new Date(`${value}T00:00:00Z`);
   if (Number.isNaN(date.getTime())) {
-    fail(`${fieldName} is invalid`, "BAD_USER_INPUT");
+    failDateInputInvalid("VALUE_INVALID", { fieldName });
   }
 
   return date;
@@ -408,12 +444,19 @@ function computeDayCount(startDate, endDate) {
   const end = parseDateStrict(endDate, "endDate");
   const diffMs = end.getTime() - start.getTime();
   if (diffMs < 0) {
-    fail("endDate must be greater than or equal to startDate", "BAD_USER_INPUT");
+    failDateInputInvalid("RANGE_INVALID", {
+      startDate,
+      endDate
+    });
   }
 
   const dayCount = Math.floor(diffMs / (24 * 60 * 60 * 1000)) + 1;
   if (dayCount < 1 || dayCount > MAX_SCHEDULE_DAY_COUNT) {
-    fail(`dayCount must be between 1 and ${MAX_SCHEDULE_DAY_COUNT}`, "BAD_USER_INPUT");
+    failDateInputInvalid("DAY_COUNT_INVALID", {
+      dayCount,
+      min: 1,
+      max: MAX_SCHEDULE_DAY_COUNT
+    });
   }
   return dayCount;
 }
@@ -503,7 +546,7 @@ function assertMustVisitLimit({ candidates, dayCount, limit }) {
   if (mustVisitCount > limit) {
     fail(
       `${dayCount}일 여행에서는 Must Visit를 최대 ${limit}개까지 반영할 수 있어요`,
-      "BAD_USER_INPUT",
+      "MUST_VISIT_LIMIT_EXCEEDED",
       buildMustVisitLimitDetails(dayCount, mustVisitCount, limit)
     );
   }
@@ -756,8 +799,15 @@ async function fetchAiUsageSnapshot(adminClient, userId, usageDate, usageMonth) 
 }
 
 async function insertAiUsageEvent(adminClient, payload) {
-  const { error } = await adminClient.from(TABLES.aiUsageEvents).insert(payload);
+  const { data, error } = await adminClient.from(TABLES.aiUsageEvents).insert(payload).select("id").single();
   assertSupabase(error, "Failed to record AI usage");
+  return data?.id || null;
+}
+
+async function deleteAiUsageEvent(adminClient, eventId) {
+  if (!eventId) return;
+  const { error } = await adminClient.from(TABLES.aiUsageEvents).delete().eq("id", eventId);
+  assertSupabase(error, "Failed to rollback AI usage");
 }
 
 function createAiUsageTracker(userId, source) {
@@ -766,6 +816,8 @@ function createAiUsageTracker(userId, source) {
   const usageMonth = getKstMonthKey();
   let snapshotPromise = null;
   let recorded = false;
+  let finalized = false;
+  let usageEventId = null;
 
   async function getSnapshot() {
     if (!snapshotPromise) {
@@ -786,7 +838,7 @@ function createAiUsageTracker(userId, source) {
         failDailyAiGenerationLimitExceeded();
       }
 
-      await insertAiUsageEvent(adminClient, {
+      usageEventId = await insertAiUsageEvent(adminClient, {
         user_id: userId,
         usage_date: usageDate,
         usage_month: usageMonth,
@@ -796,6 +848,37 @@ function createAiUsageTracker(userId, source) {
       usage.dailyUserCount += 1;
       usage.monthlySystemCount += 1;
       recorded = true;
+    },
+
+    commitUsage() {
+      finalized = true;
+    },
+
+    async rollbackUsage() {
+      if (!recorded || finalized) return;
+
+      try {
+        await deleteAiUsageEvent(adminClient, usageEventId);
+        const usage = await getSnapshot();
+        usage.dailyUserCount = Math.max(0, usage.dailyUserCount - 1);
+        usage.monthlySystemCount = Math.max(0, usage.monthlySystemCount - 1);
+      } catch (error) {
+        captureBackendException(error, {
+          source: "ai-usage-rollback",
+          tags: {
+            "ai.usage.source": source
+          },
+          extras: {
+            userId,
+            usageDate,
+            usageMonth,
+            usageEventId
+          }
+        });
+      } finally {
+        usageEventId = null;
+        recorded = false;
+      }
     }
   };
 }
@@ -977,6 +1060,16 @@ async function fetchOwnedSchedule(supabase, userId, scheduleId) {
     .maybeSingle();
   assertSupabase(error, "Failed to fetch schedule");
   return data || null;
+}
+
+async function fetchOwnedScheduleCountByPlaceListId(supabase, userId, placeListId) {
+  const { count, error } = await supabase
+    .from(TABLES.schedules)
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .eq("place_list_id", placeListId);
+  assertSupabase(error, "Failed to count schedules for place list");
+  return Number(count || 0);
 }
 
 async function fetchOwnedScheduleStop(supabase, scheduleId, stopId) {
@@ -1248,6 +1341,22 @@ async function writeScheduleDaysAndStops({ supabase, scheduleId, planDays, start
   }
 }
 
+async function cleanupScheduleAfterCreateFailure(supabase, scheduleId) {
+  if (!scheduleId) return;
+
+  try {
+    const { error } = await supabase.from(TABLES.schedules).delete().eq("id", scheduleId);
+    assertSupabase(error, "Failed to cleanup partial schedule");
+  } catch (error) {
+    captureBackendException(error, {
+      source: "schedule-create-cleanup",
+      extras: {
+        scheduleId
+      }
+    });
+  }
+}
+
 function sanitizePlanDaysForPersistence({ planDays, placeById, outputLanguage, tripDays }) {
   const tripDayByNumber = new Map((tripDays || []).map((tripDay) => [Number(tripDay.day), tripDay]));
 
@@ -1379,7 +1488,7 @@ function resolvePlanningPreparation({ candidates, dayCount, generationInputBase,
     if (error?.code === "AI_CANDIDATE_LIMIT_EXCEEDED") {
       fail(
         `AI 일정 생성에는 최대 ${MAX_AI_CANDIDATES}개 장소까지 사용할 수 있어요.`,
-        "BAD_USER_INPUT",
+        "AI_CANDIDATE_LIMIT_EXCEEDED",
         error.details || null
       );
     }
@@ -1537,6 +1646,14 @@ const resolvers = {
         "IMPORT_PLACE_LIST_RATE_LIMITED"
       );
 
+      const inspectedLink = await inspectGoogleMapsLink(url);
+      if (inspectedLink.linkTypeHint === "PLACE") {
+        fail(
+          "Google Maps 저장 리스트 링크만 가져올 수 있어요. 장소 상세 링크 대신 저장 리스트 공유 링크를 넣어 주세요.",
+          "GOOGLE_MAPS_LIST_LINK_REQUIRED"
+        );
+      }
+
       // 1. Scrape the list using Puppeteer
       const scrapedPlaces = await scrapeList(url);
       const normalizedScrapedPlaces = (scrapedPlaces || [])
@@ -1551,10 +1668,10 @@ const resolvers = {
         fail("No places found at the provided URL", "BAD_USER_INPUT");
       }
       if (normalizedScrapedPlaces.length > MAX_PLACE_LIST_ITEMS) {
-        fail(
-          `Google Maps 리스트는 최대 ${MAX_PLACE_LIST_ITEMS}개 장소까지 가져올 수 있어요.`,
-          "BAD_USER_INPUT"
-        );
+        fail("Google Maps list has too many places", "GOOGLE_MAPS_LIST_ITEM_LIMIT_EXCEEDED", {
+          limit: MAX_PLACE_LIST_ITEMS,
+          count: normalizedScrapedPlaces.length
+        });
       }
       const importUsageTracker = createMonthlyImportUsageTracker(user.id, IMPORT_USAGE_SOURCES.googleMapsList);
       await importUsageTracker.ensurePlaceCapacity(normalizedScrapedPlaces.length);
@@ -1657,13 +1774,6 @@ const resolvers = {
         existingItem.is_must_visit = existingItem.is_must_visit || item.is_must_visit;
       }
 
-      if (dedupedImportedItems.length > MAX_PLACE_LIST_ITEMS) {
-        fail(
-          `리스트에는 최대 ${MAX_PLACE_LIST_ITEMS}개까지 담을 수 있어요.`,
-          "BAD_USER_INPUT"
-        );
-      }
-
       // 3. Create list only after we have at least one imported place.
       const payload = {
         user_id: user.id,
@@ -1701,6 +1811,13 @@ const resolvers = {
       const resolved = await resolveGoogleMapsLink(url, {
         onSearchByText: () => importUsageTracker.recordSearchMiss()
       });
+      if (resolved.kind === "LIST" || resolved.linkTypeHint === "LIST") {
+        fail(
+          "Google Maps 장소 상세 링크만 가져올 수 있어요. 저장 리스트나 검색 결과 링크 대신 장소 상세 링크를 넣어 주세요.",
+          "GOOGLE_MAPS_PLACE_LINK_REQUIRED"
+        );
+      }
+
       const placeDetailsCache = new Map();
       const storedPlaceCache = new Map();
 
@@ -1799,7 +1916,12 @@ const resolvers = {
       await requireUser(context);
       const existing = await fetchPlaceById(context.supabase, id);
       if (!existing) fail("Place not found", "NOT_FOUND");
-      if (!existing.google_place_id) fail("googlePlaceId is missing", "BAD_USER_INPUT");
+      if (!existing.google_place_id) {
+        fail("Stored place is missing google_place_id", "INTERNAL_SERVER_ERROR", {
+          kind: "PLACE_GOOGLE_ID_MISSING",
+          placeId: id
+        });
+      }
 
       const details = await fetchPlaceDetailsById(existing.google_place_id);
       const patch = normalizePlacePayload(details, {
@@ -1873,6 +1995,11 @@ const resolvers = {
 
     async deletePlaceList(_, { id }, context) {
       const user = await requireUser(context);
+      const scheduleCount = await fetchOwnedScheduleCountByPlaceListId(context.supabase, user.id, id);
+      if (scheduleCount > 0) {
+        fail("Place list is used by existing schedules", "PLACE_LIST_HAS_SCHEDULES", { scheduleCount });
+      }
+
       const { data, error } = await context.supabase
         .from(TABLES.placeLists)
         .delete()
@@ -1906,10 +2033,10 @@ const resolvers = {
       } else {
         const itemCount = await fetchPlaceListItemCount(context.supabase, input.listId);
         if (itemCount >= MAX_PLACE_LIST_ITEMS) {
-          fail(
-            `리스트에는 최대 ${MAX_PLACE_LIST_ITEMS}개까지 담을 수 있어요.`,
-            "BAD_USER_INPUT"
-          );
+          fail("Place list item limit exceeded", "PLACE_LIST_ITEM_LIMIT_EXCEEDED", {
+            limit: MAX_PLACE_LIST_ITEMS,
+            count: itemCount
+          });
         }
         const sortOrder = await fetchNextPlaceListSortOrder(context.supabase, input.listId);
         const { error } = await context.supabase.from(TABLES.placeListItems).insert({
@@ -1964,7 +2091,11 @@ const resolvers = {
       const user = await requireUser(context);
       assertRateLimit(context, user, MUTATION_RATE_LIMITS.createSchedule, "CREATE_SCHEDULE_RATE_LIMITED");
       const list = await fetchOwnedPlaceList(context.supabase, user.id, input.placeListId);
-      if (!list) fail("placeListId is invalid", "BAD_USER_INPUT");
+      if (!list) {
+        failPlaceListSelectionInvalid("PLACE_LIST_ID_INVALID", {
+          placeListId: input.placeListId
+        });
+      }
 
       const startDate = input.startDate;
       const endDate = input.endDate;
@@ -1973,12 +2104,12 @@ const resolvers = {
 
       const { items, candidates, placeById } = await fetchPlaceListCandidates(context.supabase, list.id);
       if (candidates.length === 0) {
-        fail("Selected place list has no places", "BAD_USER_INPUT");
+        fail("Selected place list has no places", "PLACE_LIST_EMPTY_FOR_SCHEDULE");
       }
 
       const schedulableCandidates = filterSchedulableCandidates(candidates);
       if (schedulableCandidates.length === 0) {
-        fail("숙소를 제외하면 추천 일정으로 만들 수 있는 장소가 없어요. 다른 장소를 더 추가해 주세요.", "BAD_USER_INPUT");
+        fail("No schedulable places remain after excluding stay places", "SCHEDULE_NO_SCHEDULABLE_PLACES");
       }
 
       const candidatePreprocess = preprocessCandidatesForSchedule({
@@ -1986,7 +2117,7 @@ const resolvers = {
         cityName: list.city
       });
       if (candidatePreprocess.candidates.length === 0) {
-        fail("리스트 전처리 후 일정 후보가 남지 않았어요. 장소를 다시 확인해 주세요.", "BAD_USER_INPUT");
+        fail("No candidates remain after preprocessing", "SCHEDULE_CANDIDATES_EMPTY_AFTER_PREPROCESS");
       }
 
       assertMustVisitLimit({
@@ -1998,11 +2129,11 @@ const resolvers = {
       const stayPlaceId = input.stayPlaceId || null;
       const stayListItem = stayPlaceId ? items.find((item) => item.place_id === stayPlaceId) || null : null;
       if (stayPlaceId && !stayListItem) {
-        fail("선택한 숙소가 저장 리스트에 없어요. 다시 선택해 주세요.", "BAD_USER_INPUT");
+        fail("Selected stay place does not belong to the place list", "STAY_PLACE_NOT_IN_LIST");
       }
       const stayPlace = stayPlaceId ? placeById.get(stayPlaceId) || null : null;
       if (stayPlaceId && !stayPlace) {
-        fail("선택한 숙소 정보를 찾지 못했어요. 다시 선택해 주세요.", "BAD_USER_INPUT");
+        fail("Selected stay place data is missing", "STAY_PLACE_DATA_MISSING");
       }
 
       const outputLanguage = normalizeLanguage(
@@ -2038,49 +2169,58 @@ const resolvers = {
 
       const aiUsageTracker = createAiUsageTracker(user.id, AI_USAGE_SOURCES.createSchedule);
       await aiUsageTracker.recordUsage();
+      let createdScheduleId = null;
 
-      const planDays = await resolveSchedulePlanDays({
-        candidates: planningCandidates,
-        dayCount,
-        stayPlace,
-        placeById,
-        generationInput,
-        outputLanguage
-      });
+      try {
+        const planDays = await resolveSchedulePlanDays({
+          candidates: planningCandidates,
+          dayCount,
+          stayPlace,
+          placeById,
+          generationInput,
+          outputLanguage
+        });
 
-      const stayRecommendation = stayPlace ? null : buildStayRecommendation(planDays, placeById);
+        const stayRecommendation = stayPlace ? null : buildStayRecommendation(planDays, placeById);
 
-      const { data: scheduleRow, error: scheduleError } = await context.supabase
-        .from(TABLES.schedules)
-        .insert({
-          user_id: user.id,
-          title: trimRequired(input.title, "title"),
-          start_date: startDate,
-          end_date: endDate,
-          day_count: dayCount,
-          place_list_id: list.id,
-          stay_place_id: stayPlaceId,
-          stay_recommendation: stayRecommendation,
-          companions: input.companions ?? null,
-          pace: normalizePace(input.pace) ?? null,
-          themes,
-          output_language: outputLanguage,
-          generation_input: generationInput,
-          generation_version: GENERATION_VERSION,
-          is_manual_modified: false
-        })
-        .select("*")
-        .single();
-      assertSupabase(scheduleError, "Failed to create schedule");
+        const { data: scheduleRow, error: scheduleError } = await context.supabase
+          .from(TABLES.schedules)
+          .insert({
+            user_id: user.id,
+            title: trimRequired(input.title, "title"),
+            start_date: startDate,
+            end_date: endDate,
+            day_count: dayCount,
+            place_list_id: list.id,
+            stay_place_id: stayPlaceId,
+            stay_recommendation: stayRecommendation,
+            companions: input.companions ?? null,
+            pace: normalizePace(input.pace) ?? null,
+            themes,
+            output_language: outputLanguage,
+            generation_input: generationInput,
+            generation_version: GENERATION_VERSION,
+            is_manual_modified: false
+          })
+          .select("*")
+          .single();
+        assertSupabase(scheduleError, "Failed to create schedule");
+        createdScheduleId = scheduleRow.id;
 
-      await writeScheduleDaysAndStops({
-        supabase: context.supabase,
-        scheduleId: scheduleRow.id,
-        planDays,
-        startDate
-      });
+        await writeScheduleDaysAndStops({
+          supabase: context.supabase,
+          scheduleId: scheduleRow.id,
+          planDays,
+          startDate
+        });
 
-      return mapSchedule(scheduleRow);
+        aiUsageTracker.commitUsage();
+        return mapSchedule(scheduleRow);
+      } catch (error) {
+        await aiUsageTracker.rollbackUsage();
+        await cleanupScheduleAfterCreateFailure(context.supabase, createdScheduleId);
+        throw error;
+      }
     },
 
     async regenerateSchedule(_, { scheduleId, input }, context) {
@@ -2097,17 +2237,24 @@ const resolvers = {
       const startDate = input.startDate || existing.start_date;
       const endDate = input.endDate || existing.end_date;
       if (!startDate || !endDate) {
-        fail("startDate and endDate are required for regeneration", "BAD_USER_INPUT");
+        failRegenerationInputInvalid("DATE_RANGE_REQUIRED");
       }
 
       const dayCount = computeDayCount(startDate, endDate);
       const placeListId = input.placeListId || existing.place_list_id;
       if (!placeListId) {
-        fail("placeListId is missing", "BAD_USER_INPUT");
+        fail("Schedule is missing place_list_id", "INTERNAL_SERVER_ERROR", {
+          kind: "SCHEDULE_PLACE_LIST_ID_MISSING",
+          scheduleId: existing.id
+        });
       }
 
       const list = await fetchOwnedPlaceList(context.supabase, user.id, placeListId);
-      if (!list) fail("placeListId is invalid", "BAD_USER_INPUT");
+      if (!list) {
+        failPlaceListSelectionInvalid("PLACE_LIST_ID_INVALID", {
+          placeListId
+        });
+      }
 
       const themes = Object.prototype.hasOwnProperty.call(input, "themes")
         ? normalizeThemes(input.themes)
@@ -2128,20 +2275,20 @@ const resolvers = {
           : null;
       const stayListItem = stayPlaceId ? items.find((item) => item.place_id === stayPlaceId) || null : null;
       if (stayPlaceId && !stayListItem) {
-        fail("선택한 숙소가 저장 리스트에 없어요. 다시 선택해 주세요.", "BAD_USER_INPUT");
+        fail("Selected stay place does not belong to the place list", "STAY_PLACE_NOT_IN_LIST");
       }
       const stayPlace = stayPlaceId ? placeById.get(stayPlaceId) || null : null;
       if (stayPlaceId && !stayPlace) {
-        fail("선택한 숙소 정보를 찾지 못했어요. 다시 선택해 주세요.", "BAD_USER_INPUT");
+        fail("Selected stay place data is missing", "STAY_PLACE_DATA_MISSING");
       }
 
       if (candidates.length === 0) {
-        fail("Selected place list has no places", "BAD_USER_INPUT");
+        fail("Selected place list has no places", "PLACE_LIST_EMPTY_FOR_SCHEDULE");
       }
 
       const schedulableCandidates = filterSchedulableCandidates(candidates);
       if (schedulableCandidates.length === 0) {
-        fail("숙소를 제외하면 추천 일정으로 만들 수 있는 장소가 없어요. 다른 장소를 더 추가해 주세요.", "BAD_USER_INPUT");
+        fail("No schedulable places remain after excluding stay places", "SCHEDULE_NO_SCHEDULABLE_PLACES");
       }
 
       const candidatePreprocess = preprocessCandidatesForSchedule({
@@ -2149,7 +2296,7 @@ const resolvers = {
         cityName: list.city
       });
       if (candidatePreprocess.candidates.length === 0) {
-        fail("리스트 전처리 후 일정 후보가 남지 않았어요. 장소를 다시 확인해 주세요.", "BAD_USER_INPUT");
+        fail("No candidates remain after preprocessing", "SCHEDULE_CANDIDATES_EMPTY_AFTER_PREPROCESS");
       }
 
       const normalizedPace = normalizePace(pace);
@@ -2188,55 +2335,61 @@ const resolvers = {
       const aiUsageTracker = createAiUsageTracker(user.id, AI_USAGE_SOURCES.regenerateSchedule);
       await aiUsageTracker.recordUsage();
 
-      const planDays = await resolveSchedulePlanDays({
-        candidates: planningCandidates,
-        dayCount,
-        stayPlace,
-        placeById,
-        generationInput,
-        outputLanguage
-      });
+      try {
+        const planDays = await resolveSchedulePlanDays({
+          candidates: planningCandidates,
+          dayCount,
+          stayPlace,
+          placeById,
+          generationInput,
+          outputLanguage
+        });
 
-      const stayRecommendation = stayPlace ? null : buildStayRecommendation(planDays, placeById);
+        const stayRecommendation = stayPlace ? null : buildStayRecommendation(planDays, placeById);
 
-      const { data: updatedSchedule, error: updateError } = await context.supabase
-        .from(TABLES.schedules)
-        .update({
-          title: trimRequired(existing.title, "title"),
-          start_date: startDate,
-          end_date: endDate,
-          day_count: dayCount,
-          place_list_id: list.id,
-          stay_place_id: stayPlaceId ?? null,
-          stay_recommendation: stayRecommendation,
-          companions: companions ?? null,
-          pace: normalizedPace ?? null,
-          themes,
-          output_language: outputLanguage,
-          generation_input: generationInput,
-          generation_version: GENERATION_VERSION,
-          is_manual_modified: false
-        })
-        .eq("id", scheduleId)
-        .eq("user_id", user.id)
-        .select("*")
-        .single();
-      assertSupabase(updateError, "Failed to update schedule");
+        const { data: updatedSchedule, error: updateError } = await context.supabase
+          .from(TABLES.schedules)
+          .update({
+            title: trimRequired(existing.title, "title"),
+            start_date: startDate,
+            end_date: endDate,
+            day_count: dayCount,
+            place_list_id: list.id,
+            stay_place_id: stayPlaceId ?? null,
+            stay_recommendation: stayRecommendation,
+            companions: companions ?? null,
+            pace: normalizedPace ?? null,
+            themes,
+            output_language: outputLanguage,
+            generation_input: generationInput,
+            generation_version: GENERATION_VERSION,
+            is_manual_modified: false
+          })
+          .eq("id", scheduleId)
+          .eq("user_id", user.id)
+          .select("*")
+          .single();
+        assertSupabase(updateError, "Failed to update schedule");
 
-      const { error: deleteDaysError } = await context.supabase
-        .from(TABLES.scheduleDays)
-        .delete()
-        .eq("schedule_id", scheduleId);
-      assertSupabase(deleteDaysError, "Failed to reset schedule days");
+        const { error: deleteDaysError } = await context.supabase
+          .from(TABLES.scheduleDays)
+          .delete()
+          .eq("schedule_id", scheduleId);
+        assertSupabase(deleteDaysError, "Failed to reset schedule days");
 
-      await writeScheduleDaysAndStops({
-        supabase: context.supabase,
-        scheduleId,
-        planDays,
-        startDate
-      });
+        await writeScheduleDaysAndStops({
+          supabase: context.supabase,
+          scheduleId,
+          planDays,
+          startDate
+        });
 
-      return mapSchedule(updatedSchedule);
+        aiUsageTracker.commitUsage();
+        return mapSchedule(updatedSchedule);
+      } catch (error) {
+        await aiUsageTracker.rollbackUsage();
+        throw error;
+      }
     },
 
     async moveScheduleStop(_, { scheduleId, input }, context) {
@@ -2252,7 +2405,11 @@ const resolvers = {
       assertSupabase(dayError, "Failed to fetch schedule days");
 
       const targetDay = (dayRows || []).find((row) => row.day_number === input.targetDayNumber);
-      if (!targetDay) fail("targetDayNumber is invalid", "BAD_USER_INPUT");
+      if (!targetDay) {
+        failScheduleStopMoveInvalid("TARGET_DAY_INVALID", {
+          targetDayNumber: input.targetDayNumber
+        });
+      }
 
       const dayIds = (dayRows || []).map((row) => row.id);
       const { data: stopRows, error: stopError } = await context.supabase
@@ -2263,7 +2420,11 @@ const resolvers = {
       assertSupabase(stopError, "Failed to fetch schedule stops");
 
       const movingStop = (stopRows || []).find((row) => row.id === input.stopId);
-      if (!movingStop) fail("stopId is invalid", "BAD_USER_INPUT");
+      if (!movingStop) {
+        failScheduleStopMoveInvalid("STOP_ID_INVALID", {
+          stopId: input.stopId
+        });
+      }
 
       const byDay = new Map(dayIds.map((id) => [id, []]));
       for (const row of stopRows || []) {
@@ -2329,17 +2490,24 @@ const resolvers = {
       const inputDays = Array.isArray(input?.days) ? input.days : [];
 
       if (inputDays.length !== expectedDayRows.length) {
-        fail("days must include every schedule day", "BAD_USER_INPUT");
+        failScheduleEditInvalid("DAYS_MISMATCH", {
+          expectedDayCount: expectedDayRows.length,
+          receivedDayCount: inputDays.length
+        });
       }
 
       const seenDayNumbers = new Set();
       for (const dayInput of inputDays) {
         const dayNumber = Number(dayInput?.dayNumber);
         if (!Number.isInteger(dayNumber) || !dayRowsByNumber.has(dayNumber)) {
-          fail("dayNumber is invalid", "BAD_USER_INPUT");
+          failScheduleEditInvalid("DAY_NUMBER_INVALID", {
+            dayNumber: dayInput?.dayNumber
+          });
         }
         if (seenDayNumbers.has(dayNumber)) {
-          fail("dayNumber must be unique", "BAD_USER_INPUT");
+          failScheduleEditInvalid("DAY_NUMBER_DUPLICATED", {
+            dayNumber
+          });
         }
         seenDayNumbers.add(dayNumber);
       }
@@ -2359,20 +2527,25 @@ const resolvers = {
         for (const stopInput of stops) {
           const placeId = String(stopInput?.placeId || "").trim();
           if (!placeId) {
-            fail("placeId is required", "BAD_USER_INPUT");
+            failScheduleEditInvalid("PLACE_ID_REQUIRED");
           }
           if (!allowedPlaceIds.has(placeId)) {
-            fail("All edited stops must belong to the schedule place list", "BAD_USER_INPUT");
+            failScheduleEditInvalid("PLACE_NOT_IN_LIST", {
+              placeId
+            });
           }
           if (!mappedPlaceById.has(placeId)) {
-            fail("Place data is missing for an edited stop", "BAD_USER_INPUT");
+            fail("Place data is missing for an edited stop", "INTERNAL_SERVER_ERROR", {
+              kind: "SCHEDULE_EDIT_PLACE_DATA_MISSING",
+              placeId
+            });
           }
           allPlaceIds.push(placeId);
         }
       }
 
       if (new Set(allPlaceIds).size !== allPlaceIds.length) {
-        fail("Each place can only appear once in a saved schedule", "BAD_USER_INPUT");
+        failScheduleEditInvalid("DUPLICATE_PLACE");
       }
 
       const nextStopsByDayNumber = new Map(

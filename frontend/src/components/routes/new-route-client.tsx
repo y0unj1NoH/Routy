@@ -61,6 +61,7 @@ import { cn } from "@/lib/cn";
 import { AppGraphQLError } from "@/lib/graphql/client";
 import { resolveAiScheduleQuotaMessage } from "@/lib/graphql/ai-schedule-errors";
 import { addPlaceListItem, createSchedule, fetchMyPlaceLists, fetchPlaceListDetail, importPlaceFromGoogleLink } from "@/lib/graphql/api";
+import { buildTrackedErrorToastContent } from "@/lib/graphql/error-policy";
 import { resolveImportErrorMessage } from "@/lib/graphql/import-errors";
 import { queryKeys } from "@/lib/query-keys";
 import { useCreateScheduleStore } from "@/stores/create-schedule-store";
@@ -217,14 +218,19 @@ function resolveFinalMustVisitLimit(dayCount: number | null, pace: string | null
 }
 
 function isMustVisitLimitExceededError(error: unknown): error is AppGraphQLError & {
-  details: { kind: "MUST_VISIT_LIMIT_EXCEEDED"; dayCount: number; mustVisitCount: number; limit: number };
+  details: { dayCount: number; mustVisitCount: number; limit: number };
 } {
+  if (!(error instanceof AppGraphQLError) || error.code !== "MUST_VISIT_LIMIT_EXCEEDED") {
+    return false;
+  }
+
+  const details = error.details as Record<string, unknown> | null;
   return (
-    error instanceof AppGraphQLError &&
-    error.code === "BAD_USER_INPUT" &&
-    typeof error.details === "object" &&
-    error.details !== null &&
-    (error.details as { kind?: unknown }).kind === "MUST_VISIT_LIMIT_EXCEEDED"
+    typeof details === "object" &&
+    details !== null &&
+    typeof details.dayCount === "number" &&
+    typeof details.mustVisitCount === "number" &&
+    typeof details.limit === "number"
   );
 }
 
@@ -648,7 +654,10 @@ export default function NewRoutePage() {
       console.error(error);
       const aiQuotaMessage = resolveAiScheduleQuotaMessage(error);
       if (aiQuotaMessage) {
-        pushToast({ kind: "error", message: aiQuotaMessage });
+        pushToast({
+          kind: "error",
+          ...buildTrackedErrorToastContent("route_new_create", error, UI_COPY.routes.new.toast.error, aiQuotaMessage)
+        });
         return;
       }
       if (isMustVisitLimitExceededError(error)) {
@@ -656,7 +665,10 @@ export default function NewRoutePage() {
         setIsStyleStepMustVisitBlocked(true);
         pushToast({
           kind: "error",
-          message: (
+          ...buildTrackedErrorToastContent(
+            "route_new_create",
+            error,
+            UI_COPY.routes.new.toast.error,
             <>
               <span>{copy.title}</span>
               <br />
@@ -666,7 +678,10 @@ export default function NewRoutePage() {
         });
         return;
       }
-      pushToast({ kind: "error", message: UI_COPY.routes.new.toast.error });
+      pushToast({
+        kind: "error",
+        ...buildTrackedErrorToastContent("route_new_create", error, UI_COPY.routes.new.toast.error)
+      });
       router.push("/routes/recommendation?status=error");
     }
   });
@@ -737,7 +752,10 @@ export default function NewRoutePage() {
           ? error.message
           : resolveImportErrorMessage(error, UI_COPY.routes.new.toast.addedStayError);
       setGoogleStayUrlError(message);
-      pushToast({ kind: "error", message });
+      pushToast({
+        kind: "error",
+        ...buildTrackedErrorToastContent("route_new_add_stay", error, UI_COPY.routes.new.toast.addedStayError, message)
+      });
     }
   });
 
